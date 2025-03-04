@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
-import { Mail, Lock, CircleUserRound } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 interface SignInFormData {
   email: string;
@@ -59,7 +59,7 @@ export const SignIn = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Mail className="h-4 w-4" />
               Email
@@ -88,7 +88,7 @@ export const SignIn = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Password
@@ -115,7 +115,7 @@ export const SignIn = () => {
             className="w-full text-sm sm:text-base"
             disabled={loading}
           >
-            {loading ? <Spinner className="mr-2" /> : null}
+            {loading ? <Spinner /> : null}
             {loading ? "Signing In..." : "Sign In"}
           </Button>
         </form>

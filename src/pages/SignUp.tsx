@@ -54,7 +54,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Mail className="h-4 w-4" />
               Email
@@ -83,7 +83,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Password
@@ -112,7 +112,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Confirm Password
