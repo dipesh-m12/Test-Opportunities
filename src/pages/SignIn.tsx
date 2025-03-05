@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface SignInFormData {
   email: string;
@@ -158,9 +158,9 @@ export const SignIn = () => {
         {/* Sign-Up Link */}
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a href="/sign-up" className="text-blue-600 hover:underline">
+          <Link to="/sign-up" className="text-blue-600 hover:underline">
             Sign Up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

@@ -190,7 +190,7 @@ const ManageJobs = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
           <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 scale-100">
             <div className="text-center space-y-4">
-              <h2 className="text-2xl font-bold text-red-700">Delete Job</h2>
+              <h2 className="text-2xl font-bold ">Delete Job</h2>
               <p className="text-sm text-gray-700">
                 Are you sure you want to delete this job?{" "}
                 <span className="font-semibold text-red-600">
