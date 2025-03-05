@@ -10,7 +10,6 @@ import {
   Trash2,
   Clock,
   Users,
-  // DollarSign,
   IndianRupee,
   PlusCircle,
 } from "lucide-react";
@@ -21,6 +20,8 @@ const ManageJobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
   const loadJobs = async () => {
     try {
@@ -41,8 +42,26 @@ const ManageJobs = () => {
     try {
       await api.jobs.delete(jobId);
       setJobs(jobs.filter((job) => job.id !== jobId));
+      setIsModalOpen(false);
+      setJobToDelete(null);
     } catch (error) {
       console.error("Error deleting job:", error);
+    }
+  };
+
+  const openDeleteModal = (jobId: string) => {
+    setJobToDelete(jobId);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setJobToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (jobToDelete) {
+      deleteJob(jobToDelete);
     }
   };
 
@@ -118,7 +137,6 @@ const ManageJobs = () => {
                         </div>
                         <div className="flex items-center space-x-1">
                           <IndianRupee className="h-4 w-4" />
-
                           <span>
                             <span className="font-medium">
                               INR {job.salary_min.toLocaleString()} -{" "}
@@ -129,7 +147,6 @@ const ManageJobs = () => {
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2">
-                      {/* View Applicants button */}
                       <button
                         className="flex items-center justify-center px-4 py-2 text-sm rounded-md bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
                         onClick={() => viewApplicants(job.id)}
@@ -137,8 +154,6 @@ const ManageJobs = () => {
                         <Eye className="mr-2 h-4 w-4 text-blue-600" />
                         View Applicants
                       </button>
-
-                      {/* Edit button */}
                       <button
                         className="flex items-center justify-center px-4 py-2 text-sm rounded-md bg-gray-50 text-gray-800 border border-gray-200 hover:bg-gray-100 transition-colors"
                         onClick={() => editJob(job.id)}
@@ -146,18 +161,15 @@ const ManageJobs = () => {
                         <Edit className="mr-2 h-4 w-4 text-gray-800" />
                         Edit
                       </button>
-
-                      {/* Delete button */}
                       <button
                         className="flex items-center justify-center px-4 py-2 text-sm rounded-md bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
-                        onClick={() => deleteJob(job.id)}
+                        onClick={() => openDeleteModal(job.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         Delete
                       </button>
                     </div>
                   </div>
-
                   <div className="mt-4 flex flex-wrap gap-2 text-sm">
                     <Badge variant="secondary">{job.type}</Badge>
                     <Badge variant="secondary">{job.location}</Badge>
@@ -172,6 +184,38 @@ const ManageJobs = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Fixed Delete Confirmation Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-6 transform transition-all duration-300 scale-100">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-bold text-red-700">Delete Job</h2>
+              <p className="text-sm text-gray-700">
+                Are you sure you want to delete this job?{" "}
+                <span className="font-semibold text-red-600">
+                  All applications associated with this job will be permanently
+                  deleted.
+                </span>
+              </p>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-800 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-800 bg-red-100 border border-red-800 rounded-md hover:bg-red-200 hover:border-red-900 transition-colors"
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

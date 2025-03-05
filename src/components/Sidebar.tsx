@@ -1,6 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Briefcase, Settings, PlusCircle, Menu, X } from "lucide-react";
+import {
+  Home,
+  Briefcase,
+  Settings,
+  PlusCircle,
+  Menu,
+  X,
+  LogOut,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -9,6 +17,7 @@ const navItems = [
   { icon: Briefcase, label: "Manage Jobs", path: "/manage-jobs" },
   // { icon: Award, label: 'Leaderboard', path: '/leaderboard' },
   { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: LogOut, label: "Logout", path: "/sign-in" },
 ];
 
 export const Sidebar = () => {
@@ -37,6 +46,7 @@ export const Sidebar = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+            const isLogout = item.label === "Logout";
 
             return (
               <Link
@@ -45,9 +55,13 @@ export const Sidebar = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                  isActive
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  isLogout
+                    ? isActive
+                      ? "bg-red-100 text-red-700" // Active Logout: slightly darker red
+                      : "bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700" // Inactive Logout: light red
+                    : isActive
+                    ? "bg-blue-50 text-blue-600" // Active non-Logout items
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900" // Inactive non-Logout items
                 )}
               >
                 <Icon className="mr-3 h-5 w-5" />
