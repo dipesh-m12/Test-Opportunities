@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { Mail, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface SignUpFormData {
   email: string;
@@ -153,9 +154,9 @@ export const SignUp = () => {
         {/* Sign-In Link */}
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="/sign-in" className="text-blue-600 hover:underline">
+          <Link to="/sign-in" className="text-blue-600 hover:underline">
             Sign In
-          </a>
+          </Link>
         </p>
       </div>
     </div>
