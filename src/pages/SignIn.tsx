@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+
 interface SignInFormData {
   email: string;
   password: string;
@@ -17,12 +19,14 @@ export const SignIn = () => {
     formState: { errors },
   } = useForm<SignInFormData>();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onSubmit = async (data: SignInFormData) => {
     setLoading(true);
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
+      navigate("/");
       console.log("SignIn data:", data);
     } catch (error) {
       console.error("SignIn error:", error);
@@ -41,8 +45,10 @@ export const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6 sm:space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 ">
+      {/* Card Container */}
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 space-y-6 sm:space-y-8">
+        {/* Header */}
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Sign In
@@ -51,6 +57,8 @@ export const SignIn = () => {
             Welcome back! Please sign in to your account
           </p>
         </div>
+
+        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 sm:space-y-6"
@@ -59,7 +67,7 @@ export const SignIn = () => {
           <div>
             <label
               htmlFor="email"
-              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Mail className="h-4 w-4" />
               Email
@@ -88,7 +96,7 @@ export const SignIn = () => {
           <div>
             <label
               htmlFor="password"
-              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Password
@@ -120,20 +128,22 @@ export const SignIn = () => {
           </Button>
         </form>
 
-        {/* Continue with Google */}
+        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-xs sm:text-sm">
-            <span className="bg-gray-100 px-2 text-gray-500">
+            <span className="bg-white px-2 text-gray-500">
               Or continue with
             </span>
           </div>
         </div>
-        <Button
-          variant="outline"
-          className="w-full  text-sm sm:text-base flex items-center justify-center gap-2"
+
+        {/* Google Sign-In Button */}
+        <button
+          type="button"
+          className="w-full text-sm sm:text-base flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 bg-white text-gray-700   transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
@@ -143,11 +153,12 @@ export const SignIn = () => {
             <FcGoogle className="h-4 w-4 sm:h-5 sm:w-5" />
           )}
           {loading ? "Loading..." : "Google"}
-        </Button>
+        </button>
 
+        {/* Sign-Up Link */}
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a href="/signup" className="text-blue-600 hover:underline">
+          <a href="/sign-up" className="text-blue-600 hover:underline">
             Sign Up
           </a>
         </p>

@@ -20,9 +20,9 @@ function App() {
           <Route path="/candidates/:jobId" element={<Candidates />} />
           {/* <Route path="/leaderboard" element={<Leaderboard />} /> */}
           <Route path="/settings" element={<Settings />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
         </Route>
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
       </Routes>
     </Router>
   );

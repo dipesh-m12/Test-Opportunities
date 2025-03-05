@@ -37,7 +37,9 @@ export const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6 sm:space-y-8">
+      {/* Card Container */}
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 space-y-6 sm:space-y-8">
+        {/* Header */}
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Sign Up
@@ -46,6 +48,8 @@ export const SignUp = () => {
             Create your account to get started
           </p>
         </div>
+
+        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 sm:space-y-6"
@@ -54,7 +58,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="email"
-              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Mail className="h-4 w-4" />
               Email
@@ -83,7 +87,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="password"
-              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Password
@@ -112,7 +116,7 @@ export const SignUp = () => {
           <div>
             <label
               htmlFor="confirmPassword"
-              className=" text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Lock className="h-4 w-4" />
               Confirm Password
@@ -145,9 +149,11 @@ export const SignUp = () => {
             {loading ? "Signing Up..." : "Sign Up"}
           </Button>
         </form>
+
+        {/* Sign-In Link */}
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="/signin" className="text-blue-600 hover:underline">
+          <a href="/sign-in" className="text-blue-600 hover:underline">
             Sign In
           </a>
         </p>

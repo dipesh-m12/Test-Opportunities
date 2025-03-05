@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -15,13 +16,10 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { api } from "@/lib/api";
-import type { Database } from "@/types/supabase";
-
-type Job = Database["public"]["Tables"]["jobs"]["Row"];
 
 const ManageJobs = () => {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadJobs = async () => {
