@@ -506,7 +506,10 @@ export const Candidates = () => {
           const topSkills = getTopSkills(candidate.skills);
 
           return (
-            <Card key={candidate.id} className="w-full">
+            <Card
+              key={candidate.id}
+              className="max-w-[21rem] mx-auto sm:mx-0 sm:max-w-full"
+            >
               <CardContent className="p-3 sm:p-4">
                 <div className="space-y-4">
                   {/* Section 1: Name, Rank, Links, Actions */}
