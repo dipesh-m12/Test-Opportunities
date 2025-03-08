@@ -66,7 +66,7 @@ const ManageJobs = () => {
   };
 
   const editJob = (jobId: string) => {
-    navigate(`/post-job?edit=${jobId}`);
+    navigate(`/post-job?edit=${jobId}`, { state: { isEditing: true } });
   };
 
   const viewApplicants = (jobId: string) => {
@@ -136,7 +136,7 @@ const ManageJobs = () => {
                           <span>View Applicants</span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <IndianRupee className="h-4 w-4" />
+                          {/* <IndianRupee className="h-4 w-4" /> */}
                           <span>
                             <span className="font-medium">
                               INR {job.salary_min.toLocaleString()} -{" "}

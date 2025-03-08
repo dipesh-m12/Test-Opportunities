@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css"; // Import the styles
+import { Textarea } from "@/components/ui/Textarea";
 
 interface JobFormData {
   title: string;
@@ -75,15 +77,46 @@ export const PostJob = () => {
     defaultValues: {
       requiredSkills: [],
       preferredSkills: [],
+      description: "",
     },
   });
   const navigate = useNavigate();
   const jobType = watch("type");
   const location = watch("location");
+  const description = watch("description");
   const needsCity = location === "on-site" || location === "hybrid";
   const [requiredSkills, setRequiredSkills] = React.useState<string[]>([]);
   const [preferredSkills, setPreferredSkills] = React.useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const location_state = useLocation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  let data = location_state.state;
+
+  useEffect(() => {
+    if (data && data.isEditing) {
+      setIsEditing(data.isEditing);
+    }
+  }, [data]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value) {
+      const filteredSuggestions = techJobSuggestions.filter((job) =>
+        job.toLowerCase().includes(value.toLowerCase())
+      );
+      setTitleSuggestions(filteredSuggestions);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleTitleSelect = (suggestion: string) => {
+    setValue("title", suggestion, { shouldValidate: true });
+    setShowSuggestions(false);
+  };
 
   const onSubmit = async (data: JobFormData) => {
     setLoading(true);
@@ -130,6 +163,23 @@ export const PostJob = () => {
     }
   };
 
+  const handleDescriptionChange = (value: string) => {
+    if (value.replace(/<[^>]*>/g, "").length <= 1000) {
+      setValue("description", value, { shouldValidate: true });
+    }
+  };
+
+  // Quill modules configuration
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"],
+    ],
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -141,98 +191,134 @@ export const PostJob = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div>
+            <div className="w-full md:w-1/2 relative">
               <label
                 htmlFor="title"
                 className="block text-sm font-medium text-gray-700"
               >
                 Job Title
               </label>
-              <Input
-                id="title"
-                placeholder="e.g. Senior Frontend Developer"
-                {...register("title", { required: "Job title is required" })}
-                error={errors.title?.message}
-                list="tech-jobs"
-                className="w-full"
-              />
-              <datalist id="tech-jobs">
-                {techJobSuggestions.map((job) => (
-                  <option key={job} value={job} />
-                ))}
-              </datalist>
+              <div className="relative">
+                <Input
+                  id="title"
+                  placeholder="e.g. Senior Frontend Developer"
+                  {...register("title", { required: "Job title is required" })}
+                  onChange={handleTitleChange}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowSuggestions(false), 200)
+                  }
+                  error={errors.title?.message}
+                  className="w-full pr-8"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
+              </div>
+              {showSuggestions && titleSuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {titleSuggestions.map((suggestion) => (
+                    <div
+                      key={suggestion}
+                      className="px-4 py-2 cursor-pointer hover:bg-blue-500 hover:text-white"
+                      onMouseDown={() => handleTitleSelect(suggestion)}
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="w-1/2">
-              <label
-                htmlFor="status"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Job Status
-              </label>
-              <Select
-                id="status"
-                options={jobStatuses}
-                {...register("status", { required: "Job status is required" })}
-                error={errors.status?.message}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-6">
+            {isEditing && (
               <div className="w-1/2">
                 <label
-                  htmlFor="type"
+                  htmlFor="status"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Job Type
+                  Job Status
                 </label>
                 <Select
-                  id="type"
-                  options={jobTypes}
-                  {...register("type", { required: "Job type is required" })}
-                  error={errors.type?.message}
+                  id="status"
+                  options={jobStatuses}
+                  {...register("status", {
+                    required: "Job status is required",
+                  })}
+                  error={errors.status?.message}
                   className="w-full"
                 />
               </div>
+            )}
 
-              <div className="flex items-end gap-4">
-                <div className="w-1/2">
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                <div className="w-full md:w-1/3">
                   <label
-                    htmlFor="location"
+                    htmlFor="type"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Location
+                    Job Type
                   </label>
                   <Select
-                    id="location"
-                    options={locations}
-                    {...register("location", {
-                      required: "Location is required",
-                    })}
-                    error={errors.location?.message}
+                    id="type"
+                    options={jobTypes}
+                    {...register("type", { required: "Job type is required" })}
+                    error={errors.type?.message}
                     className="w-full"
                   />
                 </div>
-                {needsCity && (
+
+                <div className="w-full md:w-2/3 flex flex-row space-x-4">
                   <div className="w-1/2">
                     <label
-                      htmlFor="city"
+                      htmlFor="location"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      City
+                      Location
                     </label>
-                    <Input
-                      id="city"
-                      placeholder="e.g. Bangalore"
-                      {...register("city", {
-                        required: "City is required for on-site/hybrid jobs",
+                    <Select
+                      id="location"
+                      options={locations}
+                      {...register("location", {
+                        required: "Location is required",
                       })}
-                      error={errors.city?.message}
+                      error={errors.location?.message}
                       className="w-full"
                     />
                   </div>
-                )}
+
+                  {needsCity && (
+                    <div className="w-1/2">
+                      <label
+                        htmlFor="city"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        City
+                      </label>
+                      <Input
+                        id="city"
+                        placeholder="e.g. Bangalore"
+                        {...register("city", {
+                          required: "City is required for on-site/hybrid jobs",
+                        })}
+                        error={errors.city?.message}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -318,17 +404,25 @@ export const PostJob = () => {
                 htmlFor="description"
                 className="block text-sm font-medium text-gray-700"
               >
-                Job Description
+                Job Description (max 1000 characters)
               </label>
-              <Textarea
-                id="description"
-                rows={6}
+              <ReactQuill
+                theme="snow"
+                value={description}
+                onChange={handleDescriptionChange}
+                modules={modules}
                 placeholder="Describe the role and responsibilities..."
-                {...register("description", {
-                  required: "Job description is required",
-                })}
-                error={errors.description?.message}
+                className="h-48 mb-12" // Added mb-12 to account for toolbar height
               />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description.message}
+                </p>
+              )}
+              <p className="text-sm text-gray-500 mt-1">
+                {description?.replace(/<[^>]*>/g, "").length || 0}/1000
+                characters
+              </p>
             </div>
 
             <div>
@@ -479,13 +573,15 @@ export const PostJob = () => {
             </div>
 
             <div className="flex justify-end space-x-4">
-              <Button
-                variant="outline"
-                type="button"
-                className="hover:text-white"
-              >
-                Save as Draft
-              </Button>
+              {!isEditing && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="hover:text-white"
+                >
+                  Save as Draft
+                </Button>
+              )}
               <Button type="submit" disabled={loading || isSubmitting}>
                 {loading || isSubmitting ? <Spinner /> : "Publish Job"}
               </Button>

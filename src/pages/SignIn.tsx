@@ -45,14 +45,19 @@ export const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 ">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+      {/* Header Outside Card */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 mb-6 sm:mb-8">
+        Inovact Opportunities
+      </h1>
+
       {/* Card Container */}
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 space-y-6 sm:space-y-8">
-        {/* Header */}
+        {/* Subheader */}
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Sign In
-          </h1>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Recruiter Sign In
+          </h2>
           <p className="mt-2 text-sm text-gray-600">
             Welcome back! Please sign in to your account
           </p>
@@ -124,7 +129,7 @@ export const SignIn = () => {
             disabled={loading}
           >
             {loading ? <Spinner /> : null}
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? "Signing In..." : "Recruiter Sign In"}
           </Button>
         </form>
 
@@ -143,7 +148,7 @@ export const SignIn = () => {
         {/* Google Sign-In Button */}
         <button
           type="button"
-          className="w-full text-sm sm:text-base flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 bg-white text-gray-700   transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full text-sm sm:text-base flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 bg-white text-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >

@@ -349,6 +349,7 @@ export const Candidates = () => {
   const candidatesForJob = candidatesData[jobId] || [];
 
   const statusOptions = [
+    { value: "assign_status", label: "Assign status" },
     { value: "new", label: "New" },
     { value: "shortlisted", label: "Shortlisted" },
     { value: "interviewing", label: "Interviewing" },
@@ -428,585 +429,587 @@ export const Candidates = () => {
   };
 
   return (
-    <div className="space-y-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="space-y-3">
-        <div className="flex flex-col gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="bg-slate-700 hover:bg-slate-800 text-white w-28"
-            onClick={() => navigate("/manage-jobs")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div className="space-y-1 text-center sm:text-left">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-              Candidates for {currentJob.title}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-500">
-              {currentJob.type} · {currentJob.location} · INR{" "}
-              {currentJob.salary.min.toLocaleString()} -{" "}
-              {currentJob.salary.max.toLocaleString()}
-            </p>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500">
-              {filteredCandidates.length} candidate
-              {filteredCandidates.length !== 1 ? "s" : ""} found
-            </p>
+    <>
+      <Button
+        size="sm"
+        className="bg-blue-600 hover:bg-blue-800 text-white w-28"
+        onClick={() => navigate("/manage-jobs")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+      <div className="space-y-4 mt-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-hidden">
+        {/* Header */}
+
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3">
+            <div className="space-y-1 text-center sm:text-left">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                Candidates for {currentJob.title}
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500">
+                {currentJob.type} · {currentJob.location} · INR{" "}
+                {currentJob.salary.min.toLocaleString()} -{" "}
+                {currentJob.salary.max.toLocaleString()}
+              </p>
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                {filteredCandidates.length} candidate
+                {filteredCandidates.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
+            {skillFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant={skillFilter === filter.value ? "primary" : "outline"}
+                size="sm"
+                onClick={() => toggleFilter("skill", filter.value)}
+                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
+                  skillFilter === filter.value
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
+                }`}
+              >
+                {filter.label}
+              </Button>
+            ))}
+            {statusFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant={statusFilter === filter.value ? "primary" : "outline"}
+                size="sm"
+                onClick={() => toggleFilter("status", filter.value)}
+                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
+                  statusFilter === filter.value
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
+                }`}
+              >
+                {filter.label}
+              </Button>
+            ))}
           </div>
         </div>
-        <div className="flex flex-wrap justify-center sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
-          {skillFilters.map((filter) => (
-            <Button
-              key={filter.value}
-              variant={skillFilter === filter.value ? "primary" : "outline"}
-              size="sm"
-              onClick={() => toggleFilter("skill", filter.value)}
-              className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
-                skillFilter === filter.value
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
-              }`}
-            >
-              {filter.label}
-            </Button>
-          ))}
-          {statusFilters.map((filter) => (
-            <Button
-              key={filter.value}
-              variant={statusFilter === filter.value ? "primary" : "outline"}
-              size="sm"
-              onClick={() => toggleFilter("status", filter.value)}
-              className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
-                statusFilter === filter.value
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
-              }`}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
-      </div>
 
-      {/* Candidate Cards */}
-      <div className="grid gap-4">
-        {filteredCandidates.map((candidate: any, index: any) => {
-          const skillMatch = calculateSkillMatch(
-            [
-              ...candidate.skills.languages,
-              ...candidate.skills.frameworks,
-              ...candidate.skills.databases,
-              ...candidate.skills.tools,
-            ],
-            currentJob.requiredSkills,
-            currentJob.preferredSkills
-          );
-          const topSkills = getTopSkills(candidate.skills);
+        {/* Candidate Cards */}
+        <div className="grid gap-4">
+          {filteredCandidates.map((candidate: any, index: any) => {
+            const skillMatch = calculateSkillMatch(
+              [
+                ...candidate.skills.languages,
+                ...candidate.skills.frameworks,
+                ...candidate.skills.databases,
+                ...candidate.skills.tools,
+              ],
+              currentJob.requiredSkills,
+              currentJob.preferredSkills
+            );
+            const topSkills = getTopSkills(candidate.skills);
 
-          return (
-            <Card
-              key={candidate.id}
-              className="max-w-[21rem] mx-auto sm:mx-0 sm:max-w-full"
-            >
-              <CardContent className="p-3 sm:p-4">
-                <div className="space-y-4">
-                  {/* Section 1: Name, Rank, Links, Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                    <div className="flex items-start space-x-3 w-full">
-                      <Avatar
-                        src={candidate.avatar}
-                        alt={candidate.name}
-                        fallback={candidate.name}
-                        size="md"
-                      />
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
-                          {candidate.name}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Rank #{index + 1}
-                        </p>
-                        <div className="text-xs sm:text-sm text-blue-600 font-medium truncate">
-                          Applying for: {candidate.applyingFor}
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
-                          <a
-                            href={`https://github.com/${candidate.githubUsername}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-1 hover:text-gray-700"
-                          >
-                            <Github className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span className="truncate">
-                              {candidate.githubUsername}
-                            </span>
-                          </a>
-                          <a
-                            href={candidate.linkedinUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-1 hover:text-gray-700"
-                          >
-                            <Linkedin className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>LinkedIn</span>
-                          </a>
-                          <a
-                            href={candidate.linkedinUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-1 hover:text-gray-700"
-                          >
-                            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>Inovact</span>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                      <div className="w-full sm:w-28">
-                        <Select
-                          options={statusOptions}
-                          defaultValue={candidate.status}
-                          onValueChange={(value: any) =>
-                            updateCandidateStatus(candidate.id, value)
-                          }
+            return (
+              <Card
+                key={candidate.id}
+                className="max-w-[21rem] mx-auto sm:mx-0 sm:max-w-full"
+              >
+                <CardContent className="p-3 sm:p-4">
+                  <div className="space-y-4">
+                    {/* Section 1: Name, Rank, Links, Actions */}
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="flex items-start space-x-3 w-full">
+                        <Avatar
+                          src={candidate.avatar}
+                          alt={candidate.name}
+                          fallback={candidate.name}
+                          size="md"
                         />
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full sm:w-20 text-xs sm:text-sm hover:text-white"
-                        onClick={() =>
-                          setSelectedCandidate(
-                            selectedCandidate === candidate.id
-                              ? null
-                              : candidate.id
-                          )
-                        }
-                      >
-                        {selectedCandidate === candidate.id ? "Hide" : "View"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="w-full sm:w-28 text-xs sm:text-sm"
-                        onClick={() => scheduleInterview(candidate.id)}
-                      >
-                        <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                        Schedule
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Section 2: Skills and Fit */}
-                  <div className="border-t pt-3 flex flex-col lg:flex-row gap-4">
-                    <div className="flex-1 space-y-3">
-                      <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                        Top Skills
-                      </h4>
-                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                        {topSkills.map((skill) => (
-                          <Badge
-                            key={skill}
-                            variant="default"
-                            className="text-xs sm:text-sm font-medium"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                              Required Skills Match
-                            </h4>
-                            <span className="text-xs sm:text-sm font-medium text-gray-900">
-                              {Math.round(skillMatch.required.percentage)}%
-                            </span>
+                        <div className=" flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
+                            {candidate.name}
+                          </h3>
+                          <p className="text-xs text-gray-500">
+                            Rank #{index + 1}
+                          </p>
+                          <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1">
+                            Applying for: {candidate.applyingFor}
                           </div>
-                          <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                            {currentJob.requiredSkills.map((skill: any) => {
-                              const isMatched =
-                                skillMatch.required.matched.includes(skill);
-                              return (
-                                <div
-                                  key={skill}
-                                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                                    isMatched
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}
-                                >
-                                  {isMatched ? (
-                                    <CheckCircle2 className="h-3 w-3" />
-                                  ) : (
-                                    <XCircle className="h-3 w-3" />
-                                  )}
-                                  {skill}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                              Preferred Skills Match
-                            </h4>
-                            <span className="text-xs sm:text-sm font-medium text-gray-900">
-                              {Math.round(skillMatch.preferred.percentage)}%
-                            </span>
-                          </div>
-                          <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                            {currentJob.preferredSkills.map((skill: any) => {
-                              const isMatched =
-                                skillMatch.preferred.matched.includes(skill);
-                              return (
-                                <div
-                                  key={skill}
-                                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                                    isMatched
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}
-                                >
-                                  {isMatched ? (
-                                    <CheckCircle2 className="h-3 w-3" />
-                                  ) : (
-                                    <XCircle className="h-3 w-3" />
-                                  )}
-                                  {skill}
-                                </div>
-                              );
-                            })}
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                            <a
+                              href={`https://github.com/${candidate.githubUsername}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-1 hover:text-gray-700"
+                            >
+                              <Github className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span className="truncate">
+                                {candidate.githubUsername}
+                              </span>
+                            </a>
+                            <a
+                              href={candidate.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-1 hover:text-gray-700"
+                            >
+                              <Linkedin className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span>LinkedIn</span>
+                            </a>
+                            <a
+                              href={candidate.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center space-x-1 hover:text-gray-700"
+                            >
+                              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span>Inovact</span>
+                            </a>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="lg:w-60">
-                      <div
-                        className={`rounded-lg p-3 ${skillMatch.recommendation.color}`}
-                      >
-                        <h4 className="font-medium text-sm sm:text-base">
-                          {skillMatch.recommendation.label}
-                        </h4>
-                        <p className="mt-1 text-xs sm:text-sm">
-                          {skillMatch.recommendation.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Extended View */}
-                  {selectedCandidate === candidate.id && (
-                    <div className="mt-4 space-y-4 border-t pt-4">
-                      {/* Section 3: Languages and Assignment/Inovact */}
-                      <div className="flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 space-y-3">
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Programming Languages
-                          </h4>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {candidate.skills.languages.map((lang: any) => (
-                              <Badge
-                                key={lang}
-                                variant="default"
-                                className="text-xs sm:text-sm"
-                              >
-                                {lang}
-                              </Badge>
-                            ))}
-                          </div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Frameworks & Libraries
-                          </h4>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {candidate.skills.frameworks.map(
-                              (framework: any) => (
-                                <Badge
-                                  key={framework}
-                                  variant="default"
-                                  className="text-xs sm:text-sm"
-                                >
-                                  {framework}
-                                </Badge>
-                              )
-                            )}
-                          </div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Databases
-                          </h4>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {candidate.skills.databases.map((db: any) => (
-                              <Badge
-                                key={db}
-                                variant="default"
-                                className="text-xs sm:text-sm"
-                              >
-                                {db}
-                              </Badge>
-                            ))}
-                          </div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Tools & Technologies
-                          </h4>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {candidate.skills.tools.map((tool: any) => (
-                              <Badge
-                                key={tool}
-                                variant="default"
-                                className="text-xs sm:text-sm"
-                              >
-                                {tool}
-                              </Badge>
-                            ))}
-                          </div>
+                      <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <div className="w-full sm:w-32">
+                          <Select
+                            options={statusOptions}
+                            defaultValue={candidate.status}
+                            onValueChange={(value: any) =>
+                              updateCandidateStatus(candidate.id, value)
+                            }
+                          />
                         </div>
-                        <div className="lg:w-60 space-y-3">
-                          <div className="rounded-lg bg-gray-50 p-3">
-                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                              Assignment Status
-                            </h4>
-                            <div className="mt-2 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">
-                                  Status
-                                </span>
-                                <Badge
-                                  variant={
-                                    candidate.assignmentStatus.submitted
-                                      ? "success"
-                                      : "warning"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {candidate.assignmentStatus.submitted
-                                    ? "Submitted"
-                                    : "Pending"}
-                                </Badge>
-                              </div>
-                              {candidate.assignmentStatus.submitted && (
-                                <>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Submitted
-                                    </span>
-                                    <span className="text-xs font-medium">
-                                      {new Date(
-                                        candidate.assignmentStatus.submittedAt
-                                      ).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Score
-                                    </span>
-                                    <span className="text-xs font-medium">
-                                      {candidate.assignmentStatus.score ??
-                                        "Pending Review"}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      GitHub
-                                    </span>
-                                    <a
-                                      href={`https://github.com/${candidate.githubUsername}/assignment`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-xs text-blue-600 hover:underline"
-                                    >
-                                      View
-                                    </a>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Live
-                                    </span>
-                                    <a
-                                      href={`https://${candidate.githubUsername}.github.io/assignment`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-xs text-blue-600 hover:underline"
-                                    >
-                                      View
-                                    </a>
-                                  </div>
-                                </>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">
-                                  Deadline
-                                </span>
-                                <span className="text-xs font-medium">
-                                  {new Date(
-                                    candidate.assignmentStatus.deadline
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="rounded-lg bg-blue-50 p-3">
-                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                              Inovact Score
-                            </h4>
-                            <div className="mt-2 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">
-                                  Assignment
-                                </span>
-                                <div className="flex items-center space-x-1">
-                                  <Code className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                  <span className="font-medium text-blue-600 text-xs sm:text-sm">
-                                    {candidate.inovactScore.technical}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">
-                                  Overall Score
-                                </span>
-                                <div className="flex items-center space-x-1">
-                                  <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                  <span className="text-sm sm:text-lg font-semibold text-blue-600">
-                                    {candidate.inovactScore.overall}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 4: Projects */}
-                      <div className="space-y-3">
-                        <h4 className="text-base sm:text-lg font-medium text-gray-900">
-                          Projects
-                        </h4>
-                        <div className="grid gap-3">
-                          {candidate.projects.map(
-                            (project: any, index: any) => (
-                              <div
-                                key={index}
-                                className="rounded-lg border p-3"
-                              >
-                                <div className="space-y-2">
-                                  <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                                    <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                                      {project.name}
-                                    </h5>
-                                    <div className="flex space-x-2">
-                                      <a
-                                        href={project.repoUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-gray-500 hover:text-gray-700"
-                                      >
-                                        <Github className="h-4 w-4 sm:h-5 sm:w-5" />
-                                      </a>
-                                      <a
-                                        href={project.liveUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-gray-500 hover:text-gray-700"
-                                      >
-                                        <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                      </a>
-                                    </div>
-                                  </div>
-                                  <p className="text-xs sm:text-sm text-gray-600">
-                                    {project.description}
-                                  </p>
-                                  <div className="space-y-1">
-                                    <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                      Key Highlights:
-                                    </h6>
-                                    <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                                      {project.highlights.map(
-                                        (highlight: any, i: any) => (
-                                          <li key={i}>{highlight}</li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {project.technologies.map((tech: any) => (
-                                      <Badge
-                                        key={tech}
-                                        variant="secondary"
-                                        className="text-xs"
-                                      >
-                                        {tech}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                  <div className="text-xs text-gray-500 text-right">
-                                    Code Quality: 85%
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Section 5: Review Stats */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <div className="text-xs font-medium text-gray-500">
-                            Commits
-                          </div>
-                          <div className="mt-1 text-base font-semibold text-gray-900">
-                            {candidate.githubStats.commits}
-                          </div>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <div className="text-xs font-medium text-gray-500">
-                            Contributions
-                          </div>
-                          <div className="mt-1 text-base font-semibold text-gray-900">
-                            {candidate.githubStats.contributions}
-                          </div>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 p-2">
-                          <div className="text-xs font-medium text-gray-500">
-                            Code Quality
-                          </div>
-                          <div className="mt-1 text-base font-semibold text-gray-900">
-                            {candidate.githubStats.codeQuality}%
-                          </div>
-                        </div>
-                        <div className="rounded-lg bg-blue-50 p-2">
-                          <div className="text-xs font-medium text-blue-600">
-                            Overall Score
-                          </div>
-                          <div className="mt-1 text-base font-semibold text-blue-600">
-                            {calculateGitHubScore(candidate.githubStats)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Close Button */}
-                      <div className="flex justify-end">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="hover:text-white w-full sm:w-24 text-xs sm:text-sm"
-                          onClick={() => setSelectedCandidate(null)}
+                          className="w-full sm:w-20 text-xs sm:text-sm hover:text-white"
+                          onClick={() =>
+                            setSelectedCandidate(
+                              selectedCandidate === candidate.id
+                                ? null
+                                : candidate.id
+                            )
+                          }
                         >
-                          Close
+                          {selectedCandidate === candidate.id ? "Hide" : "View"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="w-full sm:w-28 text-xs sm:text-sm"
+                          onClick={() => scheduleInterview(candidate.id)}
+                        >
+                          <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                          Schedule
                         </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+
+                    {/* Section 2: Skills and Fit */}
+                    <div className="border-t pt-3 flex flex-col lg:flex-row gap-4">
+                      <div className="flex-1 space-y-3">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                          Top Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
+                          {topSkills.map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="default"
+                              className="text-xs sm:text-sm font-medium"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                Required Skills Match
+                              </h4>
+                              <span className="text-xs sm:text-sm font-medium text-gray-900">
+                                {Math.round(skillMatch.required.percentage)}%
+                              </span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
+                              {currentJob.requiredSkills.map((skill: any) => {
+                                const isMatched =
+                                  skillMatch.required.matched.includes(skill);
+                                return (
+                                  <div
+                                    key={skill}
+                                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                      isMatched
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {isMatched ? (
+                                      <CheckCircle2 className="h-3 w-3" />
+                                    ) : (
+                                      <XCircle className="h-3 w-3" />
+                                    )}
+                                    {skill}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                Preferred Skills Match
+                              </h4>
+                              <span className="text-xs sm:text-sm font-medium text-gray-900">
+                                {Math.round(skillMatch.preferred.percentage)}%
+                              </span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
+                              {currentJob.preferredSkills.map((skill: any) => {
+                                const isMatched =
+                                  skillMatch.preferred.matched.includes(skill);
+                                return (
+                                  <div
+                                    key={skill}
+                                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                      isMatched
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {isMatched ? (
+                                      <CheckCircle2 className="h-3 w-3" />
+                                    ) : (
+                                      <XCircle className="h-3 w-3" />
+                                    )}
+                                    {skill}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="lg:w-60">
+                        <div
+                          className={`rounded-lg p-3 ${skillMatch.recommendation.color}`}
+                        >
+                          <h4 className="font-medium text-sm sm:text-base">
+                            {skillMatch.recommendation.label}
+                          </h4>
+                          <p className="mt-1 text-xs sm:text-sm">
+                            {skillMatch.recommendation.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Extended View */}
+                    {selectedCandidate === candidate.id && (
+                      <div className="mt-4 space-y-4 border-t pt-4">
+                        {/* Section 3: Languages and Assignment/Inovact */}
+                        <div className="flex flex-col lg:flex-row gap-4">
+                          <div className="flex-1 space-y-3">
+                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                              Programming Languages
+                            </h4>
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
+                              {candidate.skills.languages.map((lang: any) => (
+                                <Badge
+                                  key={lang}
+                                  variant="default"
+                                  className="text-xs sm:text-sm"
+                                >
+                                  {lang}
+                                </Badge>
+                              ))}
+                            </div>
+                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                              Frameworks & Libraries
+                            </h4>
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
+                              {candidate.skills.frameworks.map(
+                                (framework: any) => (
+                                  <Badge
+                                    key={framework}
+                                    variant="default"
+                                    className="text-xs sm:text-sm"
+                                  >
+                                    {framework}
+                                  </Badge>
+                                )
+                              )}
+                            </div>
+                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                              Databases
+                            </h4>
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
+                              {candidate.skills.databases.map((db: any) => (
+                                <Badge
+                                  key={db}
+                                  variant="default"
+                                  className="text-xs sm:text-sm"
+                                >
+                                  {db}
+                                </Badge>
+                              ))}
+                            </div>
+                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                              Tools & Technologies
+                            </h4>
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
+                              {candidate.skills.tools.map((tool: any) => (
+                                <Badge
+                                  key={tool}
+                                  variant="default"
+                                  className="text-xs sm:text-sm"
+                                >
+                                  {tool}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="lg:w-60 space-y-3">
+                            <div className="rounded-lg bg-gray-50 p-3">
+                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                Assignment Status
+                              </h4>
+                              <div className="mt-2 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">
+                                    Status
+                                  </span>
+                                  <Badge
+                                    variant={
+                                      candidate.assignmentStatus.submitted
+                                        ? "success"
+                                        : "warning"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {candidate.assignmentStatus.submitted
+                                      ? "Submitted"
+                                      : "Pending"}
+                                  </Badge>
+                                </div>
+                                {candidate.assignmentStatus.submitted && (
+                                  <>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        Submitted
+                                      </span>
+                                      <span className="text-xs font-medium">
+                                        {new Date(
+                                          candidate.assignmentStatus.submittedAt
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        Score
+                                      </span>
+                                      <span className="text-xs font-medium">
+                                        {candidate.assignmentStatus.score ??
+                                          "Pending Review"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        GitHub
+                                      </span>
+                                      <a
+                                        href={`https://github.com/${candidate.githubUsername}/assignment`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 hover:underline"
+                                      >
+                                        View
+                                      </a>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        Live
+                                      </span>
+                                      <a
+                                        href={`https://${candidate.githubUsername}.github.io/assignment`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 hover:underline"
+                                      >
+                                        View
+                                      </a>
+                                    </div>
+                                  </>
+                                )}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">
+                                    Deadline
+                                  </span>
+                                  <span className="text-xs font-medium">
+                                    {new Date(
+                                      candidate.assignmentStatus.deadline
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-blue-50 p-3">
+                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                Inovact Score
+                              </h4>
+                              <div className="mt-2 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">
+                                    Assignment
+                                  </span>
+                                  <div className="flex items-center space-x-1">
+                                    <Code className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                                    <span className="font-medium text-blue-600 text-xs sm:text-sm">
+                                      {candidate.inovactScore.technical}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-600">
+                                    Overall Score
+                                  </span>
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                                    <span className="text-sm sm:text-lg font-semibold text-blue-600">
+                                      {candidate.inovactScore.overall}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 4: Projects */}
+                        <div className="space-y-3">
+                          <h4 className="text-base sm:text-lg font-medium text-gray-900">
+                            Projects
+                          </h4>
+                          <div className="grid gap-3">
+                            {candidate.projects.map(
+                              (project: any, index: any) => (
+                                <div
+                                  key={index}
+                                  className="rounded-lg border p-3"
+                                >
+                                  <div className="space-y-2">
+                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                      <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                        {project.name}
+                                      </h5>
+                                      <div className="flex space-x-2">
+                                        <a
+                                          href={project.repoUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-gray-700"
+                                        >
+                                          <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                                        </a>
+                                        <a
+                                          href={project.liveUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-500 hover:text-gray-700"
+                                        >
+                                          <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-gray-600">
+                                      {project.description}
+                                    </p>
+                                    <div className="space-y-1">
+                                      <h6 className="text-xs sm:text-sm font-medium text-gray-700">
+                                        Key Highlights:
+                                      </h6>
+                                      <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
+                                        {project.highlights.map(
+                                          (highlight: any, i: any) => (
+                                            <li key={i}>{highlight}</li>
+                                          )
+                                        )}
+                                      </ul>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                      {project.technologies.map((tech: any) => (
+                                        <Badge
+                                          key={tech}
+                                          variant="secondary"
+                                          className="text-xs"
+                                        >
+                                          {tech}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                    <div className="text-xs text-gray-500 text-right">
+                                      Code Quality: 85%
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Section 5: Review Stats */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                          <div className="rounded-lg bg-gray-50 p-2">
+                            <div className="text-xs font-medium text-gray-500">
+                              Commits
+                            </div>
+                            <div className="mt-1 text-base font-semibold text-gray-900">
+                              {candidate.githubStats.commits}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-gray-50 p-2">
+                            <div className="text-xs font-medium text-gray-500">
+                              Contributions
+                            </div>
+                            <div className="mt-1 text-base font-semibold text-gray-900">
+                              {candidate.githubStats.contributions}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-gray-50 p-2">
+                            <div className="text-xs font-medium text-gray-500">
+                              Code Quality
+                            </div>
+                            <div className="mt-1 text-base font-semibold text-gray-900">
+                              {candidate.githubStats.codeQuality}%
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-blue-50 p-2">
+                            <div className="text-xs font-medium text-blue-600">
+                              Overall Score
+                            </div>
+                            <div className="mt-1 text-base font-semibold text-blue-600">
+                              {calculateGitHubScore(candidate.githubStats)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Close Button */}
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="hover:text-white w-full sm:w-24 text-xs sm:text-sm"
+                            onClick={() => setSelectedCandidate(null)}
+                          >
+                            Close View
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 };

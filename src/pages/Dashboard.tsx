@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -23,7 +22,13 @@ export const Dashboard = () => {
       route: "/manage-jobs",
       filter: "active",
     },
-    { label: "Total Candidates", value: 48, icon: Users, route: "#" },
+    {
+      label: "Total Candidates",
+      value: 48,
+      icon: Users,
+      route: "/manage-jobs",
+      filter: "all",
+    },
     {
       label: "Shortlisted",
       value: 16,

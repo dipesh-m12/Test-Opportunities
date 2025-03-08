@@ -37,16 +37,21 @@ export const SignUp = () => {
   const password = watch("password");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
+      {/* Header Outside Card */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 mb-6 sm:mb-8">
+        Inovact Opportunities
+      </h1>
+
       {/* Card Container */}
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 space-y-6 sm:space-y-8">
-        {/* Header */}
+        {/* Subheader */}
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Sign Up
-          </h1>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Recruiter Sign Up
+          </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Create your account to get started
+            Create your recruiter account to get started
           </p>
         </div>
 
@@ -147,7 +152,7 @@ export const SignUp = () => {
             disabled={loading}
           >
             {loading ? <Spinner /> : null}
-            {loading ? "Signing Up..." : "Sign Up"}
+            {loading ? "Signing Up..." : "Recruiter Sign Up"}
           </Button>
         </form>
 
