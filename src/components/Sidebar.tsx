@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Added useNavigate
 import {
   Home,
   Briefcase,
@@ -15,14 +15,30 @@ const navItems = [
   { icon: Home, label: "Dashboard", path: "/" },
   { icon: PlusCircle, label: "Post a Job", path: "/post-job" },
   { icon: Briefcase, label: "Manage Jobs", path: "/manage-jobs" },
-  // { icon: Award, label: 'Leaderboard', path: '/leaderboard' },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOut, label: "Logout", path: "/sign-in" },
 ];
 
 export const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // For navigation after logout confirmation
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+
+  const handleLogoutClick = (e) => {
+    e.preventDefault(); // Prevent default Link behavior
+    setIsLogoutModalOpen(true); // Show modal
+  };
+
+  const confirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate("/sign-in"); // Navigate to sign-in page
+  };
+
+  const cancelLogout = () => {
+    setIsLogoutModalOpen(false); // Just close the modal
+  };
 
   return (
     <>
@@ -52,16 +68,20 @@ export const Sidebar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={
+                  isLogout
+                    ? handleLogoutClick
+                    : () => setIsMobileMenuOpen(false)
+                }
                 className={cn(
                   "flex items-center px-3 py-2 text-sm font-medium rounded-md",
                   isLogout
                     ? isActive
-                      ? "bg-red-100 text-red-700" // Active Logout: slightly darker red
-                      : "bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700" // Inactive Logout: light red
+                      ? "bg-red-100 text-red-700"
+                      : "bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                     : isActive
-                    ? "bg-blue-50 text-blue-600" // Active non-Logout items
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900" // Inactive non-Logout items
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 )}
               >
                 <Icon className="mr-3 h-5 w-5" />
@@ -80,6 +100,34 @@ export const Sidebar = () => {
           <Menu className="h-6 w-6" />
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Are you sure you want to logout?
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              You will need to sign in again to access your dashboard.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelLogout}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

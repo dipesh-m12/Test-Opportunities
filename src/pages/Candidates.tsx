@@ -432,7 +432,7 @@ export const Candidates = () => {
     <>
       <Button
         size="sm"
-        className="bg-blue-600 hover:bg-blue-800 text-white w-28"
+        className="bg-blue-600 px-2 sm: justify-start hover:bg-blue-800 text-white w-24 sm:w-24"
         onClick={() => navigate("/manage-jobs")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -568,6 +568,9 @@ export const Candidates = () => {
                       </div>
                       <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <div className="w-full sm:w-32">
+                          <span className="text-center hidden  sm:block text-xs  text-gray-700 mb-1">
+                            Assign Status
+                          </span>
                           <Select
                             options={statusOptions}
                             defaultValue={candidate.status}
@@ -579,7 +582,7 @@ export const Candidates = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full sm:w-20 text-xs sm:text-sm hover:text-white"
+                          className="w-full sm:w-20 sm:mt-5 text-xs sm:text-sm hover:text-white"
                           onClick={() =>
                             setSelectedCandidate(
                               selectedCandidate === candidate.id
@@ -592,7 +595,7 @@ export const Candidates = () => {
                         </Button>
                         <Button
                           size="sm"
-                          className="w-full sm:w-28 text-xs sm:text-sm"
+                          className="w-full sm:w-28 sm:mt-5 text-xs sm:text-sm"
                           onClick={() => scheduleInterview(candidate.id)}
                         >
                           <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />

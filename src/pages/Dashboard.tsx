@@ -102,11 +102,11 @@ export const Dashboard = () => {
           <CardTitle>Recent Applications</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center">
             {recentApplications.map((application) => (
               <div
                 key={application.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0"
+                className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0 w-full max-w-md sm:max-w-lg lg:max-w-xl"
               >
                 <div className="flex items-center space-x-4 min-w-0">
                   <Avatar

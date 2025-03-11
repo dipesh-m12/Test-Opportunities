@@ -7,7 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // Import the styles
+import "react-quill/dist/quill.snow.css";
 import { Textarea } from "@/components/ui/Textarea";
 
 interface JobFormData {
@@ -120,7 +120,6 @@ export const PostJob = () => {
 
   const onSubmit = async (data: JobFormData) => {
     setLoading(true);
-    // Add submission logic here
     setTimeout(() => setLoading(false), 2000); // Simulate async operation
   };
 
@@ -169,7 +168,6 @@ export const PostJob = () => {
     }
   };
 
-  // Quill modules configuration
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -194,7 +192,7 @@ export const PostJob = () => {
             <div className="w-full md:w-1/2 relative">
               <label
                 htmlFor="title"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Job Title
               </label>
@@ -209,23 +207,8 @@ export const PostJob = () => {
                     setTimeout(() => setShowSuggestions(false), 200)
                   }
                   error={errors.title?.message}
-                  className="w-full pr-8"
+                  className="w-full appearance-none"
                 />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
               </div>
               {showSuggestions && titleSuggestions.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -246,7 +229,7 @@ export const PostJob = () => {
               <div className="w-1/2">
                 <label
                   htmlFor="status"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Job Status
                 </label>
@@ -267,7 +250,7 @@ export const PostJob = () => {
                 <div className="w-full md:w-1/3">
                   <label
                     htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Job Type
                   </label>
@@ -284,7 +267,7 @@ export const PostJob = () => {
                   <div className="w-1/2">
                     <label
                       htmlFor="location"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 mb-2"
                     >
                       Location
                     </label>
@@ -303,7 +286,7 @@ export const PostJob = () => {
                     <div className="w-1/2">
                       <label
                         htmlFor="city"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 mb-2"
                       >
                         City
                       </label>
@@ -314,7 +297,7 @@ export const PostJob = () => {
                           required: "City is required for on-site/hybrid jobs",
                         })}
                         error={errors.city?.message}
-                        className="w-full"
+                        className="w-full appearance-none"
                       />
                     </div>
                   )}
@@ -327,7 +310,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="stipend"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Monthly Stipend{" "}
                     <span className="hidden sm:inline-block">(INR)</span>
@@ -346,7 +329,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="duration"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Duration
                   </label>
@@ -365,7 +348,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="salaryMin"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Minimum Salary (INR/year)
                   </label>
@@ -382,7 +365,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="salaryMax"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Maximum Salary (INR/year)
                   </label>
@@ -402,7 +385,7 @@ export const PostJob = () => {
             <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Job Description (max 1000 characters)
               </label>
@@ -412,7 +395,7 @@ export const PostJob = () => {
                 onChange={handleDescriptionChange}
                 modules={modules}
                 placeholder="Describe the role and responsibilities..."
-                className="h-48 mb-12" // Added mb-12 to account for toolbar height
+                className="h-48 mb-12"
               />
               {errors.description && (
                 <p className="text-red-500 text-sm mt-1">
@@ -426,7 +409,7 @@ export const PostJob = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Required Skills (max 5, at least 1)
               </label>
               <Input
@@ -460,7 +443,7 @@ export const PostJob = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preferred Skills (max 5, at least 1)
               </label>
               <Input
@@ -502,7 +485,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="assignmentDescription"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Assignment Description
                   </label>
@@ -519,7 +502,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="assignmentFile"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Attach Assignment File (PDF)
                   </label>
@@ -539,7 +522,7 @@ export const PostJob = () => {
                 <div>
                   <label
                     htmlFor="assignmentDeadline"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Assignment Deadline
                   </label>
@@ -558,7 +541,7 @@ export const PostJob = () => {
             <div>
               <label
                 htmlFor="applicationDeadline"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Application Deadline
               </label>
