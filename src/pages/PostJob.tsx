@@ -66,6 +66,19 @@ const techJobSuggestions = [
   "Machine Learning Engineer",
 ];
 
+const indianCities = [
+  "Bangalore",
+  "Mumbai",
+  "Delhi",
+  "Hyderabad",
+  "Chennai",
+  "Pune",
+  "Kolkata",
+  "Ahmedabad",
+  "Jaipur",
+  "Gurgaon",
+];
+
 export const PostJob = () => {
   const {
     register,
@@ -91,7 +104,9 @@ export const PostJob = () => {
   const location_state = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   let data = location_state.state;
 
   useEffect(() => {
@@ -107,15 +122,33 @@ export const PostJob = () => {
         job.toLowerCase().includes(value.toLowerCase())
       );
       setTitleSuggestions(filteredSuggestions);
-      setShowSuggestions(true);
+      setShowTitleSuggestions(true);
     } else {
-      setShowSuggestions(false);
+      setShowTitleSuggestions(false);
     }
   };
 
   const handleTitleSelect = (suggestion: string) => {
     setValue("title", suggestion, { shouldValidate: true });
-    setShowSuggestions(false);
+    setShowTitleSuggestions(false);
+  };
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value) {
+      const filteredSuggestions = indianCities.filter((city) =>
+        city.toLowerCase().includes(value.toLowerCase())
+      );
+      setCitySuggestions(filteredSuggestions);
+      setShowCitySuggestions(true);
+    } else {
+      setShowCitySuggestions(false);
+    }
+  };
+
+  const handleCitySelect = (suggestion: string) => {
+    setValue("city", suggestion, { shouldValidate: true });
+    setShowCitySuggestions(false);
   };
 
   const onSubmit = async (data: JobFormData) => {
@@ -202,15 +235,16 @@ export const PostJob = () => {
                   placeholder="e.g. Senior Frontend Developer"
                   {...register("title", { required: "Job title is required" })}
                   onChange={handleTitleChange}
-                  onFocus={() => setShowSuggestions(true)}
+                  onFocus={() => setShowTitleSuggestions(true)}
                   onBlur={() =>
-                    setTimeout(() => setShowSuggestions(false), 200)
+                    setTimeout(() => setShowTitleSuggestions(false), 200)
                   }
                   error={errors.title?.message}
                   className="w-full appearance-none"
+                  autoComplete="off" // Disable browser autocomplete for title
                 />
               </div>
-              {showSuggestions && titleSuggestions.length > 0 && (
+              {showTitleSuggestions && titleSuggestions.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                   {titleSuggestions.map((suggestion) => (
                     <div
@@ -283,22 +317,44 @@ export const PostJob = () => {
                   </div>
 
                   {needsCity && (
-                    <div className="w-1/2">
+                    <div className="w-1/2 relative">
                       <label
                         htmlFor="city"
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
                         City
                       </label>
-                      <Input
-                        id="city"
-                        placeholder="e.g. Bangalore"
-                        {...register("city", {
-                          required: "City is required for on-site/hybrid jobs",
-                        })}
-                        error={errors.city?.message}
-                        className="w-full appearance-none"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="city"
+                          placeholder="e.g. Bangalore"
+                          {...register("city", {
+                            required:
+                              "City is required for on-site/hybrid jobs",
+                          })}
+                          onChange={handleCityChange}
+                          onFocus={() => setShowCitySuggestions(true)}
+                          onBlur={() =>
+                            setTimeout(() => setShowCitySuggestions(false), 200)
+                          }
+                          error={errors.city?.message}
+                          className="w-full appearance-none"
+                          autoComplete="off" // Disable browser autocomplete for city
+                        />
+                      </div>
+                      {showCitySuggestions && citySuggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {citySuggestions.map((suggestion) => (
+                            <div
+                              key={suggestion}
+                              className="px-4 py-2 cursor-pointer hover:bg-blue-500 hover:text-white"
+                              onMouseDown={() => handleCitySelect(suggestion)}
+                            >
+                              {suggestion}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

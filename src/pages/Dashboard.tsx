@@ -102,7 +102,7 @@ export const Dashboard = () => {
           <CardTitle>Recent Applications</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 flex flex-col items-center">
+          <div className="space-y-4 flex flex-col items-start">
             {recentApplications.map((application) => (
               <div
                 key={application.id}

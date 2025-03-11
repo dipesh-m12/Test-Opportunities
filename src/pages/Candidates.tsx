@@ -568,7 +568,7 @@ export const Candidates = () => {
                       </div>
                       <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <div className="w-full sm:w-32">
-                          <span className="text-center hidden  sm:block text-xs  text-gray-700 mb-1">
+                          <span className="text-center hidden sm:block text-xs text-gray-700 mb-1 font-bold">
                             Assign Status
                           </span>
                           <Select
