@@ -28,6 +28,7 @@ interface JobFormData {
     description: string;
     deadline: string;
     file?: File[];
+    submissionPreferences: string[]; // New field for submission preferences
   };
   applicationDeadline: string;
   duration?: string;
@@ -79,6 +80,13 @@ const indianCities = [
   "Gurgaon",
 ];
 
+// Define submission preference options
+const submissionPreferencesOptions = [
+  { value: "github", label: "GitHub Repo of the Assignment" },
+  { value: "liveLink", label: "Live Link of the Assignment" },
+  { value: "documentation", label: "Documentation" },
+];
+
 export const PostJob = () => {
   const {
     register,
@@ -91,6 +99,9 @@ export const PostJob = () => {
       requiredSkills: [],
       preferredSkills: [],
       description: "",
+      assignment: {
+        submissionPreferences: [], // Initialize with empty array
+      },
     },
   });
   const navigate = useNavigate();
@@ -241,7 +252,7 @@ export const PostJob = () => {
                   }
                   error={errors.title?.message}
                   className="w-full appearance-none"
-                  autoComplete="off" // Disable browser autocomplete for title
+                  autoComplete="off"
                 />
               </div>
               {showTitleSuggestions && titleSuggestions.length > 0 && (
@@ -339,7 +350,7 @@ export const PostJob = () => {
                           }
                           error={errors.city?.message}
                           className="w-full appearance-none"
-                          autoComplete="off" // Disable browser autocomplete for city
+                          autoComplete="off"
                         />
                       </div>
                       {showCitySuggestions && citySuggestions.length > 0 && (
@@ -590,6 +601,38 @@ export const PostJob = () => {
                     })}
                     error={errors.assignment?.deadline?.message}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Submission Preference (select at least one)
+                  </label>
+                  <div className="space-y-2">
+                    {submissionPreferencesOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        className="flex items-center space-x-2"
+                      >
+                        <input
+                          type="checkbox"
+                          value={option.value}
+                          {...register("assignment.submissionPreferences", {
+                            validate: (value) =>
+                              value.length > 0 ||
+                              "At least one submission preference is required",
+                          })}
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {option.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {errors.assignment?.submissionPreferences && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.assignment.submissionPreferences.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
