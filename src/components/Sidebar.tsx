@@ -10,6 +10,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { token } from "@/utils";
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -33,6 +34,7 @@ export const Sidebar = () => {
   const confirmLogout = () => {
     setIsLogoutModalOpen(false);
     setIsMobileMenuOpen(false);
+    localStorage.removeItem(token);
     navigate("/sign-in"); // Navigate to sign-in page
   };
 

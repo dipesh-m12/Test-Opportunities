@@ -6,6 +6,14 @@ import { Spinner } from "@/components/ui/Spinner";
 import { Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../utils/firebaseConfig"; // Adjust path as needed
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { token } from "@/utils";
+import toast, { Toaster } from "react-hot-toast";
 
 interface SignInFormData {
   email: string;
@@ -24,64 +32,105 @@ export const SignIn = () => {
   const onSubmit = async (data: SignInFormData) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Attempting sign-in with:", data.email);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+
+      const idToken = await userCredential.user.getIdToken();
+      localStorage.setItem(token, idToken);
+
+      console.log("Email Sign-In Success:", {
+        email: userCredential.user.email,
+        idToken: idToken,
+      });
+
+      toast.success("Successfully signed in!");
       navigate("/");
-      console.log("SignIn data:", data);
-    } catch (error) {
-      console.error("SignIn error:", error);
+    } catch (error: any) {
+      console.error("Email Sign-In Error:", error.message);
+      switch (error.code) {
+        case "auth/invalid-credential":
+          toast.error("Invalid email or password");
+          break;
+        case "auth/user-not-found":
+          toast.error("No account found with this email");
+          break;
+        case "auth/wrong-password":
+          toast.error("Incorrect password");
+          break;
+        case "auth/too-many-requests":
+          toast.error("Too many attempts. Try again later");
+          break;
+        default:
+          toast.error("Sign-in failed. Please try again");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setLoading(true);
-    // Simulate Google OAuth redirect
-    setTimeout(() => {
-      console.log("Continue with Google");
+    const provider = new GoogleAuthProvider();
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      const idToken = await userCredential.user.getIdToken();
+      const {
+        user: { email, displayName },
+      } = userCredential;
+
+      console.log("Google Sign-In Success:", { email, displayName, idToken });
+      localStorage.setItem(token, idToken);
+
+      toast.success("Signed in with Google!");
+      navigate("/");
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error.message);
+      toast.error("Failed to sign in with Google");
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      {/* Header Outside Card */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 mb-6 sm:mb-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8 sm:px-6 lg:px-8">
+      {/* Toaster for notifications */}
+      <Toaster position="top-center" reverseOrder={false} />
+
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 mb-6 sm:mb-8 text-center">
         Inovact Opportunities
       </h1>
 
-      {/* Card Container */}
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8 space-y-6 sm:space-y-8">
-        {/* Subheader */}
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8 space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
             Recruiter Sign In
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-xs sm:text-sm text-gray-600">
             Welcome back! Please sign in to your account
           </p>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 sm:space-y-6"
         >
-          {/* Email Field */}
           <div>
             <label
               htmlFor="email"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2"
             >
-              <Mail className="h-4 w-4" />
+              <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
               Email
             </label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="mt-1 w-full"
+              className="mt-1 w-full text-sm sm:text-base"
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -97,22 +146,25 @@ export const SignIn = () => {
             )}
           </div>
 
-          {/* Password Field */}
           <div>
             <label
               htmlFor="password"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2"
             >
-              <Lock className="h-4 w-4" />
+              <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
               Password
             </label>
             <Input
               id="password"
               type="password"
               placeholder="••••••••"
-              className="mt-1 w-full"
+              className="mt-1 w-full text-sm sm:text-base"
               {...register("password", {
                 required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
               })}
             />
             {errors.password && (
@@ -122,7 +174,6 @@ export const SignIn = () => {
             )}
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
             className="w-full text-sm sm:text-base"
@@ -133,7 +184,6 @@ export const SignIn = () => {
           </Button>
         </form>
 
-        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
@@ -145,7 +195,6 @@ export const SignIn = () => {
           </div>
         </div>
 
-        {/* Google Sign-In Button */}
         <button
           type="button"
           className="w-full text-sm sm:text-base flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 bg-white text-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -160,7 +209,6 @@ export const SignIn = () => {
           {loading ? "Loading..." : "Google"}
         </button>
 
-        {/* Sign-Up Link */}
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Don’t have an account?{" "}
           <Link to="/sign-up" className="text-blue-600 hover:underline">
