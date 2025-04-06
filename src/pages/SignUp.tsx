@@ -58,7 +58,7 @@ export const SignUp = () => {
       );
 
       // Navigate to home/dashboard after successful signup
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error: any) {
       console.error("SignUp Error:", error.message);
       switch (error.code) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; // Added useNavigate
 import {
@@ -13,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { token } from "@/utils";
 
 const navItems = [
-  { icon: Home, label: "Dashboard", path: "/" },
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: PlusCircle, label: "Post a Job", path: "/post-job" },
   { icon: Briefcase, label: "Manage Jobs", path: "/manage-jobs" },
   { icon: Settings, label: "Settings", path: "/settings" },
@@ -26,7 +27,7 @@ export const Sidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
 
-  const handleLogoutClick = (e) => {
+  const handleLogoutClick = (e: any) => {
     e.preventDefault(); // Prevent default Link behavior
     setIsLogoutModalOpen(true); // Show modal
   };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
@@ -48,7 +49,7 @@ export const SignIn = () => {
       });
 
       toast.success("Successfully signed in!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Email Sign-In Error:", error.message);
       switch (error.code) {
@@ -86,7 +87,7 @@ export const SignIn = () => {
       localStorage.setItem(token, idToken);
 
       toast.success("Signed in with Google!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Google Sign-In Error:", error.message);
       toast.error("Failed to sign in with Google");
