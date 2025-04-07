@@ -41,12 +41,14 @@ export default function Home() {
     email: "",
     companyName: "",
     companySize: "",
+    linkedIn: "",
   });
   const [formErrors, setFormErrors] = useState({
     name: "",
     email: "",
     companyName: "",
     companySize: "",
+    linkedIn: "",
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
 
@@ -99,6 +101,11 @@ export default function Home() {
       isValid = false;
     }
 
+    if (!formData.linkedIn.trim()) {
+      newErrors.linkedIn = "Linkedin is required";
+      isValid = false;
+    }
+
     setFormErrors(newErrors);
     return isValid;
   };
@@ -130,6 +137,7 @@ export default function Home() {
               companyName :${formData.companyName}
               email: ${formData.email}
               companySize: ${formData.companySize}
+              linkedIn: ${formData.linkedIn}
             `,
             },
             "5bG7oTqyWUlj9dOIg"
@@ -147,6 +155,7 @@ export default function Home() {
           email: "",
           companyName: "",
           companySize: "",
+          linkedIn: "",
         });
       }
 
@@ -164,12 +173,33 @@ export default function Home() {
           <Link to="/" className="text-2xl font-bold text-blue-600">
             Inovact Opportunities
           </Link>
-          <div className="sm:flex items-center space-x-4 hidden ">
+          <div className="flex items-center space-x-4">
+            {/* Desktop version (hidden on mobile) */}
             <Link
               to="/sign-in"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              className="hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
               Get Started
+            </Link>
+            {/* Mobile version (hidden on desktop) */}
+            <Link
+              to="/sign-in"
+              className="sm:hidden p-2 inline-block rounded-full bg-white border-2 border-blue-600 text-blue-600 font-medium transition-all duration-300 hover:bg-blue-50 active:scale-95 group"
+            >
+              <svg
+                className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           </div>
         </div>
@@ -253,423 +283,6 @@ export default function Home() {
               <div>
                 <div className="text-3xl font-bold">90%</div>
                 <div className="text-sm">Candidate Match Rate</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Better Hiring Decisions */}
-        <section className="py-20 px-6" id="features">
-          <div className="container mx-auto max-w-6xl">
-            <div className="flex sm:justify-center justify-start">
-              <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6">
-                <Zap className="h-4 w-4 mr-2" />
-                <span>Game-Changing Features</span>
-              </div>
-            </div>
-            <h2 className="text-4xl font-bold mb-6 sm:text-center text-left">
-              Make{" "}
-              <span className="text-blue-600">better hiring decisions</span>{" "}
-              faster
-            </h2>
-            <p className="text-xl text-gray-600 mb-16 text-left sm:text-center">
-              Traditional hiring is broken:{" "}
-              <span className="font-semibold">
-                74% of companies report making bad hires
-              </span>
-              .
-              <br />
-              Our platform eliminates the guesswork with data-driven talent
-              matching.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Proof of Work-Based Hiring
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Replace subjective resume evaluations with objective project
-                  assessments.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Average time-to-hire reduced by 40%
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <GitBranch className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Intelligent GitHub Integration
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Our AI analyzes real code contributions and matches them to
-                  your job requirements.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    93% higher accuracy than keyword matching
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Code className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Advanced Code Quality Analysis
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Get detailed insights on code quality, efficiency, and best
-                  practices adoption.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Identifies top performers with 89% accuracy
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 4 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <CheckSquare className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Custom Technical Assessments
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Evaluate hands-on skills with customized tasks relevant to
-                  your specific needs.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Reduces screening interviews by 65%
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 5 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Calendar className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Streamlined Interview Process
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  One-click scheduling and integrated video interviews slash
-                  administrative time.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Saves 5+ hours per hire
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 6 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Enterprise-Ready Solution
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Scales effortlessly from startups to Fortune 500 companies
-                  with robust security.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    99.9% uptime guarantee
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Performance Comparison */}
-        <section className="py-20 px-6">
-          <div className="container mx-auto max-w-6xl">
-            <h2 className="text-2xl font-bold mb-8 text-center bg-blue-600 text-white py-4 rounded-t-lg">
-              Performance Comparison
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-b-lg overflow-hidden">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-6 py-4 text-left text-gray-700">
-                      Performance Metric
-                    </th>
-                    <th className="px-6 py-4 text-center text-gray-700">
-                      Traditional Methods
-                    </th>
-                    <th className="px-6 py-4 text-center text-gray-700">
-                      Other Platforms
-                    </th>
-                    <th className="px-6 py-4 text-center bg-blue-50 text-blue-700">
-                      Inovact Opportunities
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t">
-                    <td className="px-6 py-4 text-gray-700">
-                      Time to Screen 100 Candidates
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      ~40 hours
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      ~20 hours
-                    </td>
-                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
-                      ~5 hours
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="px-6 py-4 text-gray-700">
-                      Skill-Match Accuracy
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      ~50%
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      ~70%
-                    </td>
-                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
-                      90%+
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="px-6 py-4 text-gray-700">
-                      Interview Scheduling Time
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      24-48 hours
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      2-24 hours
-                    </td>
-                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
-                      Seconds
-                    </td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="px-6 py-4 text-gray-700">
-                      Candidate Quality Assessment
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      Subjective
-                    </td>
-                    <td className="px-6 py-4 text-center text-gray-700">
-                      Partially Objective
-                    </td>
-                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
-                      Data-Driven & Objective
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Cards */}
-        <section className="py-20 px-6">
-          <div className="container mx-auto max-w-6xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-3xl font-bold mb-2">50%</h3>
-                <h4 className="text-lg font-medium mb-3">
-                  Reduction in time-to-hire
-                </h4>
-                <p className="text-gray-600">
-                  Customers report cutting their hiring timeline in half with
-                  our platform.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-3xl font-bold mb-2">85%</h3>
-                <h4 className="text-lg font-medium mb-3">
-                  Higher candidate quality
-                </h4>
-                <p className="text-gray-600">
-                  Proof-based hiring consistently delivers better talent
-                  matches.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-3xl font-bold mb-2">30%</h3>
-                <h4 className="text-lg font-medium mb-3">
-                  Reduction in hiring costs
-                </h4>
-                <p className="text-gray-600">
-                  Less time spent on unqualified candidates means lower
-                  recruitment costs.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Why Choose Inovact */}
-        <section className="py-20 px-6 bg-blue-50">
-          <div className="container mx-auto max-w-6xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl font-bold mb-6">Why choose Inovact?</h2>
-                <p className="text-gray-600 mb-8">
-                  While other platforms focus on keyword matching, we analyze
-                  real-world programming skills and project contributions.
-                </p>
-                <ul className="space-y-4">
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      <Check className="h-5 w-5 text-green-500" />
-                    </div>
-                    <p className="ml-3 text-gray-700">
-                      Reduced hiring costs by an average of 35%
-                    </p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      <Check className="h-5 w-5 text-green-500" />
-                    </div>
-                    <p className="ml-3 text-gray-700">
-                      90% candidate match rate vs. 23% industry average
-                    </p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      <Check className="h-5 w-5 text-green-500" />
-                    </div>
-                    <p className="ml-3 text-gray-700">
-                      Eliminate unconscious bias in technical evaluation
-                    </p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      <Check className="h-5 w-5 text-green-500" />
-                    </div>
-                    <p className="ml-3 text-gray-700">
-                      Decrease time-to-hire by 47% on average
-                    </p>
-                  </li>
-                </ul>
-              </div>
-              <div className="bg-white p-8 rounded-xl shadow-sm">
-                <div className="text-center mb-6">
-                  <h3 className="text-5xl font-bold text-blue-600">3.2x</h3>
-                  <p className="text-xl font-medium mt-2">
-                    Return on Investment
-                  </p>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-                  <div className="bg-blue-600 h-4 rounded-full w-[80%]"></div>
-                </div>
-                <p className="text-gray-600 text-center">
-                  Based on average customer results after 6 months
-                </p>
               </div>
             </div>
           </div>
@@ -1010,6 +623,423 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Better Hiring Decisions */}
+        <section className="py-20 px-6" id="features">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex sm:justify-center justify-start">
+              <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6">
+                <Zap className="h-4 w-4 mr-2" />
+                <span>Game-Changing Features</span>
+              </div>
+            </div>
+            <h2 className="text-4xl font-bold mb-6 sm:text-center text-left">
+              Make{" "}
+              <span className="text-blue-600">better hiring decisions</span>{" "}
+              faster
+            </h2>
+            <p className="text-xl text-gray-600 mb-16 text-left sm:text-center">
+              Traditional hiring is broken:{" "}
+              <span className="font-semibold">
+                74% of companies report making bad hires
+              </span>
+              .
+              <br />
+              Our platform eliminates the guesswork with data-driven talent
+              matching.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <div className="bg-white p-8 rounded-xl  border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Proof of Work-Based Hiring
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  Replace subjective resume evaluations with objective project
+                  assessments.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    Average time-to-hire reduced by 40%
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <GitBranch className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Intelligent GitHub Integration
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  Our AI analyzes real code contributions and matches them to
+                  your job requirements.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    93% higher accuracy than keyword matching
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <Code className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Advanced Code Quality Analysis
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  Get detailed insights on code quality, efficiency, and best
+                  practices adoption.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    Identifies top performers with 89% accuracy
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <CheckSquare className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Custom Technical Assessments
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  Evaluate hands-on skills with customized tasks relevant to
+                  your specific needs.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    Reduces screening interviews by 65%
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <Calendar className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Streamlined Interview Process
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  One-click scheduling and integrated video interviews slash
+                  administrative time.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    Saves 5+ hours per hire
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  Enterprise-Ready Solution
+                </h3>
+                <p className="text-gray-600 mb-3">
+                  Scales effortlessly from startups to Fortune 500 companies
+                  with robust security.
+                  <span className="text-blue-600 font-medium">
+                    {" "}
+                    99.9% uptime guarantee
+                  </span>
+                  .
+                </p>
+                <Link
+                  to="#learn-more"
+                  className="text-blue-600 inline-flex items-center"
+                >
+                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Performance Comparison */}
+        <section className="py-20 px-6">
+          <div className="container mx-auto max-w-6xl">
+            <h2 className="text-2xl font-bold mb-8 text-center bg-blue-600 text-white py-4 rounded-t-lg">
+              Performance Comparison
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full bg-white rounded-b-lg overflow-hidden">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="px-6 py-4 text-left text-gray-700">
+                      Performance Metric
+                    </th>
+                    <th className="px-6 py-4 text-center text-gray-700">
+                      Traditional Methods
+                    </th>
+                    <th className="px-6 py-4 text-center text-gray-700">
+                      Other Platforms
+                    </th>
+                    <th className="px-6 py-4 text-center bg-blue-50 text-blue-700">
+                      Inovact Opportunities
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t">
+                    <td className="px-6 py-4 text-gray-700">
+                      Time to Screen 100 Candidates
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      ~40 hours
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      ~20 hours
+                    </td>
+                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
+                      ~5 hours
+                    </td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="px-6 py-4 text-gray-700">
+                      Skill-Match Accuracy
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      ~50%
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      ~70%
+                    </td>
+                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
+                      90%+
+                    </td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="px-6 py-4 text-gray-700">
+                      Interview Scheduling Time
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      24-48 hours
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      2-24 hours
+                    </td>
+                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
+                      Seconds
+                    </td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="px-6 py-4 text-gray-700">
+                      Candidate Quality Assessment
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      Subjective
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-700">
+                      Partially Objective
+                    </td>
+                    <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
+                      Data-Driven & Objective
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Cards */}
+        <section className="py-20 px-6">
+          <div className="container mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-bold mb-2">50%</h3>
+                <h4 className="text-lg font-medium mb-3">
+                  Reduction in time-to-hire
+                </h4>
+                <p className="text-gray-600">
+                  Customers report cutting their hiring timeline in half with
+                  our platform.
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-bold mb-2">85%</h3>
+                <h4 className="text-lg font-medium mb-3">
+                  Higher candidate quality
+                </h4>
+                <p className="text-gray-600">
+                  Proof-based hiring consistently delivers better talent
+                  matches.
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
+                <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-bold mb-2">30%</h3>
+                <h4 className="text-lg font-medium mb-3">
+                  Reduction in hiring costs
+                </h4>
+                <p className="text-gray-600">
+                  Less time spent on unqualified candidates means lower
+                  recruitment costs.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Choose Inovact */}
+        <section className="py-20 px-6 bg-blue-50">
+          <div className="container mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold mb-6">Why choose Inovact?</h2>
+                <p className="text-gray-600 mb-8">
+                  While other platforms focus on keyword matching, we analyze
+                  real-world programming skills and project contributions.
+                </p>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-500" />
+                    </div>
+                    <p className="ml-3 text-gray-700">
+                      Reduced hiring costs by an average of 35%
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-500" />
+                    </div>
+                    <p className="ml-3 text-gray-700">
+                      90% candidate match rate vs. 23% industry average
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-500" />
+                    </div>
+                    <p className="ml-3 text-gray-700">
+                      Eliminate unconscious bias in technical evaluation
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 mt-1">
+                      <Check className="h-5 w-5 text-green-500" />
+                    </div>
+                    <p className="ml-3 text-gray-700">
+                      Decrease time-to-hire by 47% on average
+                    </p>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-white p-8 rounded-xl shadow-sm">
+                <div className="text-center mb-6">
+                  <h3 className="text-5xl font-bold text-blue-600">3.2x</h3>
+                  <p className="text-xl font-medium mt-2">
+                    Return on Investment
+                  </p>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+                  <div className="bg-blue-600 h-4 rounded-full w-[80%]"></div>
+                </div>
+                <p className="text-gray-600 text-center">
+                  Based on average customer results after 6 months
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="container mx-auto max-w-4xl text-center">
@@ -1025,7 +1055,7 @@ export default function Home() {
                 onClick={() =>
                   secRef?.current?.scrollIntoView({ behavior: "smooth" })
                 }
-                className="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                className="cursor-pointer bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Join waitlist
               </span>
@@ -1050,7 +1080,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white p-8 md:p-10 rounded-xl shadow-sm">
+            <div className="bg-white p-8 px-4 md:p-10 rounded-xl shadow-sm">
               {formSubmitted ? (
                 <div className="text-center py-8">
                   <div className="inline-flex items-center justify-center bg-green-100 text-green-600 p-3 rounded-full mb-4">
@@ -1157,7 +1187,8 @@ export default function Home() {
                         formErrors.companySize
                           ? "border-red-500"
                           : "border-gray-300"
-                      } focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white`}
+                      } focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white appearance-none`}
+                      style={{ backgroundPosition: "right 1rem center" }}
                     >
                       <option value="">Select company size</option>
                       <option value="1-10">1-10 employees</option>
@@ -1170,6 +1201,34 @@ export default function Home() {
                     {formErrors.companySize && (
                       <p className="mt-1 text-sm text-red-500">
                         {formErrors.companySize}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="linkedinId"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      LinkedIn Profile URL{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="linkedinId"
+                      name="linkedIn"
+                      value={formData.linkedIn}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 rounded-lg border ${
+                        formErrors.linkedIn
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:outline-none focus:ring-2 focus:ring-blue-600`}
+                      placeholder="Enter your LinkedIn profile URL"
+                    />
+                    {formErrors.linkedIn && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {formErrors.linkedIn}
                       </p>
                     )}
                   </div>
