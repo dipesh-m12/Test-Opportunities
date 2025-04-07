@@ -1363,26 +1363,26 @@ export default function Home() {
             <p className="text-gray-400 text-sm">
               © 2023 Inovact Opportunities. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                to="#privacy"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="#terms"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                to="#cookies"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Cookie Policy
-              </Link>
-            </div>
+            {/* <div className="flex space-x-6 mt-4 md:mt-0"> */}
+            <Link
+              to="#privacy"
+              className="text-gray-400 hover:text-white text-sm transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="#terms"
+              className="text-gray-400 hover:text-white text-sm transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              to="#cookies"
+              className="text-gray-400 hover:text-white text-sm transition-colors"
+            >
+              Cookie Policy
+            </Link>
+            {/* </div> */}
           </div>
         </div>
       </footer>
