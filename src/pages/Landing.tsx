@@ -118,7 +118,8 @@ export default function Home() {
       try {
         console.log(1);
         setLoading(true);
-        await addDoc(requests, formData);
+        await addDoc(requests, { ...formData, time: new Date() });
+        //hello
         emailjs
           .send(
             "service_g3z66ko",
