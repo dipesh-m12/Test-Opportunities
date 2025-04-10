@@ -6,15 +6,11 @@ import { Link } from "react-router-dom";
 import {
   FileText,
   GitBranch,
-  Code,
   CheckSquare,
   Calendar,
-  Users,
   ArrowRight,
   Check,
-  Twitter,
   Linkedin,
-  Github,
   Mail,
   Phone,
   MapPin,
@@ -34,7 +30,7 @@ import screencandi from "../assets/screencandi.png";
 export default function Home() {
   const secRef = useRef<any>();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  // const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -166,6 +162,352 @@ export default function Home() {
     }
   };
 
+  const HowItWorksSection = () => {
+    const [activeTab, setActiveTab] = useState("dashboard");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    // Function to open modal with the clicked image
+    const openModal = (imageSrc: any) => {
+      setSelectedImage(imageSrc);
+      setIsModalOpen(true);
+    };
+
+    // Function to close modal
+    const closeModal = () => {
+      setIsModalOpen(false);
+      setSelectedImage(null);
+    };
+
+    return (
+      <section className="py-20 px-6" id="how-it-works">
+        <div className="container mx-auto max-w-6xl">
+          <h2 className="text-3xl font-bold mb-4 text-center">How It Works</h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-center">
+            Our Proof of work-based recruitment platform replaces traditional
+            résumés with real projects, eliminating guesswork and saving you
+            time.
+          </p>
+
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
+            <div className="flex border-b overflow-x-auto">
+              <button
+                className={`px-6 py-3 font-medium ${
+                  activeTab === "dashboard"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab("dashboard")}
+              >
+                Dashboard
+              </button>
+              <button
+                className={`px-6 py-3 font-medium ${
+                  activeTab === "postJobs"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab("postJobs")}
+              >
+                Post Jobs
+              </button>
+              <button
+                className={`px-6 py-3 font-medium ${
+                  activeTab === "screenCandidates"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab("screenCandidates")}
+              >
+                Screen Candidates
+              </button>
+              <button
+                className={`px-6 py-3 font-medium ${
+                  activeTab === "reviewProjects"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab("reviewProjects")}
+              >
+                Review Projects
+              </button>
+              <button
+                className={`px-6 py-3 font-medium ${
+                  activeTab === "manageJobs"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab("manageJobs")}
+              >
+                Manage Jobs
+              </button>
+            </div>
+            <div className="p-6">
+              {activeTab === "dashboard" && (
+                <div>
+                  <div className="text-left mb-6">
+                    <h3 className="text-xl font-bold mb-2">
+                      Recruiter Dashboard
+                    </h3>
+                    <p className="text-gray-600">
+                      Get a complete overview of your hiring process with active
+                      jobs, total candidates, and shortlisted profiles all in
+                      one place.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full">
+                      <img
+                        src={dashboard}
+                        alt="Dashboard Interface"
+                        className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                        onClick={() => openModal(dashboard)}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/3 space-y-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          View active jobs, total candidates, and shortlisted
+                          applicants at a glance
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Track recent applications in real-time with
+                          application status
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Quickly access shortlisted candidates and schedule
+                          interviews
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "postJobs" && (
+                <div>
+                  <div className="text-left mb-6">
+                    <h3 className="text-xl font-bold mb-2">Post Jobs</h3>
+                    <p className="text-gray-600">
+                      Create detailed job listings with skill requirements that
+                      our AI will use to match with candidate profiles and
+                      projects.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full">
+                      <img
+                        src={post}
+                        alt="Post Jobs Interface"
+                        className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                        onClick={() => openModal(post)}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/3 space-y-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Define technical requirements with precision using our
+                          skill taxonomy
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Set up custom technical assessments specific to your
+                          role
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "screenCandidates" && (
+                <div>
+                  <div className="text-left mb-6">
+                    <h3 className="text-xl font-bold mb-2">
+                      Screen Candidates
+                    </h3>
+                    <p className="text-gray-600">
+                      Our AI analyzes candidates' GitHub repositories and code
+                      to match them with your job requirements.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full">
+                      <img
+                        src={screencandi}
+                        alt="Screen Candidates Interface"
+                        className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                        onClick={() => openModal(screencandi)}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/3 space-y-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          AI-powered matching of candidate skills to job
+                          requirements
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Objective evaluation of code quality and
+                          problem-solving approach
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Eliminate bias with blind screening focused only on
+                          technical merit
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "reviewProjects" && (
+                <div>
+                  <div className="text-left mb-6">
+                    <h3 className="text-xl font-bold mb-2">Review Projects</h3>
+                    <p className="text-gray-600">
+                      Evaluate candidates based on their Proof of work and code
+                      contributions rather than just their resume claims.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full">
+                      <img
+                        src={projects}
+                        alt="Review Projects Interface"
+                        className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                        onClick={() => openModal(projects)}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/3 space-y-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Deep analysis of code structure, patterns, and best
+                          practices
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Compare candidate solutions to industry benchmarks
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Identify top performers based on actual coding ability
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "manageJobs" && (
+                <div>
+                  <div className="text-left mb-6">
+                    <h3 className="text-xl font-bold mb-2">Manage Jobs</h3>
+                    <p className="text-gray-600">
+                      Track the progress of all your open positions and manage
+                      the entire hiring pipeline efficiently.
+                    </p>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full">
+                      <img
+                        src={manage}
+                        alt="Manage Jobs Interface"
+                        className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                        onClick={() => openModal(manage)}
+                      />
+                    </div>
+                    <div className="w-full md:w-1/3 space-y-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          Centralized dashboard for all recruitment activities
+                        </p>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0 mt-1 text-blue-600">
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <p className="ml-2 text-gray-700">
+                          One-click scheduling for interviews with calendar
+                          integration
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Modal */}
+          {isModalOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+              onClick={closeModal}
+            >
+              <div
+                className="max-w-5xl w-full p-4"
+                onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the image container
+              >
+                <img
+                  src={selectedImage!}
+                  alt="Full-size preview"
+                  className="w-full h-auto rounded-lg"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="sticky top-0 z-50 bg-white border-b">
@@ -179,7 +521,7 @@ export default function Home() {
               to="/sign-in"
               className="hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
-              Get Started
+              Join waitlist
             </Link>
             {/* Mobile version (hidden on desktop) */}
             <Link
@@ -224,15 +566,22 @@ export default function Home() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 px-6">
+        <section className="py-16 md:py-24 md:pb-12 px-6">
           <div className="container mx-auto max-w-6xl justify-center items-center">
-            <div className=" flex justify-start sm:justify-center ">
-              <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6 ">
+            {/* Free for First 100 Recruiters - Minimalist Top Banner */}
+            <div className="text-center mb-8">
+              <span className="text-4xl md:text-5xl font-semibold text-blue-600 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
+                Free for First 100 Recruiters
+              </span>
+            </div>
+
+            <div className="flex justify-start sm:justify-center">
+              <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6">
                 <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
                 <span className="">Revolutionizing Tech Recruitment</span>
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto text-start sm:text-center">
               Stop hiring based on{" "}
               <span className="text-blue-600 underline decoration-2">
                 promises
@@ -245,10 +594,10 @@ export default function Home() {
               </span>
               .
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-4xl mx-auto">
+            <p className="text-sm sm:text-base text-start sm:text-center text-gray-600 mb-10 max-w-5xl mx-auto">
               <span className="font-semibold">90% of traditional hiring</span>{" "}
-              relies on unverified resumes. Our platform replaces empty claims
-              with real code, matching the{" "}
+              relies on unverified resumes. Inovact Opportunities replaces empty
+              claims with real code, matching the <br />
               <span className="font-semibold">right talent</span> to your needs
               with unparalleled accuracy.
             </p>
@@ -262,8 +611,8 @@ export default function Home() {
                 Join waitlist <ArrowRight className="ml-2 h-4 w-4" />
               </span>
               {/* <span className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
-                See Demo
-              </span> */}
+        See Demo
+      </span> */}
             </div>
           </div>
         </section>
@@ -273,30 +622,31 @@ export default function Home() {
           <div className="container mx-auto px-6 max-w-6xl">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div>
-                <div className="text-3xl font-bold">3x</div>
-                <div className="text-sm">Higher Quality Hires</div>
+                <div className="text-3xl sm:text-4xl font-bold">3x</div>
+                <div className="text-sm sm:text-base">Higher Quality Hires</div>
               </div>
               <div>
-                <div className="text-3xl font-bold">47%</div>
-                <div className="text-sm">Faster Time-to-Hire</div>
+                <div className="text-3xl sm:text-4xl font-bold">80%</div>
+                <div className="text-sm sm:text-base">Faster Time-to-Hire</div>
               </div>
               <div>
-                <div className="text-3xl font-bold">90%</div>
-                <div className="text-sm">Candidate Match Rate</div>
+                <div className="text-3xl sm:text-4xl font-bold">+ 40-50%</div>
+                <div className="text-sm sm:text-base">Candidate Match Rate</div>
               </div>
             </div>
           </div>
         </section>
 
         {/* How It Works */}
-        <section className="py-20 px-6" id="how-it-works">
+        {/* <section className="py-20 px-6" id="how-it-works">
           <div className="container mx-auto max-w-6xl">
             <h2 className="text-3xl font-bold mb-4 text-center">
               How It Works
             </h2>
-            <p className="text-gray-600 mb-12 max-w-3xl mx-auto text-center">
-              Our proof-based recruitment platform replaces traditional résumés
-              with real projects, eliminating guesswork and saving you time.
+            <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-center">
+              Our Proof of work-based recruitment platform replaces traditional
+              résumés with real projects, eliminating guesswork and saving you
+              time.
             </p>
 
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
@@ -366,16 +716,14 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/2">
+                      <div className="w-full">
                         <img
                           src={dashboard}
                           alt="Dashboard Interface"
-                          width={600}
-                          height={400}
-                          className="rounded-lg border border-gray-200"
+                          className="w-full rounded-lg border border-gray-200"
                         />
                       </div>
-                      <div className="w-full md:w-1/2 space-y-4">
+                      <div className="w-full md:w-1/3 space-y-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mt-1 text-blue-600">
                             <ArrowRight className="h-4 w-4" />
@@ -419,16 +767,14 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/2">
+                      <div className="w-full">
                         <img
                           src={post}
                           alt="Post Jobs Interface"
-                          width={600}
-                          height={400}
-                          className="rounded-lg border border-gray-200"
+                          className="w-full rounded-lg border border-gray-200"
                         />
                       </div>
-                      <div className="w-full md:w-1/2 space-y-4">
+                      <div className="w-full md:w-1/3 space-y-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mt-1 text-blue-600">
                             <ArrowRight className="h-4 w-4" />
@@ -447,15 +793,6 @@ export default function Home() {
                             role
                           </p>
                         </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Publish to your career page and popular job boards
-                            with one click
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -469,20 +806,18 @@ export default function Home() {
                       </h3>
                       <p className="text-gray-600">
                         Our AI analyzes candidates' GitHub repositories and code
-                        samples to match them with your job requirements.
+                        to match them with your job requirements.
                       </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/2">
+                      <div className="w-full">
                         <img
                           src={screencandi}
                           alt="Screen Candidates Interface"
-                          width={600}
-                          height={400}
-                          className="rounded-lg border border-gray-200"
+                          className="w-full rounded-lg border border-gray-200"
                         />
                       </div>
-                      <div className="w-full md:w-1/2 space-y-4">
+                      <div className="w-full md:w-1/3 space-y-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mt-1 text-blue-600">
                             <ArrowRight className="h-4 w-4" />
@@ -522,21 +857,19 @@ export default function Home() {
                         Review Projects
                       </h3>
                       <p className="text-gray-600">
-                        Evaluate candidates based on their actual work and code
-                        contributions rather than just their resume claims.
+                        Evaluate candidates based on their Proof of work and
+                        code contributions rather than just their resume claims.
                       </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/2">
+                      <div className="w-full">
                         <img
                           src={projects}
                           alt="Review Projects Interface"
-                          width={600}
-                          height={400}
-                          className="rounded-lg border border-gray-200"
+                          className="w-full rounded-lg border border-gray-200"
                         />
                       </div>
-                      <div className="w-full md:w-1/2 space-y-4">
+                      <div className="w-full md:w-1/3 space-y-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mt-1 text-blue-600">
                             <ArrowRight className="h-4 w-4" />
@@ -578,16 +911,14 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full md:w-1/2">
+                      <div className="w-full">
                         <img
                           src={manage}
                           alt="Manage Jobs Interface"
-                          width={600}
-                          height={400}
-                          className="rounded-lg border border-gray-200"
+                          className="w-full rounded-lg border border-gray-200"
                         />
                       </div>
-                      <div className="w-full md:w-1/2 space-y-4">
+                      <div className="w-full md:w-1/3 space-y-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mt-1 text-blue-600">
                             <ArrowRight className="h-4 w-4" />
@@ -605,15 +936,6 @@ export default function Home() {
                             integration
                           </p>
                         </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Collaborative hiring with team feedback and
-                            evaluation tools
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -621,7 +943,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
+
+        <HowItWorksSection />
 
         {/* Better Hiring Decisions */}
         <section className="py-20 px-6" id="features">
@@ -637,166 +961,113 @@ export default function Home() {
               <span className="text-blue-600">better hiring decisions</span>{" "}
               faster
             </h2>
-            <p className="text-xl text-gray-600 mb-16 text-left sm:text-center">
+            <p className="text-sm sm:text-base text-gray-600 mb-16 text-left sm:text-center">
               Traditional hiring is broken:{" "}
               <span className="font-semibold">
                 74% of companies report making bad hires
               </span>
-              .
-              <br />
-              Our platform eliminates the guesswork with data-driven talent
-              matching.
+              Inovact Opportunities eliminates the guesswork with data-driven
+              talent matching.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <div className="bg-white p-8 rounded-xl  border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <FileText className="h-6 w-6 text-blue-600" />
+            <div className="flex flex-col gap-8">
+              {/* First Row: 3 Cards Centered */}
+              <div className="flex flex-col sm:flex-row justify-center gap-8">
+                {/* Feature 1 */}
+                <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
+                  <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Proof of Work-Based Hiring
+                  </h3>
+                  <p className="text-gray-600 mb-3">
+                    Replace subjective resume evaluations with objective project
+                    assessments.
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      Average time-to-hire reduced by 80%
+                    </span>
+                    .
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Proof of Work-Based Hiring
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Replace subjective resume evaluations with objective project
-                  assessments.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Average time-to-hire reduced by 40%
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
+                {/* Feature 2 */}
+                <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
+                  <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                    <GitBranch className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Intelligent GitHub Integration
+                  </h3>
+                  <p className="text-gray-600 mb-3">
+                    Our AI analyzes real code contributions and matches them to
+                    your job requirements.
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      85% higher accuracy than keyword matching
+                    </span>
+                    .
+                  </p>
+                </div>
+                {/* Feature 3
+                <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
+                  <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                    <Code className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Advanced Code Quality Analysis
+                  </h3>
+                  <p className="text-gray-600 mb-3">
+                    Get detailed insights on code quality, efficiency, and best
+                    practices adoption.
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      Identifies top performers with 89% accuracy
+                    </span>
+                    .
+                  </p>
+                </div> */}
               </div>
 
-              {/* Feature 2 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <GitBranch className="h-6 w-6 text-blue-600" />
+              {/* Second Row: 2 Cards Centered */}
+              <div className="flex flex-col sm:flex-row justify-center gap-8">
+                {/* Feature 4 */}
+                <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
+                  <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                    <CheckSquare className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Custom Technical Assessments
+                  </h3>
+                  <p className="text-gray-600 mb-3">
+                    Evaluate hands-on skills with customized tasks relevant to
+                    your specific needs.
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      Reduces screening interviews by 65%
+                    </span>
+                    .
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Intelligent GitHub Integration
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Our AI analyzes real code contributions and matches them to
-                  your job requirements.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    93% higher accuracy than keyword matching
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
 
-              {/* Feature 3 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Code className="h-6 w-6 text-blue-600" />
+                {/* Feature 5 */}
+                <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
+                  <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
+                    <Calendar className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Streamlined Interview Process
+                  </h3>
+                  <p className="text-gray-600 mb-3">
+                    One-click scheduling and integrated video interviews slash
+                    administrative time.
+                    <span className="text-blue-600 font-medium">
+                      {" "}
+                      Saves 5+ hours per hire
+                    </span>
+                    .
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Advanced Code Quality Analysis
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Get detailed insights on code quality, efficiency, and best
-                  practices adoption.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Identifies top performers with 89% accuracy
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 4 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <CheckSquare className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Custom Technical Assessments
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Evaluate hands-on skills with customized tasks relevant to
-                  your specific needs.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Reduces screening interviews by 65%
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 5 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Calendar className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Streamlined Interview Process
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  One-click scheduling and integrated video interviews slash
-                  administrative time.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    Saves 5+ hours per hire
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Feature 6 */}
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-left bg-blue-300/10 shadow-xl">
-                <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">
-                  Enterprise-Ready Solution
-                </h3>
-                <p className="text-gray-600 mb-3">
-                  Scales effortlessly from startups to Fortune 500 companies
-                  with robust security.
-                  <span className="text-blue-600 font-medium">
-                    {" "}
-                    99.9% uptime guarantee
-                  </span>
-                  .
-                </p>
-                <Link
-                  to="#learn-more"
-                  className="text-blue-600 inline-flex items-center"
-                >
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
               </div>
             </div>
           </div>
@@ -838,7 +1109,7 @@ export default function Home() {
                       ~20 hours
                     </td>
                     <td className="px-6 py-4 text-center bg-blue-50 text-blue-700 font-medium">
-                      ~5 hours
+                      ~2 hours
                     </td>
                   </tr>
                   <tr className="border-t">
@@ -910,14 +1181,14 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-bold mb-2">50%</h3>
+                <h3 className="text-3xl font-bold mb-2">80%</h3>
                 <h4 className="text-lg font-medium mb-3">
                   Reduction in time-to-hire
                 </h4>
-                <p className="text-gray-600">
+                {/* <p className="text-gray-600">
                   Customers report cutting their hiring timeline in half with
-                  our platform.
-                </p>
+                  Inovact Opportunities.
+                </p> */}
               </div>
 
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
@@ -937,14 +1208,14 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-bold mb-2">85%</h3>
+                <h3 className="text-3xl font-bold mb-2">2-3x</h3>
                 <h4 className="text-lg font-medium mb-3">
                   Higher candidate quality
                 </h4>
-                <p className="text-gray-600">
+                {/* <p className="text-gray-600">
                   Proof-based hiring consistently delivers better talent
                   matches.
-                </p>
+                </p> */}
               </div>
 
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
@@ -964,14 +1235,14 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-bold mb-2">30%</h3>
+                <h3 className="text-3xl font-bold mb-2">60%</h3>
                 <h4 className="text-lg font-medium mb-3">
                   Reduction in hiring costs
                 </h4>
-                <p className="text-gray-600">
+                {/* <p className="text-gray-600">
                   Less time spent on unqualified candidates means lower
                   recruitment costs.
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -993,17 +1264,17 @@ export default function Home() {
                       <Check className="h-5 w-5 text-green-500" />
                     </div>
                     <p className="ml-3 text-gray-700">
-                      Reduced hiring costs by an average of 35%
+                      Reduced hiring costs by an average of 60%
                     </p>
                   </li>
-                  <li className="flex items-start">
+                  {/* <li className="flex items-start">
                     <div className="flex-shrink-0 mt-1">
                       <Check className="h-5 w-5 text-green-500" />
                     </div>
                     <p className="ml-3 text-gray-700">
                       90% candidate match rate vs. 23% industry average
                     </p>
-                  </li>
+                  </li> */}
                   <li className="flex items-start">
                     <div className="flex-shrink-0 mt-1">
                       <Check className="h-5 w-5 text-green-500" />
@@ -1017,14 +1288,14 @@ export default function Home() {
                       <Check className="h-5 w-5 text-green-500" />
                     </div>
                     <p className="ml-3 text-gray-700">
-                      Decrease time-to-hire by 47% on average
+                      Decrease time-to-hire by 80% on average
                     </p>
                   </li>
                 </ul>
               </div>
               <div className="bg-white p-8 rounded-xl shadow-sm">
                 <div className="text-center mb-6">
-                  <h3 className="text-5xl font-bold text-blue-600">3.2x</h3>
+                  <h3 className="text-5xl font-bold text-blue-600">3x-5x</h3>
                   <p className="text-xl font-medium mt-2">
                     Return on Investment
                   </p>
@@ -1032,9 +1303,9 @@ export default function Home() {
                 <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
                   <div className="bg-blue-600 h-4 rounded-full w-[80%]"></div>
                 </div>
-                <p className="text-gray-600 text-center">
+                {/* <p className="text-gray-600 text-center">
                   Based on average customer results after 6 months
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -1043,12 +1314,14 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="container mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Ready to transform your hiring process?
             </h2>
-            <p className="mb-8 max-w-2xl mx-auto">
-              Free for the first 100 recruiters. Join now and experience the
-              power of proof-based hiring.
+            <p className="mb-8 max-w-3xl mx-auto">
+              <span className="text-3xl sm:text-5xl font-bold block mb-2">
+                Free for the first 100 recruiters.
+              </span>
+              Join now and experience the power of Proof of work-based hiring.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <span
@@ -1060,11 +1333,11 @@ export default function Home() {
                 Join waitlist
               </span>
               {/* <Link
-                to="#demo"
-                className="bg-transparent border border-white text-white px-6 py-3 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                Request Demo
-              </Link> */}
+        to="#demo"
+        className="bg-transparent border border-white text-white px-6 py-3 rounded-lg hover:bg-white/10 transition-colors"
+      >
+        Request Demo
+      </Link> */}
             </div>
           </div>
         </section>
@@ -1074,7 +1347,7 @@ export default function Home() {
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Join Our Waitlist</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-gray-600 max-w-4xl mx-auto">
                 Be among the first 100 recruiters to get free access to Inovact
                 Opportunities and transform your hiring process.
               </p>
@@ -1271,27 +1544,28 @@ export default function Home() {
             <div>
               <h3 className="text-xl font-bold mb-4">Inovact Opportunities</h3>
               <p className="text-gray-400 mb-4">
-                Simplifying recruitment through proof of work.
+                Simplifying tech recruitment through proof of work.
               </p>
               <div className="flex space-x-4">
-                <Link
+                {/* <Link
                   to="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   <Twitter className="h-5 w-5" />
-                </Link>
+                </Link> */}
                 <Link
-                  to="#"
+                  target="__blank"
+                  to="https://www.linkedin.com/company/inovact-pvt-ltd2/"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   <Linkedin className="h-5 w-5" />
                 </Link>
-                <Link
+                {/* <Link
                   to="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   <Github className="h-5 w-5" />
-                </Link>
+                </Link> */}
               </div>
             </div>
             <div>
@@ -1299,7 +1573,7 @@ export default function Home() {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    to="/"
+                    to="https://www.inovact.in/"
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     Home
@@ -1313,7 +1587,7 @@ export default function Home() {
                     Features
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link
                     to="#pricing"
                     className="text-gray-400 hover:text-white transition-colors"
@@ -1336,7 +1610,7 @@ export default function Home() {
                   >
                     Blog
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </div>
             <div>
@@ -1360,9 +1634,10 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
-              © 2023 Inovact Opportunities. All rights reserved.
-            </p>
+            <div className=" text-center text-xs sm:text-sm">
+              &copy; {new Date().getFullYear()} All rights reserved by Inovact
+              Private Limited
+            </div>
             {/* <div className="flex space-x-6 mt-4 md:mt-0">
               <Link
                 to="#privacy"
