@@ -591,7 +591,7 @@ export default function Home() {
           <div className="container mx-auto max-w-6xl justify-center items-center">
             {/* Free for First 100 Recruiters - Minimalist Top Banner */}
             <div className="text-center mb-8">
-              <span className="text-4xl md:text-5xl font-semibold text-slate-700 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
+              <span className="text-4xl md:text-5xl font-semibold text-black bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
                 Free for First{" "}
                 <span className="text-blue-600">100 Recruiters</span>
               </span>
