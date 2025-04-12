@@ -4,15 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  Clock,
-  Users,
-  IndianRupee,
-  PlusCircle,
-} from "lucide-react";
+import { Eye, Edit, Trash2, Clock, Users, PlusCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { api } from "@/lib/api";
 

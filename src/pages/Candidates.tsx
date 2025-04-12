@@ -947,7 +947,7 @@ export const Candidates = () => {
                                         </Badge>
                                       ))}
                                     </div>
-                                    <div className="text-xs text-gray-500 text-right">
+                                    <div className="text-xs bg-blue-300/40 text-blue-700 w-fit ml-auto font-semibold p-2 rounded-lg  text-right">
                                       Code Quality: 85%
                                     </div>
                                   </div>
@@ -959,46 +959,53 @@ export const Candidates = () => {
 
                         {/* Section 5: Review Stats */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                          <div className="rounded-lg bg-gray-50 p-2">
-                            <div className="text-xs font-medium text-gray-500">
-                              Commits
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-gray-900">
-                              {candidate.githubStats.commits}
-                            </div>
-                          </div>
-                          <div className="rounded-lg bg-gray-50 p-2">
-                            <div className="text-xs font-medium text-gray-500">
-                              Contributions
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-gray-900">
-                              {candidate.githubStats.contributions}
+                          <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs font-medium text-gray-500">
+                                Commits
+                              </div>
+                              <div className="mt-1 text-base font-semibold text-gray-900">
+                                {candidate.githubStats.commits}
+                              </div>
                             </div>
                           </div>
-                          <div className="rounded-lg bg-gray-50 p-2">
-                            <div className="text-xs font-medium text-gray-500">
-                              Code Quality
-                            </div>
-                            <div className="mt-1 text-base font-semibold text-gray-900">
-                              {candidate.githubStats.codeQuality}%
+                          <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs font-medium text-gray-500">
+                                Contributions
+                              </div>
+                              <div className="mt-1 text-base font-semibold text-gray-900">
+                                {candidate.githubStats.contributions}
+                              </div>
                             </div>
                           </div>
-                          <div className="rounded-lg bg-blue-50 p-2">
-                            <div className="text-xs font-medium text-blue-600">
-                              Overall Score
+                          <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs font-medium text-gray-500">
+                                Code Quality
+                              </div>
+                              <div className="mt-1 text-base font-semibold text-gray-900">
+                                {candidate.githubStats.codeQuality}%
+                              </div>
                             </div>
-                            <div className="mt-1 text-base font-semibold text-blue-600">
-                              {calculateGitHubScore(candidate.githubStats)}
+                          </div>
+                          <div className="rounded-lg bg-blue-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-100 to-blue-50 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs font-medium text-blue-600">
+                                Overall Score
+                              </div>
+                              <div className="mt-1 text-base font-semibold text-blue-600">
+                                {calculateGitHubScore(candidate.githubStats)}
+                              </div>
                             </div>
                           </div>
                         </div>
-
                         {/* Close Button */}
                         <div className="flex justify-end">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="hover:text-white w-full sm:w-24 text-xs sm:text-sm"
+                            className="hover:text-white w-full sm:w-36 text-xs sm:text-sm"
                             onClick={() => setSelectedCandidate(null)}
                           >
                             Close View

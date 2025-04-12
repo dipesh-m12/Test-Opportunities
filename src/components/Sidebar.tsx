@@ -46,12 +46,12 @@ export const Sidebar = () => {
   return (
     <>
       <div
-        className={`md:flex md:h-screen md:w-64 flex-col border-r bg-white ${
+        className={`md:flex md:h-screen md:w-72 flex-col border-r bg-white ${
           isMobileMenuOpen ? "fixed inset-0 z-50" : "hidden md:flex"
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
-          <h1 className="text-xl font-bold text-blue-600">
+          <h1 className="text-xl  font-semibold text-blue-600">
             Inovact Opportunities
           </h1>
           <button
@@ -94,8 +94,10 @@ export const Sidebar = () => {
           })}
         </nav>
       </div>
-      <div className="md:hidden flex h-16 items-center justify-between border-b bg-white px-6">
-        <h1 className="text-xl font-bold text-blue-600">Inovact</h1>
+      <div className="md:hidden flex h-16 items-center justify-between border-b bg-white px-2">
+        <h1 className="text-xl font-bold text-blue-600">
+          Inovact Opportunities
+        </h1>
         <button
           className="text-gray-500 hover:text-gray-700"
           onClick={() => setIsMobileMenuOpen(true)}

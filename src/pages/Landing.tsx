@@ -5,17 +5,13 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
-  GitBranch,
   CheckSquare,
   Calendar,
   ArrowRight,
   Check,
-  Linkedin,
-  Mail,
-  Phone,
-  MapPin,
   Zap,
   Loader2,
+  Github,
 } from "lucide-react";
 import { addDoc } from "firebase/firestore";
 import { requests } from "@/utils/firebaseConfig";
@@ -24,12 +20,15 @@ import emailjs from "@emailjs/browser";
 import dashboard from "../assets/dashboard.png";
 import manage from "../assets/managejobs.png";
 import post from "../assets/postjob.png";
-import projects from "../assets/projects.png";
+import projects from "../assets/image.png";
 import screencandi from "../assets/screencandi.png";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   const secRef = useRef<any>();
+  const scrollUpRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   // const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,6 +69,19 @@ export default function Home() {
     }
   };
 
+  const scrollUp = () => {
+    scrollUpRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollUpEffort = () => {};
+
+  const validateLinkedInURL = (url: any) => {
+    // LinkedIn URL should match the pattern: https://(www.)linkedin.com/in/username
+    const linkedInRegex =
+      /^https?:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]{3,100}(\/)?$/;
+    return linkedInRegex.test(url);
+  };
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = { ...formErrors };
@@ -99,6 +111,10 @@ export default function Home() {
 
     if (!formData.linkedIn.trim()) {
       newErrors.linkedIn = "Linkedin is required";
+      isValid = false;
+    } else if (!validateLinkedInURL(formData.linkedIn)) {
+      newErrors.linkedIn =
+        "Please enter a valid LinkedIn profile URL (e.g., https://www.linkedin.com/in/username)";
       isValid = false;
     }
 
@@ -182,7 +198,7 @@ export default function Home() {
 
     return (
       <section className="py-20 px-6" id="how-it-works">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-screen-2xl">
           <h2 className="text-3xl font-bold mb-4 text-center">How It Works</h2>
           <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-center">
             Our Proof of work-based recruitment platform replaces traditional
@@ -257,7 +273,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full">
+                    <div className="w-full md:w-3/5">
                       <img
                         src={dashboard}
                         alt="Dashboard Interface"
@@ -265,7 +281,7 @@ export default function Home() {
                         onClick={() => openModal(dashboard)}
                       />
                     </div>
-                    <div className="w-full md:w-1/3 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -309,7 +325,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full">
+                    <div className="w-full md:w-3/5">
                       <img
                         src={post}
                         alt="Post Jobs Interface"
@@ -317,7 +333,7 @@ export default function Home() {
                         onClick={() => openModal(post)}
                       />
                     </div>
-                    <div className="w-full md:w-1/3 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -353,7 +369,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full">
+                    <div className="w-full md:w-3/5">
                       <img
                         src={screencandi}
                         alt="Screen Candidates Interface"
@@ -361,7 +377,7 @@ export default function Home() {
                         onClick={() => openModal(screencandi)}
                       />
                     </div>
-                    <div className="w-full md:w-1/3 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -404,7 +420,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full">
+                    <div className="w-full md:w-3/5">
                       <img
                         src={projects}
                         alt="Review Projects Interface"
@@ -412,7 +428,7 @@ export default function Home() {
                         onClick={() => openModal(projects)}
                       />
                     </div>
-                    <div className="w-full md:w-1/3 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -453,7 +469,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full">
+                    <div className="w-full md:w-3/5">
                       <img
                         src={manage}
                         alt="Manage Jobs Interface"
@@ -461,7 +477,7 @@ export default function Home() {
                         onClick={() => openModal(manage)}
                       />
                     </div>
-                    <div className="w-full md:w-1/3 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -493,7 +509,7 @@ export default function Home() {
               onClick={closeModal}
             >
               <div
-                className="max-w-5xl w-full p-4"
+                className="max-w-6xl w-full p-4"
                 onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the image container
               >
                 <img
@@ -510,7 +526,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen font-poppins">
       <header className="sticky top-0 z-50 bg-white border-b">
         <div className="container mx-auto px-6 flex items-center justify-between h-16">
           <Link to="/" className="text-2xl font-bold text-blue-600">
@@ -518,15 +534,19 @@ export default function Home() {
           </Link>
           <div className="flex items-center space-x-4">
             {/* Desktop version (hidden on mobile) */}
-            <Link
-              to="/sign-in"
-              className="hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+            <span
+              onClick={() =>
+                secRef?.current?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="cursor-pointer hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
               Join waitlist
-            </Link>
+            </span>
             {/* Mobile version (hidden on desktop) */}
-            <Link
-              to="/sign-in"
+            <span
+              onClick={() =>
+                secRef?.current?.scrollIntoView({ behavior: "smooth" })
+              }
               className="sm:hidden p-2 inline-block rounded-full bg-white border-2 border-blue-600 text-blue-600 font-medium transition-all duration-300 hover:bg-blue-50 active:scale-95 group"
             >
               <svg
@@ -543,7 +563,7 @@ export default function Home() {
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </Link>
+            </span>
           </div>
         </div>
 
@@ -567,12 +587,13 @@ export default function Home() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 md:pb-12 px-6">
+        <section ref={scrollUpRef} className="py-16 md:py-24 md:pb-12 px-6">
           <div className="container mx-auto max-w-6xl justify-center items-center">
             {/* Free for First 100 Recruiters - Minimalist Top Banner */}
             <div className="text-center mb-8">
-              <span className="text-4xl md:text-5xl font-semibold text-blue-600 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
-                Free for First 100 Recruiters
+              <span className="text-4xl md:text-5xl font-semibold text-slate-700 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
+                Free for First{" "}
+                <span className="text-blue-600">100 Recruiters</span>
               </span>
             </div>
 
@@ -582,7 +603,7 @@ export default function Home() {
                 <span className="">Revolutionizing Tech Recruitment</span>
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-8 max-w-4xl mx-auto text-start sm:text-center">
+            <h1 className=" text-4xl md:text-6xl font-bold mb-8 max-w-5xl mx-auto text-start sm:text-center">
               Stop hiring based on{" "}
               <span className="text-blue-600 underline decoration-2">
                 promises
@@ -598,7 +619,7 @@ export default function Home() {
             <p className="text-sm sm:text-base text-start sm:text-center text-gray-600 mb-10 max-w-5xl mx-auto">
               <span className="font-semibold">90% of traditional hiring</span>{" "}
               relies on unverified resumes. Inovact Opportunities replaces empty
-              claims with real code, matching the <br />
+              claims with real proof of work and code matching the{" "}
               <span className="font-semibold">right talent</span> to your needs
               with unparalleled accuracy.
             </p>
@@ -607,7 +628,7 @@ export default function Home() {
                 onClick={() =>
                   secRef?.current?.scrollIntoView({ behavior: "smooth" })
                 }
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center"
+                className="bg-blue-600 cursor-pointer text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center"
               >
                 Join waitlist <ArrowRight className="ml-2 h-4 w-4" />
               </span>
@@ -995,7 +1016,7 @@ export default function Home() {
                 {/* Feature 2 */}
                 <div className="bg-white p-8 rounded-xl border border-gray-100 text-left bg-blue-300/10 shadow-xl sm:w-1/3">
                   <div className="bg-blue-100 p-3 rounded-lg inline-block mb-4">
-                    <GitBranch className="h-6 w-6 text-blue-600" />
+                    <Github className="h-6 w-6 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">
                     Intelligent GitHub Integration
@@ -1517,21 +1538,6 @@ export default function Home() {
                     ) : null}
                     {loading ? "Submitting..." : "Join Waitlist"}
                   </button>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    By joining, you agree to our{" "}
-                    <Link to="#terms" className="text-blue-600 hover:underline">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link
-                      to="#privacy"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Privacy Policy
-                    </Link>
-                    .
-                  </p>
                 </form>
               )}
             </div>
@@ -1539,7 +1545,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-gray-900 text-white py-12">
+      {/* <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
@@ -1548,12 +1554,7 @@ export default function Home() {
                 Simplifying tech recruitment through proof of work.
               </p>
               <div className="flex space-x-4">
-                {/* <Link
-                  to="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <Twitter className="h-5 w-5" />
-                </Link> */}
+               
                 <Link
                   target="__blank"
                   to="https://www.linkedin.com/company/inovact-pvt-ltd2/"
@@ -1561,12 +1562,7 @@ export default function Home() {
                 >
                   <Linkedin className="h-5 w-5" />
                 </Link>
-                {/* <Link
-                  to="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <Github className="h-5 w-5" />
-                </Link> */}
+                
               </div>
             </div>
             <div>
@@ -1588,30 +1584,6 @@ export default function Home() {
                     Features
                   </Link>
                 </li>
-                {/* <li>
-                  <Link
-                    to="#pricing"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="#contact"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="#blog"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Blog
-                  </Link>
-                </li> */}
               </ul>
             </div>
             <div>
@@ -1639,29 +1611,11 @@ export default function Home() {
               &copy; {new Date().getFullYear()} All rights reserved by Inovact
               Private Limited
             </div>
-            {/* <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                to="#privacy"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="#terms"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                to="#cookies"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Cookie Policy
-              </Link>
-            </div> */}
+          
           </div>
         </div>
-      </footer>
+      </footer> */}
+      <Footer scrollUp={scrollUp} scrollUpEffort={scrollUpEffort} />
       <Toaster />
     </div>
   );

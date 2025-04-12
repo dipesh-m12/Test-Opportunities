@@ -15,6 +15,8 @@ import {
 } from "firebase/auth";
 import { token } from "@/utils";
 import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { host } from "@/utils/routes";
 
 interface SignInFormData {
   email: string;
@@ -41,12 +43,21 @@ export const SignIn = () => {
       );
 
       const idToken = await userCredential.user.getIdToken();
-      localStorage.setItem(token, idToken);
 
       console.log("Email Sign-In Success:", {
         email: userCredential.user.email,
         idToken: idToken,
       });
+
+      // Make Axios call to the /users API with idToken
+      const response = await axios.get(`${host}/users`, {
+        headers: {
+          Authorization: idToken, // Use Bearer token format
+        },
+      });
+
+      localStorage.setItem(token, idToken);
+      console.log("API Response:", response.data);
 
       toast.success("Successfully signed in!");
       navigate("/dashboard");
@@ -86,6 +97,14 @@ export const SignIn = () => {
       console.log("Google Sign-In Success:", { email, displayName, idToken });
       localStorage.setItem(token, idToken);
 
+      const response = await axios.get(`${host}/users`, {
+        headers: {
+          Authorization: idToken, // Use Bearer token format
+        },
+      });
+
+      console.log("API Response:", response.data);
+
       toast.success("Signed in with Google!");
       navigate("/dashboard");
     } catch (error: any) {
@@ -97,11 +116,11 @@ export const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="font-poppins min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8 sm:px-6 lg:px-8">
       {/* Toaster for notifications */}
       <Toaster position="top-center" reverseOrder={false} />
 
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 mb-6 sm:mb-8 text-center">
+      <h1 className="font-poppins text-xl sm:text-2xl md:text-3xl font-bold text-blue-600 mb-6 sm:mb-8 text-center">
         Inovact Opportunities
       </h1>
 

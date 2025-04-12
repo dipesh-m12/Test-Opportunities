@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +10,8 @@ import { auth } from "../utils/firebaseConfig"; // Adjust path as needed
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import toast, { Toaster } from "react-hot-toast";
 import { token } from "@/utils";
+import axios from "axios";
+import { host } from "@/utils/routes";
 
 interface SignUpFormData {
   email: string;
@@ -43,7 +46,6 @@ export const SignUp = () => {
       const idToken = await user.getIdToken(); // Get the ID token
 
       // Store token and UID in localStorage
-      localStorage.setItem(token, idToken); // Assuming token is "authToken" or similar
       localStorage.setItem("uid", uid); // Store UID separately
 
       console.log(userCredential);
@@ -52,6 +54,21 @@ export const SignUp = () => {
         uid: uid, // Log the UID
         idToken: idToken,
       });
+
+      const response = await axios.post(
+        `${host}/users`,
+        {
+          email: data.email,
+        },
+        {
+          headers: {
+            Authorization: idToken, // Use Bearer token format
+          },
+        }
+      );
+
+      localStorage.setItem(token, idToken); // Assuming token is "authToken" or similar
+      console.log("API Response:", response.data);
 
       toast.success(
         "Account created successfully! Redirecting to dashboard..."
