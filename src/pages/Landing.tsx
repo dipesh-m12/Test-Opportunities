@@ -197,17 +197,17 @@ export default function Home() {
     };
 
     return (
-      <section className="py-20 px-6" id="how-it-works">
+      <section className="py-20 px-2 sm:px-6" id="how-it-works">
         <div className="container mx-auto max-w-screen-2xl">
           <h2 className="text-3xl font-bold mb-4 text-center">How It Works</h2>
-          <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-center">
+          <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-left sm:text-center">
             Our Proof of work-based recruitment platform replaces traditional
             résumés with real projects, eliminating guesswork and saving you
             time.
           </p>
 
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
-            <div className="flex border-b overflow-x-auto">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8 ">
+            <div className="sm:flex border-b overflow-x-auto hidden ">
               <button
                 className={`px-6 py-3 font-medium ${
                   activeTab === "dashboard"
@@ -259,7 +259,7 @@ export default function Home() {
                 Manage Jobs
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-6 hidden sm:block">
               {activeTab === "dashboard" && (
                 <div>
                   <div className="text-left mb-6">
@@ -281,7 +281,7 @@ export default function Home() {
                         onClick={() => openModal(dashboard)}
                       />
                     </div>
-                    <div className="w-full md:w-2/5 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
@@ -296,8 +296,11 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Track recent applications in real-time with
-                          application status
+                          Track recent applications in{" "}
+                          <span className="text-blue-700 font-semibold">
+                            real-time
+                          </span>{" "}
+                          with application status
                         </p>
                       </div>
                       <div className="flex items-start">
@@ -305,8 +308,11 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Quickly access shortlisted candidates and schedule
-                          interviews
+                          Quickly{" "}
+                          <span className="text-blue-700 font-semibold">
+                            access
+                          </span>{" "}
+                          shortlisted candidates and schedule interviews
                         </p>
                       </div>
                     </div>
@@ -325,7 +331,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-full md:w-3/5">
+                    <div className="w-full md:w-3/5 ">
                       <img
                         src={post}
                         alt="Post Jobs Interface"
@@ -333,14 +339,16 @@ export default function Home() {
                         onClick={() => openModal(post)}
                       />
                     </div>
-                    <div className="w-full md:w-2/5 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Define technical requirements with precision using our
-                          skill taxonomy
+                          Define technical requirements with precision using our{" "}
+                          <span className="text-blue-700 font-semibold">
+                            skill taxonomy
+                          </span>
                         </p>
                       </div>
                       <div className="flex items-start">
@@ -348,8 +356,11 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Set up custom technical assessments specific to your
-                          role
+                          Set up{" "}
+                          <span className="text-blue-700 font-semibold">
+                            custom
+                          </span>{" "}
+                          technical assessments specific to your role
                         </p>
                       </div>
                     </div>
@@ -377,14 +388,16 @@ export default function Home() {
                         onClick={() => openModal(screencandi)}
                       />
                     </div>
-                    <div className="w-full md:w-2/5 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          AI-powered matching of candidate skills to job
-                          requirements
+                          <span className="text-blue-700 font-semibold">
+                            AI-powered
+                          </span>{" "}
+                          matching of candidate skills to job requirements
                         </p>
                       </div>
                       <div className="flex items-start">
@@ -392,8 +405,11 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Objective evaluation of code quality and
-                          problem-solving approach
+                          Objective evaluation of{" "}
+                          <span className="text-blue-700 font-semibold">
+                            code quality
+                          </span>{" "}
+                          and problem-solving approach
                         </p>
                       </div>
                       <div className="flex items-start">
@@ -401,8 +417,10 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Eliminate bias with blind screening focused only on
-                          technical merit
+                          Eliminate bias with blind screening focused only on{" "}
+                          <span className="text-blue-700 font-semibold">
+                            technical merit
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -428,30 +446,28 @@ export default function Home() {
                         onClick={() => openModal(projects)}
                       />
                     </div>
-                    <div className="w-full md:w-2/5 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Deep analysis of code structure, patterns, and best
-                          practices
+                          <span className="text-blue-700 font-semibold">
+                            Deep analysis
+                          </span>{" "}
+                          of code structure, patterns, and best practices
                         </p>
                       </div>
+
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Compare candidate solutions to industry benchmarks
-                        </p>
-                      </div>
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0 mt-1 text-blue-600">
-                          <ArrowRight className="h-4 w-4" />
-                        </div>
-                        <p className="ml-2 text-gray-700">
-                          Identify top performers based on actual coding ability
+                          Identify top performers based on actual{" "}
+                          <span className="text-blue-700 font-semibold">
+                            coding ability
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -477,13 +493,16 @@ export default function Home() {
                         onClick={() => openModal(manage)}
                       />
                     </div>
-                    <div className="w-full md:w-2/5 space-y-4">
+                    <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6 ">
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-1 text-blue-600">
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          Centralized dashboard for all recruitment activities
+                          Centralized dashboard for all{" "}
+                          <span className="text-blue-700 font-semibold">
+                            recruitment activities
+                          </span>
                         </p>
                       </div>
                       <div className="flex items-start">
@@ -491,14 +510,264 @@ export default function Home() {
                           <ArrowRight className="h-4 w-4" />
                         </div>
                         <p className="ml-2 text-gray-700">
-                          One-click scheduling for interviews with calendar
-                          integration
+                          <span className="text-blue-700 font-semibold">
+                            One-click
+                          </span>{" "}
+                          scheduling for interviews with calendar integration
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* mobile view */}
+            <div className="flex sm:hidden flex-col justify-center items-center gap-16 p-2">
+              <div>
+                <div className="text-left mb-6">
+                  <h3 className="text-xl font-bold mb-2">
+                    Recruiter Dashboard
+                  </h3>
+                  <p className="text-gray-600">
+                    Get a complete overview of your hiring process with active
+                    jobs, total candidates, and shortlisted profiles all in one
+                    place.
+                  </p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-full md:w-3/5">
+                    <img
+                      src={dashboard}
+                      alt="Dashboard Interface"
+                      className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                      onClick={() => openModal(dashboard)}
+                    />
+                  </div>
+                  <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        View active jobs, total candidates, and shortlisted
+                        applicants at a glance
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Track recent applications in{" "}
+                        <span className="text-blue-700 font-semibold">
+                          real-time
+                        </span>{" "}
+                        with application status
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Quickly{" "}
+                        <span className="text-blue-700 font-semibold">
+                          access
+                        </span>{" "}
+                        shortlisted candidates and schedule interviews
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-left mb-6">
+                  <h3 className="text-xl font-bold mb-2">Post Jobs</h3>
+                  <p className="text-gray-600">
+                    Create detailed job listings with skill requirements that
+                    our AI will use to match with candidate profiles and
+                    projects.
+                  </p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-full md:w-3/5 ">
+                    <img
+                      src={post}
+                      alt="Post Jobs Interface"
+                      className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                      onClick={() => openModal(post)}
+                    />
+                  </div>
+                  <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Define technical requirements with precision using our{" "}
+                        <span className="text-blue-700 font-semibold">
+                          skill taxonomy
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Set up{" "}
+                        <span className="text-blue-700 font-semibold">
+                          custom
+                        </span>{" "}
+                        technical assessments specific to your role
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-left mb-6">
+                  <h3 className="text-xl font-bold mb-2">Screen Candidates</h3>
+                  <p className="text-gray-600">
+                    Our AI analyzes candidates' GitHub repositories and code to
+                    match them with your job requirements.
+                  </p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-full md:w-3/5">
+                    <img
+                      src={screencandi}
+                      alt="Screen Candidates Interface"
+                      className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                      onClick={() => openModal(screencandi)}
+                    />
+                  </div>
+                  <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        <span className="text-blue-700 font-semibold">
+                          AI-powered
+                        </span>{" "}
+                        matching of candidate skills to job requirements
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Objective evaluation of{" "}
+                        <span className="text-blue-700 font-semibold">
+                          code quality
+                        </span>{" "}
+                        and problem-solving approach
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Eliminate bias with blind screening focused only on{" "}
+                        <span className="text-blue-700 font-semibold">
+                          technical merit
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-left mb-6">
+                  <h3 className="text-xl font-bold mb-2">Review Projects</h3>
+                  <p className="text-gray-600">
+                    Evaluate candidates based on their Proof of work and code
+                    contributions rather than just their resume claims.
+                  </p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-full md:w-3/5">
+                    <img
+                      src={projects}
+                      alt="Review Projects Interface"
+                      className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                      onClick={() => openModal(projects)}
+                    />
+                  </div>
+                  <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        <span className="text-blue-700 font-semibold">
+                          Deep analysis
+                        </span>{" "}
+                        of code structure, patterns, and best practices
+                      </p>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Identify top performers based on actual{" "}
+                        <span className="text-blue-700 font-semibold">
+                          coding ability
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-left mb-6">
+                  <h3 className="text-xl font-bold mb-2">Manage Jobs</h3>
+                  <p className="text-gray-600">
+                    Track the progress of all your open positions and manage the
+                    entire hiring pipeline efficiently.
+                  </p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  <div className="w-full md:w-3/5">
+                    <img
+                      src={manage}
+                      alt="Manage Jobs Interface"
+                      className="w-full rounded-lg border border-gray-200 cursor-pointer"
+                      onClick={() => openModal(manage)}
+                    />
+                  </div>
+                  <div className="w-full md:w-2/5 space-y-4 self-start mt-0 md:mt-6 ">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        Centralized dashboard for all{" "}
+                        <span className="text-blue-700 font-semibold">
+                          recruitment activities
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-1 text-blue-600">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                      <p className="ml-2 text-gray-700">
+                        <span className="text-blue-700 font-semibold">
+                          One-click
+                        </span>{" "}
+                        scheduling for interviews with calendar integration
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -591,8 +860,8 @@ export default function Home() {
           <div className="container mx-auto max-w-6xl justify-center items-center">
             {/* Free for First 100 Recruiters - Minimalist Top Banner */}
             <div className="text-center mb-8">
-              <span className="text-4xl md:text-5xl font-semibold text-black bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent tracking-tight uppercase">
-                Free for First{" "}
+              <span className="text-xl md:text-5xl font-semibold text-slate-800 ">
+                Free for first{" "}
                 <span className="text-blue-600">100 Recruiters</span>
               </span>
             </div>
@@ -987,7 +1256,8 @@ export default function Home() {
               Traditional hiring is broken:{" "}
               <span className="font-semibold">
                 74% of companies report making bad hires
-              </span>
+              </span>{" "}
+              <br />
               Inovact Opportunities eliminates the guesswork with data-driven
               talent matching.
             </p>
@@ -1183,10 +1453,10 @@ export default function Home() {
         </section>
 
         {/* Stats Cards */}
-        <section className="py-20 px-6">
+        <section className="pt-0 sm:py-20 md:pt-0 px-6">
           <div className="container mx-auto max-w-6xl">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center bg-blue-300/10 shadow-xl">
+              <div className="bg-white p-8 rounded-xl  border border-gray-100 text-center bg-blue-300/10 shadow-xl">
                 <div className="bg-blue-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1334,16 +1604,18 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <section className="py-14 sm:py-20 px-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="container mx-auto max-w-4xl text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+            <h2 className="text-md sm:text-3xl font-semibold mb-4 text-left sm:text-center">
               Ready to transform your hiring process?
             </h2>
-            <p className="mb-8 max-w-3xl mx-auto">
-              <span className="text-3xl sm:text-5xl font-bold block mb-2">
+            <p className="mb-8 max-w-3xl mx-auto  text-left sm:text-center">
+              <span className="text-xl sm:text-5xl font-bold block mb-2 ">
                 Free for the first 100 recruiters.
               </span>
-              Join now and experience the power of Proof of work-based hiring.
+              <span className="text-xs sm:text-base ">
+                Join now and experience the power of Proof of work-based hiring.
+              </span>
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <span
@@ -1369,7 +1641,7 @@ export default function Home() {
           <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Join Our Waitlist</h2>
-              <p className="text-sm sm:text-base text-gray-600 max-w-4xl mx-auto">
+              <p className="text-sm sm:text-base text-gray-600 max-w-4xl mx-auto text-left sm:text-center">
                 Be among the first 100 recruiters to get free access to Inovact
                 Opportunities and transform your hiring process.
               </p>
