@@ -1547,7 +1547,7 @@ export default function Home() {
           <div className="container mx-auto max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-6">Why choose Inovact?</h2>
+                <h2 className="text-3xl font-bold mb-6">Why choose Inovact Opportunities?</h2>
                 <p className="text-gray-600 mb-8">
                   While other platforms focus on keyword matching, we analyze
                   real-world programming skills and project contributions.
