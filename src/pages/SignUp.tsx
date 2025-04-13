@@ -48,7 +48,7 @@ export const SignUp = () => {
       // Store token and UID in localStorage
       localStorage.setItem("uid", uid); // Store UID separately
 
-      console.log(userCredential);
+      console.log(idToken);
       console.log("SignUp Success:", {
         email: user.email,
         uid: uid, // Log the UID

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -18,13 +18,23 @@ export const Settings = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<SettingsFormData>({
     defaultValues: {
       assignmentNotifications: false,
     },
   });
-
+  useEffect(() => {
+    reset({
+      companyName: "Acme Corp",
+      website: "https://www.acmecorp.com",
+      contactName: "John Doe",
+      email: "john.doe@acmecorp.com",
+      linkedin: "",
+      assignmentNotifications: true,
+    });
+  }, []);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: SettingsFormData) => {

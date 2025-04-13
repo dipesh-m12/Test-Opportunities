@@ -28,7 +28,7 @@ interface JobFormData {
     description: string;
     deadline: string;
     file?: File[];
-    submissionPreferences: string[]; // New field for submission preferences
+    submissionPreferences: string[];
   };
   applicationDeadline: string;
   duration?: string;
@@ -80,7 +80,6 @@ const indianCities = [
   "Gurgaon",
 ];
 
-// Define submission preference options
 const submissionPreferencesOptions = [
   { value: "github", label: "GitHub Repo of the Assignment" },
   { value: "liveLink", label: "Live Link of the Assignment" },
@@ -100,17 +99,16 @@ export const PostJob = () => {
       preferredSkills: [],
       description: "",
       assignment: {
-        submissionPreferences: [], // Initialize with empty array
+        submissionPreferences: [],
       },
     },
   });
-  const navigate = useNavigate();
   const jobType = watch("type");
   const location = watch("location");
   const description = watch("description");
   const needsCity = location === "on-site" || location === "hybrid";
-  const [requiredSkills, setRequiredSkills] = React.useState<string[]>([]);
-  const [preferredSkills, setPreferredSkills] = React.useState<string[]>([]);
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
+  const [preferredSkills, setPreferredSkills] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const location_state = useLocation();
   const [isEditing, setIsEditing] = useState(false);
@@ -118,13 +116,24 @@ export const PostJob = () => {
   const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  let data = location_state.state;
+  const data = location_state.state;
 
   useEffect(() => {
     if (data && data.isEditing) {
       setIsEditing(data.isEditing);
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === "requiredSkills") {
+          setRequiredSkills(value);
+          setValue("requiredSkills", value);
+        } else if (key === "preferredSkills") {
+          setPreferredSkills(value);
+          setValue("preferredSkills", value);
+        } else {
+          setValue(key, value);
+        }
+      });
     }
-  }, [data]);
+  }, [data, setValue]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -164,7 +173,9 @@ export const PostJob = () => {
 
   const onSubmit = async (data: JobFormData) => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 2000); // Simulate async operation
+    console.log("Form Submission Data:", JSON.stringify(data, null, 2));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setLoading(false);
   };
 
   const handleSkillAdd = (
@@ -207,7 +218,8 @@ export const PostJob = () => {
   };
 
   const handleDescriptionChange = (value: string) => {
-    if (value.replace(/<[^>]*>/g, "").length <= 1000) {
+    const plainText = value.replace(/<[^>]*>/g, "");
+    if (plainText.length <= 1000) {
       setValue("description", value, { shouldValidate: true });
     }
   };
@@ -341,6 +353,7 @@ export const PostJob = () => {
                           placeholder="e.g. Bangalore"
                           {...register("city", {
                             required:
+                              needsCity &&
                               "City is required for on-site/hybrid jobs",
                           })}
                           onChange={handleCityChange}
@@ -387,7 +400,8 @@ export const PostJob = () => {
                     type="number"
                     placeholder="e.g.Rs 15000"
                     {...register("stipend", {
-                      required: "Stipend is required",
+                      required:
+                        jobType === "internship" && "Stipend is required",
                       min: { value: 5000, message: "Minimum stipend is 5000" },
                     })}
                     error={errors.stipend?.message}
@@ -404,7 +418,8 @@ export const PostJob = () => {
                     id="duration"
                     options={durations}
                     {...register("duration", {
-                      required: "Duration is required",
+                      required:
+                        jobType === "internship" && "Duration is required",
                     })}
                     error={errors.duration?.message}
                   />
@@ -424,7 +439,9 @@ export const PostJob = () => {
                     type="number"
                     placeholder="e.g. 500000"
                     {...register("salary.min", {
-                      required: "Minimum salary is required",
+                      required:
+                        jobType !== "internship" &&
+                        "Minimum salary is required",
                     })}
                     error={errors.salary?.min?.message}
                   />
@@ -441,7 +458,9 @@ export const PostJob = () => {
                     type="number"
                     placeholder="e.g. 800000"
                     {...register("salary.max", {
-                      required: "Maximum salary is required",
+                      required:
+                        jobType !== "internship" &&
+                        "Maximum salary is required",
                     })}
                     error={errors.salary?.max?.message}
                   />
@@ -473,6 +492,20 @@ export const PostJob = () => {
                 {description?.replace(/<[^>]*>/g, "").length || 0}/1000
                 characters
               </p>
+              <input
+                type="hidden"
+                {...register("description", {
+                  required: "Job description is required",
+                  validate: {
+                    minLength: (value) =>
+                      value.replace(/<[^>]*>/g, "").length >= 50 ||
+                      "Description must be at least 50 characters",
+                    maxLength: (value) =>
+                      value.replace(/<[^>]*>/g, "").length <= 1000 ||
+                      "Description must not exceed 1000 characters",
+                  },
+                })}
+              />
             </div>
 
             <div>
@@ -481,10 +514,6 @@ export const PostJob = () => {
               </label>
               <Input
                 placeholder="Type a skill and press Enter"
-                {...register("requiredSkills", {
-                  validate: (value) =>
-                    value.length > 0 || "At least one required skill is needed",
-                })}
                 onKeyDown={(e) =>
                   handleSkillAdd("required", e.currentTarget.value, e)
                 }
@@ -507,6 +536,18 @@ export const PostJob = () => {
                   </span>
                 ))}
               </div>
+              <input
+                type="hidden"
+                {...register("requiredSkills", {
+                  validate: {
+                    minLength: (value) =>
+                      value.length >= 1 ||
+                      "At least one required skill is needed",
+                    maxLength: (value) =>
+                      value.length <= 5 || "Maximum 5 required skills allowed",
+                  },
+                })}
+              />
             </div>
 
             <div>
@@ -515,11 +556,6 @@ export const PostJob = () => {
               </label>
               <Input
                 placeholder="Type a skill and press Enter"
-                {...register("preferredSkills", {
-                  validate: (value) =>
-                    value.length > 0 ||
-                    "At least one preferred skill is needed",
-                })}
                 onKeyDown={(e) =>
                   handleSkillAdd("preferred", e.currentTarget.value, e)
                 }
@@ -542,6 +578,18 @@ export const PostJob = () => {
                   </span>
                 ))}
               </div>
+              <input
+                type="hidden"
+                {...register("preferredSkills", {
+                  validate: {
+                    minLength: (value) =>
+                      value.length >= 1 ||
+                      "At least one preferred skill is needed",
+                    maxLength: (value) =>
+                      value.length <= 5 || "Maximum 5 preferred skills allowed",
+                  },
+                })}
+              />
             </div>
 
             <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">

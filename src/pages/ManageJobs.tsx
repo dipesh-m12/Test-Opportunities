@@ -17,7 +17,97 @@ const ManageJobs = () => {
 
   const loadJobs = async () => {
     try {
-      const jobs = await api.jobs.getAll();
+      // const jobs = await api.jobs.getAll();
+      const jobs = [
+        {
+          id: "1",
+          title: "Senior Full Stack Developer",
+          type: "Full-time",
+          location: "Remote",
+          salary: {
+            min: 500000,
+            max: 800000,
+            currency: "INR",
+          },
+          requiredSkills: [
+            "React",
+            "TypeScript",
+            "Node.js",
+            "MongoDB",
+            "AWS",
+            "Docker",
+            "Git",
+          ],
+          preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
+          created_at: "2025-04-13T00:00:00.000Z", // Approximate ISO timestamp
+          recruiter_id: "1",
+          status: "active",
+          currency: "INR",
+          salary_min: 500000,
+          salary_max: 800000,
+          description: "Sample job description",
+          requirements: "Sample requirements",
+          deadline: "2025-05-13T00:00:00.000Z", // 30 days from April 13, 2025
+        },
+        {
+          id: "2",
+          title: "Backend Engineer",
+          type: "Full-time",
+          location: "On-site",
+          salary: {
+            min: 600000,
+            max: 900000,
+            currency: "INR",
+          },
+          requiredSkills: [
+            "Go",
+            "Python",
+            "PostgreSQL",
+            "Redis",
+            "Docker",
+            "Kubernetes",
+          ],
+          preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
+          created_at: "2025-04-13T00:00:00.000Z",
+          recruiter_id: "1",
+          status: "active",
+          currency: "INR",
+          salary_min: 600000,
+          salary_max: 900000,
+          description: "Sample job description",
+          requirements: "Sample requirements",
+          deadline: "2025-05-13T00:00:00.000Z",
+        },
+        {
+          id: "3",
+          title: "DevOps Engineer",
+          type: "Full-time",
+          location: "Hybrid",
+          salary: {
+            min: 700000,
+            max: 1000000,
+            currency: "INR",
+          },
+          requiredSkills: [
+            "Kubernetes",
+            "Docker",
+            "AWS",
+            "Terraform",
+            "CI/CD",
+            "Python",
+          ],
+          preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
+          created_at: "2025-04-13T00:00:00.000Z",
+          recruiter_id: "1",
+          status: "active",
+          currency: "INR",
+          salary_min: 700000,
+          salary_max: 1000000,
+          description: "Sample job description",
+          requirements: "Sample requirements",
+          deadline: "2025-05-13T00:00:00.000Z",
+        },
+      ];
       setJobs(jobs);
     } catch (error) {
       console.error("Error loading jobs:", error);
@@ -214,310 +304,78 @@ const ManageJobs = () => {
 
 export { ManageJobs };
 
-// const candidates = [
-//   {
-//     id: "1",
-//     name: "John Doe",
-//     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-//     githubUsername: "johndoe",
-//     linkedinUrl: "https://linkedin.com/in/johndoe",
-//     applyingFor: "Senior Full Stack Developer",
-//     status: "new",
-//     assignmentStatus: {
-//       submitted: true,
-//       submittedAt: "2024-03-15T10:30:00Z",
-//       deadline: "2024-03-20T23:59:59Z",
-//       score: null,
-//     },
-//     skills: {
-//       languages: ["JavaScript", "TypeScript", "Python"],
-//       frameworks: ["React", "Node.js", "Express", "Next.js"],
-//       databases: ["MongoDB", "PostgreSQL", "Redis"],
-//       tools: ["Docker", "AWS", "Git", "Jest"],
-//     },
-//     githubStats: {
-//       commits: 234,
-//       contributions: 456,
-//       codeQuality: 85,
-//     },
-//     inovactScore: {
-//       technical: 89,
-//       collaboration: 92,
-//       communication: 85,
-//       overall: 88,
-//     },
-//     projects: [
-//       {
-//         name: "E-commerce Platform",
-//         description:
-//           "Full-stack e-commerce platform with React, Node.js, and MongoDB",
-//         repoUrl: "https://github.com/johndoe/ecommerce",
-//         liveUrl: "https://ecommerce-demo.com",
-//         technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
-//         highlights: [
-//           "Implemented real-time inventory management using WebSocket",
-//           "Integrated Stripe payment gateway with custom checkout flow",
-//           "Built responsive admin dashboard with real-time analytics",
-//         ],
-//       },
-//       {
-//         name: "Task Manager",
-//         description:
-//           "Real-time collaborative task management app with Vue.js and Firebase",
-//         repoUrl: "https://github.com/johndoe/task-manager",
-//         liveUrl: "https://task-manager-demo.com",
-//         technologies: ["Vue.js", "Firebase", "WebSocket", "Node.js"],
-//         highlights: [
-//           "Built real-time collaboration features using Firebase",
-//           "Implemented drag-and-drop task organization",
-//           "Added file attachment support with cloud storage",
-//         ],
-//       },
-//       {
-//         name: "Weather App",
-//         description:
-//           "Progressive web app for weather forecasts using React and TypeScript",
-//         repoUrl: "https://github.com/johndoe/weather-app",
-//         liveUrl: "https://weather-app-demo.com",
-//         technologies: ["React", "TypeScript", "PWA", "Service Workers"],
-//         highlights: [
-//           "Implemented offline support using Service Workers",
-//           "Added location-based weather recommendations",
-//           "Built responsive UI with dark mode support",
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     id: "2",
-//     name: "Jane Smith",
-//     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-//     githubUsername: "janesmith",
-//     linkedinUrl: "https://linkedin.com/in/janesmith",
-//     applyingFor: "Backend Engineer",
-//     status: "new",
-//     assignmentStatus: {
-//       submitted: true,
-//       submittedAt: "2024-03-14T15:45:00Z",
-//       deadline: "2024-03-19T23:59:59Z",
-//       score: 92,
-//     },
-//     skills: {
-//       languages: ["Go", "Python", "Rust"],
-//       frameworks: ["Gin", "FastAPI", "gRPC"],
-//       databases: ["PostgreSQL", "Redis", "Cassandra"],
-//       tools: ["Docker", "Kubernetes", "Terraform"],
-//     },
-//     githubStats: {
-//       commits: 567,
-//       contributions: 789,
-//       codeQuality: 92,
-//     },
-//     inovactScore: {
-//       technical: 94,
-//       collaboration: 88,
-//       communication: 90,
-//       overall: 91,
-//     },
-//     projects: [
-//       {
-//         name: "Distributed Cache",
-//         description: "High-performance distributed caching system in Go",
-//         repoUrl: "https://github.com/janesmith/dcache",
-//         liveUrl: "https://dcache-demo.com",
-//         technologies: ["Go", "Redis", "gRPC", "Prometheus"],
-//         highlights: [
-//           "Implemented consistent hashing for data distribution",
-//           "Built monitoring system with Prometheus and Grafana",
-//           "Achieved 99.99% uptime in production",
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     id: "3",
-//     name: "Alex Chen",
-//     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-//     githubUsername: "alexchen",
-//     linkedinUrl: "https://linkedin.com/in/alexchen",
-//     applyingFor: "DevOps Engineer",
-//     status: "new",
-//     assignmentStatus: {
-//       submitted: true,
-//       submittedAt: "2024-03-13T09:15:00Z",
-//       deadline: "2024-03-18T23:59:59Z",
-//       score: 88,
-//     },
-//     skills: {
-//       languages: ["Python", "Go", "Shell"],
-//       frameworks: ["Terraform", "Ansible", "Helm"],
-//       databases: ["PostgreSQL", "MongoDB", "Elasticsearch"],
-//       tools: ["Kubernetes", "AWS", "GitLab CI", "Prometheus"],
-//     },
-//     githubStats: {
-//       commits: 789,
-//       contributions: 567,
-//       codeQuality: 88,
-//     },
-//     inovactScore: {
-//       technical: 91,
-//       collaboration: 87,
-//       communication: 89,
-//       overall: 89,
-//     },
-//     projects: [
-//       {
-//         name: "Infrastructure as Code",
-//         description: "Multi-cloud infrastructure automation framework",
-//         repoUrl: "https://github.com/alexchen/iac",
-//         liveUrl: "https://iac-demo.com",
-//         technologies: ["Terraform", "AWS", "GCP", "Azure"],
-//         highlights: [
-//           "Built modular infrastructure components",
-//           "Implemented multi-environment deployment pipeline",
-//           "Added automated compliance checks",
-//         ],
-//       },
-//     ],
-//   },
-// ];
-
-// const jobData = {
-//   "1": {
-//     title: "Senior Full Stack Developer",
-//     type: "Full-time",
-//     location: "Remote",
+// export const jobData = {
+//   '1': {
+//     title: 'Senior Full Stack Developer',
+//     type: 'Full-time',
+//     location: 'Remote',
 //     salary: {
 //       min: 500000,
 //       max: 800000,
-//       currency: "INR",
+//       currency: 'INR'
 //     },
 //     requiredSkills: [
-//       "React",
-//       "TypeScript",
-//       "Node.js",
-//       "MongoDB",
-//       "AWS",
-//       "Docker",
-//       "Git",
+//       'React',
+//       'TypeScript',
+//       'Node.js',
+//       'MongoDB',
+//       'AWS',
+//       'Docker',
+//       'Git',
 //     ],
-//     preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
+//     preferredSkills: [
+//       'Next.js',
+//       'Redis',
+//       'Jest',
+//       'GraphQL',
+//     ],
 //   },
-//   "2": {
-//     title: "Backend Engineer",
-//     type: "Full-time",
-//     location: "On-site",
+//   '2': {
+//     title: 'Backend Engineer',
+//     type: 'Full-time',
+//     location: 'On-site',
 //     salary: {
 //       min: 600000,
 //       max: 900000,
-//       currency: "INR",
+//       currency: 'INR'
 //     },
 //     requiredSkills: [
-//       "Go",
-//       "Python",
-//       "PostgreSQL",
-//       "Redis",
-//       "Docker",
-//       "Kubernetes",
+//       'Go',
+//       'Python',
+//       'PostgreSQL',
+//       'Redis',
+//       'Docker',
+//       'Kubernetes',
 //     ],
-//     preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
+//     preferredSkills: [
+//       'Rust',
+//       'gRPC',
+//       'Kafka',
+//       'Terraform',
+//     ],
 //   },
-//   "3": {
-//     title: "DevOps Engineer",
-//     type: "Full-time",
-//     location: "Hybrid",
+//   '3': {
+//     title: 'DevOps Engineer',
+//     type: 'Full-time',
+//     location: 'Hybrid',
 //     salary: {
 //       min: 700000,
 //       max: 1000000,
-//       currency: "INR",
+//       currency: 'INR'
 //     },
 //     requiredSkills: [
-//       "Kubernetes",
-//       "Docker",
-//       "AWS",
-//       "Terraform",
-//       "CI/CD",
-//       "Python",
+//       'Kubernetes',
+//       'Docker',
+//       'AWS',
+//       'Terraform',
+//       'CI/CD',
+//       'Python',
 //     ],
-//     preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
+//     preferredSkills: [
+//       'Go',
+//       'Prometheus',
+//       'ELK Stack',
+//       'Ansible',
+//     ],
 //   },
-// };
-
-// const candidatesData = {
-//   "1": [candidates[0]], // Frontend/Full Stack candidates
-//   "2": [candidates[1]], // Backend candidates
-//   "3": [candidates[2]], // DevOps candidates
-// };
-
-// const calculateSkillMatch = (
-//   candidateSkills: string[],
-//   requiredSkills: string[],
-//   preferredSkills: string[]
-// ) => {
-//   const requiredMatches = requiredSkills.filter((skill) =>
-//     candidateSkills.some(
-//       (candidateSkill) => candidateSkill.toLowerCase() === skill.toLowerCase()
-//     )
-//   );
-
-//   const preferredMatches = preferredSkills.filter((skill) =>
-//     candidateSkills.some(
-//       (candidateSkill) => candidateSkill.toLowerCase() === skill.toLowerCase()
-//     )
-//   );
-
-//   const requiredMatchPercentage =
-//     (requiredMatches.length / requiredSkills.length) * 100;
-//   const preferredMatchPercentage =
-//     (preferredMatches.length / preferredSkills.length) * 100;
-
-//   return {
-//     required: {
-//       matched: requiredMatches,
-//       percentage: requiredMatchPercentage,
-//     },
-//     preferred: {
-//       matched: preferredMatches,
-//       percentage: preferredMatchPercentage,
-//     },
-//     recommendation: getRecommendation(
-//       requiredMatchPercentage,
-//       preferredMatchPercentage
-//     ),
-//   };
-// };
-
-// const getRecommendation = (requiredMatch: number, preferredMatch: number) => {
-//   if (requiredMatch >= 85 && preferredMatch >= 50) {
-//     return {
-//       type: "great",
-//       label: "Great Fit",
-//       color: "bg-green-100 text-green-800",
-//       description: "Candidate matches most required and preferred skills",
-//     };
-//   } else if (requiredMatch >= 70) {
-//     return {
-//       type: "good",
-//       label: "Good Fit",
-//       color: "bg-blue-100 text-blue-800",
-//       description: "Candidate matches essential required skills",
-//     };
-//   } else {
-//     return {
-//       type: "not",
-//       label: "Not a Fit",
-//       color: "bg-red-100 text-red-800",
-//       description: "Candidate lacks several required skills",
-//     };
-//   }
-// };
-
-// const getTopSkills = (skills: any) => {
-//   const allSkills = [
-//     ...skills.languages,
-//     ...skills.frameworks,
-//     ...skills.databases,
-//     ...skills.tools,
-//   ];
-//   return allSkills.slice(0, 5);
 // };

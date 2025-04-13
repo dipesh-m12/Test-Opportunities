@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -19,239 +19,270 @@ import {
 import { calculateGitHubScore } from "@/lib/utils";
 import { Select } from "@/components/ui/Select";
 
-const candidates = [
-  {
-    id: "1",
-    name: "John Doe",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-    githubUsername: "johndoe",
-    linkedinUrl: "https://linkedin.com/in/johndoe",
-    applyingFor: "Senior Full Stack Developer",
-    status: "new",
-    assignmentStatus: {
-      submitted: true,
-      submittedAt: "2024-03-15T10:30:00Z",
-      deadline: "2024-03-20T23:59:59Z",
-      score: null,
-    },
-    skills: {
-      languages: ["JavaScript", "TypeScript", "Python"],
-      frameworks: ["React", "Node.js", "Express", "Next.js"],
-      databases: ["MongoDB", "PostgreSQL", "Redis"],
-      tools: ["Docker", "AWS", "Git", "Jest"],
-    },
-    githubStats: {
-      commits: 234,
-      contributions: 456,
-      codeQuality: 85,
-    },
-    inovactScore: {
-      technical: 89,
-      collaboration: 92,
-      communication: 85,
-      overall: 88,
-    },
-    projects: [
-      {
-        name: "E-commerce Platform",
-        description:
-          "Full-stack e-commerce platform with React, Node.js, and MongoDB",
-        repoUrl: "https://github.com/johndoe/ecommerce",
-        liveUrl: "https://ecommerce-demo.com",
-        technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
-        highlights: [
-          "Implemented real-time inventory management using WebSocket",
-          "Integrated Stripe payment gateway with custom checkout flow",
-          "Built responsive admin dashboard with real-time analytics",
-        ],
-      },
-      {
-        name: "Task Manager",
-        description:
-          "Real-time collaborative task management app with Vue.js and Firebase",
-        repoUrl: "https://github.com/johndoe/task-manager",
-        liveUrl: "https://task-manager-demo.com",
-        technologies: ["Vue.js", "Firebase", "WebSocket", "Node.js"],
-        highlights: [
-          "Built real-time collaboration features using Firebase",
-          "Implemented drag-and-drop task organization",
-          "Added file attachment support with cloud storage",
-        ],
-      },
-      {
-        name: "Weather App",
-        description:
-          "Progressive web app for weather forecasts using React and TypeScript",
-        repoUrl: "https://github.com/johndoe/weather-app",
-        liveUrl: "https://weather-app-demo.com",
-        technologies: ["React", "TypeScript", "PWA", "Service Workers"],
-        highlights: [
-          "Implemented offline support using Service Workers",
-          "Added location-based weather recommendations",
-          "Built responsive UI with dark mode support",
-        ],
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    githubUsername: "janesmith",
-    linkedinUrl: "https://linkedin.com/in/janesmith",
-    applyingFor: "Backend Engineer",
-    status: "new",
-    assignmentStatus: {
-      submitted: true,
-      submittedAt: "2024-03-14T15:45:00Z",
-      deadline: "2024-03-19T23:59:59Z",
-      score: 92,
-    },
-    skills: {
-      languages: ["Go", "Python", "Rust"],
-      frameworks: ["Gin", "FastAPI", "gRPC"],
-      databases: ["PostgreSQL", "Redis", "Cassandra"],
-      tools: ["Docker", "Kubernetes", "Terraform"],
-    },
-    githubStats: {
-      commits: 567,
-      contributions: 789,
-      codeQuality: 92,
-    },
-    inovactScore: {
-      technical: 94,
-      collaboration: 88,
-      communication: 90,
-      overall: 91,
-    },
-    projects: [
-      {
-        name: "Distributed Cache",
-        description: "High-performance distributed caching system in Go",
-        repoUrl: "https://github.com/janesmith/dcache",
-        liveUrl: "https://dcache-demo.com",
-        technologies: ["Go", "Redis", "gRPC", "Prometheus"],
-        highlights: [
-          "Implemented consistent hashing for data distribution",
-          "Built monitoring system with Prometheus and Grafana",
-          "Achieved 99.99% uptime in production",
-        ],
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Alex Chen",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    githubUsername: "alexchen",
-    linkedinUrl: "https://linkedin.com/in/alexchen",
-    applyingFor: "DevOps Engineer",
-    status: "new",
-    assignmentStatus: {
-      submitted: true,
-      submittedAt: "2024-03-13T09:15:00Z",
-      deadline: "2024-03-18T23:59:59Z",
-      score: 88,
-    },
-    skills: {
-      languages: ["Python", "Go", "Shell"],
-      frameworks: ["Terraform", "Ansible", "Helm"],
-      databases: ["PostgreSQL", "MongoDB", "Elasticsearch"],
-      tools: ["Kubernetes", "AWS", "GitLab CI", "Prometheus"],
-    },
-    githubStats: {
-      commits: 789,
-      contributions: 567,
-      codeQuality: 88,
-    },
-    inovactScore: {
-      technical: 91,
-      collaboration: 87,
-      communication: 89,
-      overall: 89,
-    },
-    projects: [
-      {
-        name: "Infrastructure as Code",
-        description: "Multi-cloud infrastructure automation framework",
-        repoUrl: "https://github.com/alexchen/iac",
-        liveUrl: "https://iac-demo.com",
-        technologies: ["Terraform", "AWS", "GCP", "Azure"],
-        highlights: [
-          "Built modular infrastructure components",
-          "Implemented multi-environment deployment pipeline",
-          "Added automated compliance checks",
-        ],
-      },
-    ],
-  },
-];
+interface SkillSet {
+  languages: string[];
+  frameworks: string[];
+  databases: string[];
+  tools: string[];
+}
 
-const jobData = {
-  "1": {
-    title: "Senior Full Stack Developer",
-    type: "Full-time",
-    location: "Remote",
-    salary: {
-      min: 500000,
-      max: 800000,
-      currency: "INR",
+interface Project {
+  name: string;
+  description: string;
+  repoUrl: string;
+  liveUrl: string;
+  technologies: string[];
+  highlights: string[];
+}
+
+interface AssignmentStatus {
+  submitted: boolean;
+  submittedAt: string;
+  deadline: string;
+  score: number | null;
+}
+
+interface GithubStats {
+  commits: number;
+  contributions: number;
+  codeQuality: number;
+}
+
+interface InovactScore {
+  technical: number;
+  collaboration: number;
+  communication: number;
+  overall: number;
+}
+
+interface Candidate {
+  id: string;
+  name: string;
+  avatar: string;
+  githubUsername: string;
+  linkedinUrl: string;
+  applyingFor: string;
+  status: string;
+  assignmentStatus: AssignmentStatus;
+  skills: SkillSet;
+  githubStats: GithubStats;
+  inovactScore: InovactScore;
+  projects: Project[];
+}
+
+interface Salary {
+  min: number;
+  max: number;
+  currency: string;
+}
+
+interface Job {
+  id: string;
+  title: string;
+  type: string;
+  location: string;
+  salary: Salary;
+  requiredSkills: string[];
+  preferredSkills: string[];
+}
+
+const fetchJobs = async (): Promise<Job[]> => {
+  // Simulate API call with dummy data
+  return [
+    {
+      id: "1",
+      title: "Senior Full Stack Developer",
+      type: "Full-time",
+      location: "Remote",
+      salary: { min: 500000, max: 800000, currency: "INR" },
+      requiredSkills: [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "MongoDB",
+        "AWS",
+        "Docker",
+        "Git",
+      ],
+      preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
     },
-    requiredSkills: [
-      "React",
-      "TypeScript",
-      "Node.js",
-      "MongoDB",
-      "AWS",
-      "Docker",
-      "Git",
-    ],
-    preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
-  },
-  "2": {
-    title: "Backend Engineer",
-    type: "Full-time",
-    location: "On-site",
-    salary: {
-      min: 600000,
-      max: 900000,
-      currency: "INR",
+    {
+      id: "2",
+      title: "Backend Engineer",
+      type: "Full-time",
+      location: "On-site",
+      salary: { min: 600000, max: 900000, currency: "INR" },
+      requiredSkills: [
+        "Go",
+        "Python",
+        "PostgreSQL",
+        "Redis",
+        "Docker",
+        "Kubernetes",
+      ],
+      preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
     },
-    requiredSkills: [
-      "Go",
-      "Python",
-      "PostgreSQL",
-      "Redis",
-      "Docker",
-      "Kubernetes",
-    ],
-    preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
-  },
-  "3": {
-    title: "DevOps Engineer",
-    type: "Full-time",
-    location: "Hybrid",
-    salary: {
-      min: 700000,
-      max: 1000000,
-      currency: "INR",
+    {
+      id: "3",
+      title: "DevOps Engineer",
+      type: "Full-time",
+      location: "Hybrid",
+      salary: { min: 700000, max: 1000000, currency: "INR" },
+      requiredSkills: [
+        "Kubernetes",
+        "Docker",
+        "AWS",
+        "Terraform",
+        "CI/CD",
+        "Python",
+      ],
+      preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
     },
-    requiredSkills: [
-      "Kubernetes",
-      "Docker",
-      "AWS",
-      "Terraform",
-      "CI/CD",
-      "Python",
-    ],
-    preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
-  },
+  ];
 };
 
-const candidatesData = {
-  "1": [candidates[0]], // Frontend/Full Stack candidates
-  "2": [candidates[1]], // Backend candidates
-  "3": [candidates[2]], // DevOps candidates
+const fetchCandidates = async (): Promise<Candidate[]> => {
+  // Simulate API call with dummy data
+  return [
+    {
+      id: "1",
+      name: "John Doe",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+      githubUsername: "johndoe",
+      linkedinUrl: "https://linkedin.com/in/johndoe",
+      applyingFor: "Senior Full Stack Developer",
+      status: "new",
+      assignmentStatus: {
+        submitted: true,
+        submittedAt: "2024-03-15T10:30:00Z",
+        deadline: "2024-03-20T23:59:59Z",
+        score: null,
+      },
+      skills: {
+        languages: ["JavaScript", "TypeScript", "Python"],
+        frameworks: ["React", "Node.js", "Express", "Next.js"],
+        databases: ["MongoDB", "PostgreSQL", "Redis"],
+        tools: ["Docker", "AWS", "Git", "Jest"],
+      },
+      githubStats: {
+        commits: 234,
+        contributions: 456,
+        codeQuality: 85,
+      },
+      inovactScore: {
+        technical: 89,
+        collaboration: 92,
+        communication: 85,
+        overall: 88,
+      },
+      projects: [
+        {
+          name: "E-commerce Platform",
+          description:
+            "Full-stack e-commerce platform with React, Node.js, and MongoDB",
+          repoUrl: "https://github.com/johndoe/ecommerce",
+          liveUrl: "https://ecommerce-demo.com",
+          technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
+          highlights: [
+            "Implemented real-time inventory management using WebSocket",
+            "Integrated Stripe payment gateway with custom checkout flow",
+            "Built responsive admin dashboard with real-time analytics",
+          ],
+        },
+      ],
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+      githubUsername: "janesmith",
+      linkedinUrl: "https://linkedin.com/in/janesmith",
+      applyingFor: "Backend Engineer",
+      status: "new",
+      assignmentStatus: {
+        submitted: true,
+        submittedAt: "2024-03-14T15:45:00Z",
+        deadline: "2024-03-19T23:59:59Z",
+        score: 92,
+      },
+      skills: {
+        languages: ["Go", "Python", "Rust"],
+        frameworks: ["Gin", "FastAPI", "gRPC"],
+        databases: ["PostgreSQL", "Redis", "Cassandra"],
+        tools: ["Docker", "Kubernetes", "Terraform"],
+      },
+      githubStats: {
+        commits: 567,
+        contributions: 789,
+        codeQuality: 92,
+      },
+      inovactScore: {
+        technical: 94,
+        collaboration: 88,
+        communication: 90,
+        overall: 91,
+      },
+      projects: [
+        {
+          name: "Distributed Cache",
+          description: "High-performance distributed caching system in Go",
+          repoUrl: "https://github.com/janesmith/dcache",
+          liveUrl: "https://dcache-demo.com",
+          technologies: ["Go", "Redis", "gRPC", "Prometheus"],
+          highlights: [
+            "Implemented consistent hashing for data distribution",
+            "Built monitoring system with Prometheus and Grafana",
+            "Achieved 99.99% uptime in production",
+          ],
+        },
+      ],
+    },
+    {
+      id: "3",
+      name: "Alex Chen",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+      githubUsername: "alexchen",
+      linkedinUrl: "https://linkedin.com/in/alexchen",
+      applyingFor: "Senior Full Stack Developer",
+      status: "shortlisted",
+      assignmentStatus: {
+        submitted: true,
+        submittedAt: "2024-03-13T09:15:00Z",
+        deadline: "2024-03-18T23:59:59Z",
+        score: 88,
+      },
+      skills: {
+        languages: ["JavaScript", "TypeScript"],
+        frameworks: ["React", "Next.js"],
+        databases: ["MongoDB"],
+        tools: ["Docker", "Git"],
+      },
+      githubStats: {
+        commits: 789,
+        contributions: 567,
+        codeQuality: 88,
+      },
+      inovactScore: {
+        technical: 91,
+        collaboration: 87,
+        communication: 89,
+        overall: 89,
+      },
+      projects: [
+        {
+          name: "Task Manager",
+          description: "Real-time collaborative task management app",
+          repoUrl: "https://github.com/alexchen/task-manager",
+          liveUrl: "https://task-manager-demo.com",
+          technologies: ["React", "Node.js", "MongoDB"],
+          highlights: [
+            "Built real-time collaboration features",
+            "Implemented drag-and-drop interface",
+          ],
+        },
+      ],
+    },
+  ];
 };
 
 const calculateSkillMatch = (
@@ -317,7 +348,7 @@ const getRecommendation = (requiredMatch: number, preferredMatch: number) => {
   }
 };
 
-const getTopSkills = (skills: any) => {
+const getTopSkills = (skills: SkillSet) => {
   const allSkills = [
     ...skills.languages,
     ...skills.frameworks,
@@ -333,11 +364,40 @@ export const Candidates = () => {
   );
   const { jobId } = useParams();
   const navigate = useNavigate();
-
   const [skillFilter, setSkillFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!jobId || !jobData[jobId]) {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [jobData, candidateData] = await Promise.all([
+          fetchJobs(),
+          fetchCandidates(),
+        ]);
+        setJobs(jobData);
+        setCandidates(candidateData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
+  const currentJob = jobs.find((job) => job.id === jobId);
+  if (!jobId || !currentJob) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-gray-500">Invalid job ID</p>
@@ -345,8 +405,9 @@ export const Candidates = () => {
     );
   }
 
-  const currentJob = jobData[jobId];
-  const candidatesForJob = candidatesData[jobId] || [];
+  const candidatesForJob = candidates.filter(
+    (candidate) => candidate.applyingFor === currentJob.title
+  );
 
   const statusOptions = [
     { value: "assign_status", label: "Assign status" },
@@ -368,7 +429,7 @@ export const Candidates = () => {
     label: opt.label,
   }));
 
-  const filteredCandidates = candidatesForJob.filter((candidate: any) => {
+  const filteredCandidates = candidatesForJob.filter((candidate) => {
     const skillMatch = calculateSkillMatch(
       [
         ...candidate.skills.languages,
@@ -388,7 +449,7 @@ export const Candidates = () => {
   });
 
   const scheduleInterview = (candidateId: string) => {
-    const candidate = candidatesForJob.find((c: any) => c.id === candidateId);
+    const candidate = candidatesForJob.find((c) => c.id === candidateId);
     if (!candidate) return;
 
     const date = new Date();
@@ -413,11 +474,13 @@ export const Candidates = () => {
   };
 
   const updateCandidateStatus = (candidateId: string, newStatus: string) => {
-    console.log(`Updating candidate ${candidateId} status to ${newStatus}`);
-    const candidate = candidatesForJob.find((c: any) => c.id === candidateId);
-    if (candidate) {
-      candidate.status = newStatus;
-    }
+    setCandidates((prev) =>
+      prev.map((candidate) =>
+        candidate.id === candidateId
+          ? { ...candidate, status: newStatus }
+          : candidate
+      )
+    );
   };
 
   const toggleFilter = (type: "skill" | "status", value: string | null) => {
@@ -439,8 +502,6 @@ export const Candidates = () => {
         Back
       </Button>
       <div className="space-y-4 mt-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-hidden">
-        {/* Header */}
-
         <div className="space-y-3">
           <div className="flex flex-col gap-3">
             <div className="space-y-1 text-center sm:text-left">
@@ -492,9 +553,8 @@ export const Candidates = () => {
           </div>
         </div>
 
-        {/* Candidate Cards */}
         <div className="grid gap-4">
-          {filteredCandidates.map((candidate: any, index: any) => {
+          {filteredCandidates.map((candidate, index) => {
             const skillMatch = calculateSkillMatch(
               [
                 ...candidate.skills.languages,
@@ -514,7 +574,6 @@ export const Candidates = () => {
               >
                 <CardContent className="p-3 sm:p-4">
                   <div className="space-y-4">
-                    {/* Section 1: Name, Rank, Links, Actions */}
                     <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                       <div className="flex items-start space-x-3 w-full">
                         <Avatar
@@ -523,7 +582,7 @@ export const Candidates = () => {
                           fallback={candidate.name}
                           size="md"
                         />
-                        <div className=" flex-1 min-w-0">
+                        <div className="flex-1 min-w-0">
                           <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
                             {candidate.name}
                           </h3>
@@ -574,7 +633,7 @@ export const Candidates = () => {
                           <Select
                             options={statusOptions}
                             defaultValue={candidate.status}
-                            onValueChange={(value: any) =>
+                            onValueChange={(value) =>
                               updateCandidateStatus(candidate.id, value)
                             }
                           />
@@ -604,7 +663,6 @@ export const Candidates = () => {
                       </div>
                     </div>
 
-                    {/* Section 2: Skills and Fit */}
                     <div className="border-t pt-3 flex flex-col lg:flex-row gap-4">
                       <div className="flex-1 space-y-3">
                         <h4 className="font-medium text-gray-900 text-sm sm:text-base">
@@ -632,7 +690,7 @@ export const Candidates = () => {
                               </span>
                             </div>
                             <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                              {currentJob.requiredSkills.map((skill: any) => {
+                              {currentJob.requiredSkills.map((skill) => {
                                 const isMatched =
                                   skillMatch.required.matched.includes(skill);
                                 return (
@@ -665,7 +723,7 @@ export const Candidates = () => {
                               </span>
                             </div>
                             <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                              {currentJob.preferredSkills.map((skill: any) => {
+                              {currentJob.preferredSkills.map((skill) => {
                                 const isMatched =
                                   skillMatch.preferred.matched.includes(skill);
                                 return (
@@ -704,17 +762,15 @@ export const Candidates = () => {
                       </div>
                     </div>
 
-                    {/* Extended View */}
                     {selectedCandidate === candidate.id && (
                       <div className="mt-4 space-y-4 border-t pt-4">
-                        {/* Section 3: Languages and Assignment/Inovact */}
                         <div className="flex flex-col lg:flex-row gap-4">
                           <div className="flex-1 space-y-3">
                             <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                               Programming Languages
                             </h4>
                             <div className="flex flex-wrap gap-1 sm:gap-2">
-                              {candidate.skills.languages.map((lang: any) => (
+                              {candidate.skills.languages.map((lang) => (
                                 <Badge
                                   key={lang}
                                   variant="default"
@@ -728,23 +784,21 @@ export const Candidates = () => {
                               Frameworks & Libraries
                             </h4>
                             <div className="flex flex-wrap gap-1 sm:gap-2">
-                              {candidate.skills.frameworks.map(
-                                (framework: any) => (
-                                  <Badge
-                                    key={framework}
-                                    variant="default"
-                                    className="text-xs sm:text-sm"
-                                  >
-                                    {framework}
-                                  </Badge>
-                                )
-                              )}
+                              {candidate.skills.frameworks.map((framework) => (
+                                <Badge
+                                  key={framework}
+                                  variant="default"
+                                  className="text-xs sm:text-sm"
+                                >
+                                  {framework}
+                                </Badge>
+                              ))}
                             </div>
                             <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                               Databases
                             </h4>
                             <div className="flex flex-wrap gap-1 sm:gap-2">
-                              {candidate.skills.databases.map((db: any) => (
+                              {candidate.skills.databases.map((db) => (
                                 <Badge
                                   key={db}
                                   variant="default"
@@ -758,7 +812,7 @@ export const Candidates = () => {
                               Tools & Technologies
                             </h4>
                             <div className="flex flex-wrap gap-1 sm:gap-2">
-                              {candidate.skills.tools.map((tool: any) => (
+                              {candidate.skills.tools.map((tool) => (
                                 <Badge
                                   key={tool}
                                   variant="default"
@@ -885,79 +939,75 @@ export const Candidates = () => {
                           </div>
                         </div>
 
-                        {/* Section 4: Projects */}
                         <div className="space-y-3">
                           <h4 className="text-base sm:text-lg font-medium text-gray-900">
                             Projects
                           </h4>
                           <div className="grid gap-3">
-                            {candidate.projects.map(
-                              (project: any, index: any) => (
-                                <div
-                                  key={index}
-                                  className="rounded-lg border p-3"
-                                >
-                                  <div className="space-y-2">
-                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                                      <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                                        {project.name}
-                                      </h5>
-                                      <div className="flex space-x-2">
-                                        <a
-                                          href={project.repoUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-gray-500 hover:text-gray-700"
-                                        >
-                                          <Github className="h-4 w-4 sm:h-5 sm:w-5" />
-                                        </a>
-                                        <a
-                                          href={project.liveUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-gray-500 hover:text-gray-700"
-                                        >
-                                          <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-gray-600">
-                                      {project.description}
-                                    </p>
-                                    <div className="space-y-1">
-                                      <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                        Key Highlights:
-                                      </h6>
-                                      <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                                        {project.highlights.map(
-                                          (highlight: any, i: any) => (
-                                            <li key={i}>{highlight}</li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 sm:gap-2">
-                                      {project.technologies.map((tech: any) => (
-                                        <Badge
-                                          key={tech}
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          {tech}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                    <div className="text-xs bg-blue-300/40 text-blue-700 w-fit ml-auto font-semibold p-2 rounded-lg  text-right">
-                                      Code Quality: 85%
+                            {candidate.projects.map((project, index) => (
+                              <div
+                                key={index}
+                                className="rounded-lg border p-3"
+                              >
+                                <div className="space-y-2">
+                                  <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                    <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      {project.name}
+                                    </h5>
+                                    <div className="flex space-x-2">
+                                      <a
+                                        href={project.repoUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-500 hover:text-gray-700"
+                                      >
+                                        <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                                      </a>
+                                      <a
+                                        href={project.liveUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-500 hover:text-gray-700"
+                                      >
+                                        <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                      </a>
                                     </div>
                                   </div>
+                                  <p className="text-xs sm:text-sm text-gray-600">
+                                    {project.description}
+                                  </p>
+                                  <div className="space-y-1">
+                                    <h6 className="text-xs sm:text-sm font-medium text-gray-700">
+                                      Key Highlights:
+                                    </h6>
+                                    <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
+                                      {project.highlights.map(
+                                        (highlight, i) => (
+                                          <li key={i}>{highlight}</li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                    {project.technologies.map((tech) => (
+                                      <Badge
+                                        key={tech}
+                                        variant="secondary"
+                                        className="text-xs"
+                                      >
+                                        {tech}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  <div className="text-xs bg-blue-300/40 text-blue-700 w-fit ml-auto font-semibold p-2 rounded-lg text-right">
+                                    Code Quality: 85%
+                                  </div>
                                 </div>
-                              )
-                            )}
+                              </div>
+                            ))}
                           </div>
                         </div>
 
-                        {/* Section 5: Review Stats */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                           <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                             <div className="text-center">
@@ -1000,7 +1050,7 @@ export const Candidates = () => {
                             </div>
                           </div>
                         </div>
-                        {/* Close Button */}
+
                         <div className="flex justify-end">
                           <Button
                             variant="outline"
