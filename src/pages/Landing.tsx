@@ -798,7 +798,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen font-poppins">
       <header className="sticky top-0 z-50 bg-white border-b">
         <div className="container mx-auto px-6 flex items-center justify-between h-16">
-          <Link to="/" className="text-2xl font-bold text-blue-600">
+          <Link to="/" className="text-xl sm:text-2xl font-bold text-blue-600">
             Inovact Opportunities
           </Link>
           <div className="flex items-center space-x-4">
@@ -869,7 +869,9 @@ export default function Home() {
             <div className="flex justify-start sm:justify-center">
               <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6">
                 <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
-                <span className="">Revolutionizing Tech Recruitment</span>
+                <span className="sm:text-base text-sm">
+                  Revolutionizing Tech Recruitment
+                </span>
               </div>
             </div>
             <h1 className=" text-4xl md:text-6xl font-bold mb-8 max-w-5xl mx-auto text-start sm:text-center">
