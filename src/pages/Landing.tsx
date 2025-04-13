@@ -1246,7 +1246,9 @@ export default function Home() {
             <div className="flex sm:justify-center justify-start">
               <div className="inline-flex items-center bg-blue-100 text-blue-600 px-4 py-1 rounded-full mb-6">
                 <Zap className="h-4 w-4 mr-2" />
-                <span>Game-Changing Features</span>
+                <span className="sm:text-base text-sm">
+                  Game-Changing Features
+                </span>
               </div>
             </div>
             <h2 className="text-4xl font-bold mb-6 sm:text-center text-left">
@@ -1547,7 +1549,9 @@ export default function Home() {
           <div className="container mx-auto max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-6">Why choose Inovact Opportunities?</h2>
+                <h2 className="text-3xl font-bold mb-6">
+                  Why choose Inovact Opportunities?
+                </h2>
                 <p className="text-gray-600 mb-8">
                   While other platforms focus on keyword matching, we analyze
                   real-world programming skills and project contributions.
