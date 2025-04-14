@@ -1,9 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
+import { host } from "@/utils/routes";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { token } from "@/utils";
+import { useNavigate } from "react-router-dom";
 
 interface SettingsFormData {
   companyName: string;
@@ -25,26 +31,155 @@ export const Settings = () => {
       assignmentNotifications: false,
     },
   });
+  const [fetchedData, setFetchedData] = useState<{
+    [key: string]: string | boolean;
+  }>();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    reset({
-      companyName: "Acme Corp",
-      website: "https://www.acmecorp.com",
-      contactName: "John Doe",
-      email: "john.doe@acmecorp.com",
-      linkedin: "",
-      assignmentNotifications: true,
-    });
+    const createCompany = async () => {
+      setLoading(true);
+      try {
+        // Get the current user and their ID token
+        const idToken = localStorage.getItem(token);
+        if (!idToken) {
+          toast.error("Seems like you are not logged in");
+          setTimeout(() => {
+            navigate("/sign-in");
+          }, 2000);
+
+          return;
+        }
+
+        // Make API call to create company
+        const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        reset({
+          companyName: response.data.name || "",
+          website: response.data.website || "",
+          linkedin: response.data.linkedin_url || "",
+          email: "",
+          contactName: "",
+          assignmentNotifications: false,
+        });
+        setFetchedData({
+          companyName: response.data.name || "",
+          website: response.data.website || "",
+          linkedin: response.data.linkedin_url || "",
+          email: "",
+          contactName: "",
+          assignmentNotifications: false,
+        });
+
+        console.log("API Response:", response.data);
+        toast.success("Company fetched successfully!");
+      } catch (error: any) {
+        console.error("Error creating company:", error);
+        if (error.response) {
+          switch (error.response.status) {
+            case 400:
+              toast.error("Invalid data provided.");
+              break;
+            case 401:
+              toast.error("Authentication failed. Please log in.");
+              break;
+            case 409:
+              toast.error("Company name already exists.");
+              break;
+            default:
+              toast.error("Failed to get company.");
+          }
+        } else if (error.message === "User not authenticated") {
+          toast.error("Please log in to create a company.");
+        } else {
+          toast.error("An unexpected error occurred.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    createCompany();
   }, []);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: SettingsFormData) => {
+    if (loading) return;
     setLoading(true);
+
     try {
-      // TODO: Implement settings update logic
-      console.log("Settings data:", data);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
-    } catch (error) {
+      // Get the current user and their ID token
+      const idToken = localStorage.getItem(token);
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+
+        return;
+      }
+      if (fetchedData?.companyName) {
+        console.log("updating");
+        const response = await axios.put(
+          `${host}/company`,
+          {
+            name: data.companyName,
+            website: data.website,
+            linkedin_url: data.linkedin,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        console.log("API Response:", response.data);
+        toast.success("Company settings updated successfully!");
+      } else {
+        console.log("adding");
+        // Make API call to create company
+        const response = await axios.post(
+          `${host}/company`,
+          {
+            name: data.companyName,
+            website: data.website,
+            linkedin_url: data.linkedin,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+
+        console.log("API Response:", response.data);
+        toast.success("Company settings added successfully!");
+      }
+    } catch (error: any) {
       console.error("Error updating settings:", error);
+      if (error.response) {
+        // API-specific errors
+        switch (error.response.status) {
+          case 400:
+            toast.error("Invalid data provided. Please check your inputs.");
+            break;
+          case 401:
+            toast.error("Authentication failed. Please log in again.");
+            break;
+          case 409:
+            toast.error("Company name already exists.");
+            break;
+          default:
+            toast.error("Failed to update settings. Please try again.");
+        }
+      } else if (error.message === "User not authenticated") {
+        toast.error("Please log in to update settings.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -70,6 +205,7 @@ export const Settings = () => {
                   Company Name
                 </label>
                 <Input
+                  disabled={loading}
                   id="companyName"
                   {...register("companyName", {
                     required: "Company name is required",
@@ -89,6 +225,7 @@ export const Settings = () => {
                   Website
                 </label>
                 <Input
+                  disabled={loading}
                   id="website"
                   type="url"
                   {...register("website", {
@@ -114,6 +251,7 @@ export const Settings = () => {
                   LinkedIn (Optional)
                 </label>
                 <Input
+                  disabled={loading}
                   id="linkedin"
                   type="url"
                   {...register("linkedin", {
@@ -146,6 +284,7 @@ export const Settings = () => {
                   Contact Person Name
                 </label>
                 <Input
+                  disabled={loading}
                   id="contactName"
                   {...register("contactName", {
                     required: "Contact name is required",
@@ -165,6 +304,7 @@ export const Settings = () => {
                   Email
                 </label>
                 <Input
+                  disabled={loading}
                   id="email"
                   type="email"
                   {...register("email", {
@@ -191,6 +331,7 @@ export const Settings = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center">
                 <input
+                  disabled={loading}
                   id="assignmentNotifications"
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"

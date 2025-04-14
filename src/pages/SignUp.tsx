@@ -48,12 +48,12 @@ export const SignUp = () => {
       // Store token and UID in localStorage
       localStorage.setItem("uid", uid); // Store UID separately
 
-      console.log(idToken);
-      console.log("SignUp Success:", {
-        email: user.email,
-        uid: uid, // Log the UID
-        idToken: idToken,
-      });
+      // console.log(idToken);
+      // console.log("SignUp Success:", {
+      //   email: user.email,
+      //   uid: uid, // Log the UID
+      //   idToken: idToken,
+      // });
 
       const response = await axios.post(
         `${host}/users`,

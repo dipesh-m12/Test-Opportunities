@@ -44,10 +44,11 @@ export const SignIn = () => {
 
       const idToken = await userCredential.user.getIdToken();
 
-      console.log("Email Sign-In Success:", {
-        email: userCredential.user.email,
-        idToken: idToken,
-      });
+      // console.log("Email Sign-In Success:", {
+      //   email: userCredential.user.email,
+      //   idToken: idToken,
+      // });
+      console.log(idToken);
 
       // Make Axios call to the /users API with idToken
       const response = await axios.get(`${host}/users`, {
@@ -60,7 +61,7 @@ export const SignIn = () => {
       console.log("API Response:", response.data);
 
       toast.success("Successfully signed in!");
-      navigate("/dashboard");
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error: any) {
       console.error("Email Sign-In Error:", error.message);
       switch (error.code) {
@@ -95,7 +96,6 @@ export const SignIn = () => {
       } = userCredential;
 
       console.log("Google Sign-In Success:", { email, displayName, idToken });
-      localStorage.setItem(token, idToken);
 
       const response = await axios.get(`${host}/users`, {
         headers: {
@@ -103,10 +103,12 @@ export const SignIn = () => {
         },
       });
 
+      localStorage.setItem(token, idToken);
+
       console.log("API Response:", response.data);
 
       toast.success("Signed in with Google!");
-      navigate("/dashboard");
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error: any) {
       console.error("Google Sign-In Error:", error.message);
       toast.error("Failed to sign in with Google");

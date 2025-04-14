@@ -7,15 +7,18 @@ import { Badge } from "@/components/ui/Badge";
 import { Eye, Edit, Trash2, Clock, Users, PlusCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 const ManageJobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const loadJobs = async () => {
+    setLoading(true);
     try {
       // const jobs = await api.jobs.getAll();
       const jobs = [
@@ -111,6 +114,7 @@ const ManageJobs = () => {
       setJobs(jobs);
     } catch (error) {
       console.error("Error loading jobs:", error);
+      toast.error("Error fetching jobs...");
     } finally {
       setLoading(false);
     }
@@ -185,7 +189,10 @@ const ManageJobs = () => {
         <CardContent>
           {loading ? (
             <div className="flex h-32 items-center justify-center">
-              <div className="text-gray-500">Loading jobs...</div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-blue-500 text-sm">Loading jobs...</span>
+              </div>
             </div>
           ) : jobs.length === 0 ? (
             <div className="flex h-32 items-center justify-center">
@@ -218,7 +225,6 @@ const ManageJobs = () => {
                           <span>View Applicants</span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          {/* <IndianRupee className="h-4 w-4" /> */}
                           <span>
                             <span className="font-medium">
                               INR {job.salary_min.toLocaleString()} -{" "}
@@ -289,10 +295,15 @@ const ManageJobs = () => {
                 Cancel
               </button>
               <button
+                disabled={deleteLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-800 bg-red-100 border border-red-800 rounded-md hover:bg-red-200 hover:border-red-900 transition-colors"
                 onClick={confirmDelete}
               >
-                Delete
+                {deleteLoading ? (
+                  <div className="w-4 h-4 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Delete"
+                )}
               </button>
             </div>
           </div>
