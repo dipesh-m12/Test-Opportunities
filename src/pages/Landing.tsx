@@ -805,7 +805,8 @@ export default function Home() {
             {/* Desktop version (hidden on mobile) */}
             <span
               onClick={() =>
-                secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                // secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                navigate("/sign-in")
               }
               className="cursor-pointer hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
@@ -814,7 +815,8 @@ export default function Home() {
             {/* Mobile version (hidden on desktop) */}
             <span
               onClick={() =>
-                secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                // secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                navigate("/sign-in")
               }
               className="sm:hidden p-2 inline-block rounded-full bg-white border-2 border-blue-600 text-blue-600 font-medium transition-all duration-300 hover:bg-blue-50 active:scale-95 group"
             >
