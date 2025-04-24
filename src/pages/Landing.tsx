@@ -2,7 +2,7 @@
 import type React from "react";
 
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FileText,
   CheckSquare,
@@ -28,6 +28,7 @@ export default function Home() {
   const secRef = useRef<any>();
   const scrollUpRef = useRef<HTMLDivElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   // const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
