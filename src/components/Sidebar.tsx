@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   Briefcase,
@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { token } from "@/utils";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { host } from "@/utils/routes";
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -23,24 +26,64 @@ const navItems = [
 
 export const Sidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // For navigation after logout confirmation
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+  const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkCompanyAccess = async () => {
+      const idToken = localStorage.getItem(token);
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+
+      try {
+        // console.log("here");
+        const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        if (response.status === 200) {
+          setIsPostJobEnabled(true);
+        }
+      } catch (error) {
+        console.log(error);
+
+        setIsPostJobEnabled(false);
+      }
+    };
+
+    checkCompanyAccess();
+  }, []);
 
   const handleLogoutClick = (e: any) => {
-    e.preventDefault(); // Prevent default Link behavior
-    setIsLogoutModalOpen(true); // Show modal
+    e.preventDefault();
+    setIsLogoutModalOpen(true);
+  };
+
+  const handlePostJobClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isPostJobEnabled) {
+      e.preventDefault(); // Prevent navigation when disabled
+      toast.error("Set your company to post jobs");
+    }
+    setIsMobileMenuOpen(false);
   };
 
   const confirmLogout = () => {
     setIsLogoutModalOpen(false);
     setIsMobileMenuOpen(false);
     localStorage.removeItem(token);
-    navigate("/sign-in"); // Navigate to sign-in page
+    navigate("/sign-in");
   };
 
   const cancelLogout = () => {
-    setIsLogoutModalOpen(false); // Just close the modal
+    setIsLogoutModalOpen(false);
   };
 
   return (
@@ -51,7 +94,7 @@ export const Sidebar = () => {
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
-          <h1 className="text-xl  font-semibold text-blue-600">
+          <h1 className="text-xl font-semibold text-blue-600">
             Inovact Opportunities
           </h1>
           <button
@@ -66,6 +109,7 @@ export const Sidebar = () => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             const isLogout = item.label === "Logout";
+            const isPostJob = item.label === "Post a Job";
 
             return (
               <Link
@@ -74,11 +118,15 @@ export const Sidebar = () => {
                 onClick={
                   isLogout
                     ? handleLogoutClick
+                    : isPostJob
+                    ? handlePostJobClick
                     : () => setIsMobileMenuOpen(false)
                 }
                 className={cn(
                   "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                  isLogout
+                  isPostJob && !isPostJobEnabled
+                    ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                    : isLogout
                     ? isActive
                       ? "bg-red-100 text-red-700"
                       : "bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
@@ -86,6 +134,9 @@ export const Sidebar = () => {
                     ? "bg-blue-50 text-blue-600"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 )}
+                {...(isPostJob && !isPostJobEnabled
+                  ? { "aria-disabled": "true" }
+                  : {})}
               >
                 <Icon className="mr-3 h-5 w-5" />
                 {item.label}
@@ -106,7 +157,6 @@ export const Sidebar = () => {
         </button>
       </div>
 
-      {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">

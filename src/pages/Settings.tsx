@@ -31,9 +31,8 @@ export const Settings = () => {
       assignmentNotifications: false,
     },
   });
-  const [fetchedData, setFetchedData] = useState<{
-    [key: string]: string | boolean;
-  }>();
+  const [fetchedData, setFetchedData] = useState<SettingsFormData>();
+  const [companyId, setCompanyId] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,8 +50,14 @@ export const Settings = () => {
           return;
         }
 
-        // Make API call to create company
+        // Make API call to get company
         const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+
+        const api2 = await axios.get(`${host}/users`, {
           headers: {
             Authorization: idToken,
           },
@@ -61,10 +66,14 @@ export const Settings = () => {
           companyName: response.data.name || "",
           website: response.data.website || "",
           linkedin: response.data.linkedin_url || "",
-          email: "",
-          contactName: "",
-          assignmentNotifications: false,
+          email: api2.data.email || "",
+          contactName: api2.data.first_name || "",
+          assignmentNotifications:
+            response.data.company_preferences[0].email_preferences,
         });
+
+        setCompanyId(response.data.id);
+
         setFetchedData({
           companyName: response.data.name || "",
           website: response.data.website || "",
@@ -75,6 +84,7 @@ export const Settings = () => {
         });
 
         console.log("API Response:", response.data);
+        console.log("API2 Response:", api2.data);
         toast.success("Company fetched successfully!");
       } catch (error: any) {
         console.error("Error creating company:", error);
@@ -104,6 +114,7 @@ export const Settings = () => {
 
     createCompany();
   }, []);
+
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: SettingsFormData) => {
@@ -124,11 +135,12 @@ export const Settings = () => {
       if (fetchedData?.companyName) {
         console.log("updating");
         const response = await axios.put(
-          `${host}/company`,
+          `${host}/company/${companyId}`,
           {
             name: data.companyName,
             website: data.website,
             linkedin_url: data.linkedin,
+            email_preferences: data.assignmentNotifications,
           },
           {
             headers: {
@@ -137,16 +149,33 @@ export const Settings = () => {
           }
         );
         console.log("API Response:", response.data);
+
+        const api2 = await axios.put(
+          `${host}/users`,
+          {
+            email: data.email,
+            first_name: data.contactName,
+            last_name: data.contactName,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        console.log("API Response:", api2.data);
         toast.success("Company settings updated successfully!");
       } else {
         console.log("adding");
         // Make API call to create company
+        console.log(data.linkedin);
         const response = await axios.post(
           `${host}/company`,
           {
             name: data.companyName,
             website: data.website,
             linkedin_url: data.linkedin,
+            email_preferences: data.assignmentNotifications,
           },
           {
             headers: {
@@ -156,6 +185,30 @@ export const Settings = () => {
         );
 
         console.log("API Response:", response.data);
+
+        const api2 = await axios.put(
+          `${host}/users`,
+          {
+            email: data.email,
+            first_name: data.contactName,
+            last_name: data.contactName,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        console.log("API Response:", api2.data);
+        setCompanyId(response.data.id);
+        setFetchedData({
+          companyName: data.companyName,
+          website: data.website,
+          linkedin: data.linkedin || "", // Optional
+          contactName: data.contactName,
+          email: data.email,
+          assignmentNotifications: data.assignmentNotifications,
+        });
         toast.success("Company settings added successfully!");
       }
     } catch (error: any) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -5,13 +6,20 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Textarea } from "@/components/ui/Textarea";
+import { BlackSpinner } from "@/components/ui/BlackSpinner";
+import toast from "react-hot-toast";
+import { host } from "@/utils/routes";
+import axios from "axios";
+import { token } from "@/utils";
+import moment from "moment";
 
 interface JobFormData {
+  id?: string;
   title: string;
   type: string;
   status: string;
@@ -32,7 +40,42 @@ interface JobFormData {
     submissionPreferences: string[];
   };
   applicationDeadline: string;
+
   duration?: string;
+  min_salary?: string;
+  max_salary?: string;
+  deadline?: string;
+  work_mode?: string;
+}
+
+interface FetchedJobDetails {
+  job: Partial<JobFormData>;
+  skills: {
+    preferredSkills: Array<{
+      id: string;
+      skill: string;
+    }>;
+    requiredSkills: Array<{
+      id: string;
+      skill: string;
+    }>;
+  };
+  assignment: Partial<{
+    id: string;
+    description: string;
+    deadline: string;
+    SubmissionType?: string;
+    // submissionPreferences: string[];
+    githubRepo: boolean;
+    liveLink: boolean;
+    documentation: boolean;
+  }>;
+  file: Partial<{
+    file: string;
+    id: string;
+  }>;
+  blob?: any;
+  assignBlob?: any;
 }
 
 const jobTypes = [
@@ -42,21 +85,21 @@ const jobTypes = [
 
 const jobStatuses = [
   { value: "active", label: "Active" },
-  { value: "withdrawn", label: "Withdrawn" },
-  { value: "ended", label: "Ended" },
+  { value: "inactive", label: "Inactive" }, //Withdrawn
+  { value: "closed", label: "Closed" },
 ];
 
 const locations = [
-  { value: "remote", label: "Remote" },
-  { value: "on-site", label: "On-site" },
-  { value: "hybrid", label: "Hybrid" },
+  { value: "Remote", label: "Remote" },
+  { value: "Office", label: "On-site" },
+  { value: "Hybrid", label: "Hybrid" },
 ];
 
 const durations = [
   { value: "1", label: "1 Month" },
   { value: "3", label: "3 Months" },
   { value: "6", label: "6 Months" },
-  { value: "custom", label: "Custom" },
+  { value: "9999", label: "Custom" },
 ];
 
 const techJobSuggestions = [
@@ -94,6 +137,8 @@ export const PostJob = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    reset,
+    trigger,
   } = useForm<JobFormData>({
     defaultValues: {
       requiredSkills: [],
@@ -101,46 +146,212 @@ export const PostJob = () => {
       description: "",
       assignment: {
         submissionPreferences: [],
+        // deadline: moment("2024-06-05").format("YYYY-MM-DD"),
       },
     },
   });
   const jobType = watch("type");
   const location = watch("location");
   const description = watch("description");
-  const needsCity = location === "on-site" || location === "hybrid";
+  // Watch salary fields to enable dynamic validation
+  const minSalary = watch("salary.min");
+  const maxSalary = watch("salary.max");
+  const needsCity = location === "Office" || location === "Hybrid";
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [preferredSkills, setPreferredSkills] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
   const location_state = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
   const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [renderLoading, setRenderLoading] = useState(false);
+  const [draftLoading, setDraftLoading] = useState(false);
   const data = location_state.state;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | undefined>(undefined);
+  const navigate = useNavigate();
+  const [link, setlink] = useState("");
+
+  const [fetchedJobDetails, setFetchedJobDetails] = useState<FetchedJobDetails>(
+    {
+      job: {},
+      skills: {
+        preferredSkills: [],
+        requiredSkills: [],
+      },
+      assignment: {},
+      file: {},
+      blob: {},
+      assignBlob: {},
+    }
+  );
+
+  const [searchParams] = useSearchParams();
+  const edit = searchParams.get("edit");
 
   useEffect(() => {
     if (data && data.isEditing) {
       setIsEditing(data.isEditing);
-      Object.entries(data).forEach(([key, value]: any) => {
-        if (key === "requiredSkills") {
-          setRequiredSkills(value);
-          setValue("requiredSkills", value);
-        } else if (key === "preferredSkills") {
-          setPreferredSkills(value);
-          setValue("preferredSkills", value);
-        } else {
-          setValue(key, value);
-        }
-      });
     }
   }, [data, setValue]);
 
+  useEffect(() => {
+    if (data && data.isEditing) {
+      console.log("editing", edit);
+
+      const idToken = localStorage.getItem(token);
+
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+      async function getData() {
+        //companyId
+        try {
+          setRenderLoading(true);
+          const response = await axios.get(`${host}/company`, {
+            headers: {
+              Authorization: idToken,
+            },
+          });
+          const companyId = response.data.id;
+          // console.log("Company", response.data);
+
+          const job = await axios.get(
+            `${host}/company/${companyId}/job/${edit}`,
+            {
+              headers: {
+                Authorization: idToken,
+              },
+            }
+          );
+          // console.log("Job", job.data);
+          const data = job.data;
+
+          const assign = await axios.get(
+            `${host}/company/${companyId}/job/${edit}/assignment/${job.data.assignments[0].id}/files/${job.data.assignments[0].assignment_files[0].id}`,
+            {
+              headers: {
+                Authorization: idToken,
+              },
+            }
+          );
+          // console.log("Assignment", assign.data);
+          const refineData: FetchedJobDetails = {
+            job: {
+              id: job.data.id,
+              title: data.title,
+              description: data.description,
+              type: data.type,
+              city: data.work_mode == "Remote" ? "" : data.city || "",
+              min_salary: data.type == "full-time" ? data!.min_salary! : "",
+              //stipend
+              max_salary: data.type == "full-time" ? data!.max_salary! : "",
+              stipend: data.type !== "full-time" ? data.min_salary : "",
+              //max_salary
+              status: data.status,
+              duration: `${data.duration}`,
+              deadline: moment(data.deadline).format("YYYY-MM-DD"),
+              work_mode: data.work_mode,
+            },
+            assignment: {
+              id: job.data.assignments[0].id,
+              description: data.assignments[0].description,
+              SubmissionType: "file",
+              deadline: moment(data.assignments[0].deadline).format(
+                "YYYY-MM-DD"
+              ),
+              githubRepo: data.assignments[0].requireGitHubRepo,
+              liveLink: data.assignments[0].requireLiveLink,
+              documentation: data.assignments[0].requireDocumentation,
+            },
+            skills: {
+              preferredSkills: data.job_skills
+                .filter((e: any) => e.type == "preferred")
+                .map((e: any) => ({ skill: e.skill, id: e.id })),
+              requiredSkills: data.job_skills
+                .filter((e: any) => e.type == "required")
+                .map((e: any) => ({ skill: e.skill, id: e.id })),
+            },
+            file: {
+              file: assign.data.download_url,
+              id: job.data.assignments[0].assignment_files[0].id,
+            },
+            blob: job.data,
+            assignBlob: assign.data,
+          };
+          setFetchedJobDetails(refineData);
+          console.log(refineData);
+
+          // Map boolean flags to submissionPreferences array
+          const submissionPreferences = [];
+          if (refineData.assignment.githubRepo)
+            submissionPreferences.push("github");
+          if (refineData.assignment.liveLink)
+            submissionPreferences.push("liveLink");
+          if (refineData.assignment.documentation)
+            submissionPreferences.push("documentation");
+
+          // console.log(submissionPreferences);
+
+          //set the fields
+          reset({
+            title: refineData.job.title,
+            type: refineData.job.type,
+            status: refineData.job.status,
+            location: refineData.job.work_mode,
+            city: refineData.job.city,
+            stipend: refineData.job.stipend,
+            salary: {
+              min: refineData.job.min_salary,
+              max: refineData.job.max_salary,
+            },
+            description: refineData.job.description,
+            requiredSkills: refineData.skills.requiredSkills.map(
+              (e) => e.skill
+            ),
+            preferredSkills: refineData.skills.preferredSkills.map(
+              (e) => e.skill
+            ),
+            assignment: {
+              description: refineData.assignment.description,
+              deadline: moment(refineData.assignment.deadline).format(
+                "YYYY-MM-DD"
+              ),
+              // file: new File([], ""), // Reset file input
+              submissionPreferences,
+            },
+            applicationDeadline: moment(refineData.job.deadline).format(
+              "YYYY-MM-DD"
+            ),
+            duration: refineData.job.duration,
+          });
+          setRequiredSkills(
+            refineData.skills.requiredSkills.map((e) => e.skill)
+          );
+          setPreferredSkills(
+            refineData.skills.preferredSkills.map((e) => e.skill)
+          );
+          setlink(assign.data.download_url);
+        } catch (e) {
+          console.error("Error", e);
+          toast.error("Error fetching the job");
+        } finally {
+          setRenderLoading(false);
+        }
+      }
+      getData();
+    }
+  }, [edit, data]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    setValue("title", value, { shouldValidate: true }); // Update form value with user input
     if (value) {
       const filteredSuggestions = techJobSuggestions.filter((job) =>
         job.toLowerCase().includes(value.toLowerCase())
@@ -159,6 +370,7 @@ export const PostJob = () => {
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    setValue("city", value, { shouldValidate: true }); // Update form value with user input
     if (value) {
       const filteredSuggestions = indianCities.filter((city) =>
         city.toLowerCase().includes(value.toLowerCase())
@@ -173,63 +385,6 @@ export const PostJob = () => {
   const handleCitySelect = (suggestion: string) => {
     setValue("city", suggestion, { shouldValidate: true });
     setShowCitySuggestions(false);
-  };
-
-  const onSubmit = async (data: JobFormData) => {
-    setLoading(true);
-
-    // Get the file from ref
-    const file = fileInputRef.current?.files?.[0];
-
-    // Validate file (required and PDF)
-    let fileValidationError: string | undefined;
-    if (!file) {
-      fileValidationError = "Assignment file is required";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    if (file.type !== "application/pdf") {
-      fileValidationError = "Only PDF files are allowed";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    setFileError(undefined);
-
-    // Prepare data with correct file
-    const submissionData = {
-      ...data,
-      assignment: {
-        ...data.assignment,
-        file,
-      },
-    };
-
-    // Console logs for debugging
-    console.log("Raw File Object:", file);
-    console.log("Form Submission Data (Object):", submissionData);
-    console.log(
-      "Form Submission Data (JSON):",
-      JSON.stringify(
-        submissionData,
-        (key, value) => {
-          if (value instanceof File) {
-            return {
-              name: value.name,
-              type: value.type,
-              size: value.size,
-              lastModified: value.lastModified,
-            };
-          }
-          return value;
-        },
-        2
-      )
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setLoading(false);
   };
 
   const handleSkillAdd = (
@@ -278,6 +433,17 @@ export const PostJob = () => {
     }
   };
 
+  // Custom validation function for assignment deadline
+  const validateDeadline = (value: string) => {
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to midnight for comparison
+    if (selectedDate < today) {
+      return "Assignment deadline cannot be in the past. Please select today or a future date.";
+    }
+    return true;
+  };
+
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -288,6 +454,803 @@ export const PostJob = () => {
     ],
   };
 
+  // Custom validation functions
+  const validateMinSalary = (value: string) => {
+    const numValue = parseFloat(value) || 0;
+    if (numValue < 0) {
+      return "Minimum salary cannot be negative";
+    }
+    if (maxSalary && parseFloat(maxSalary) <= numValue) {
+      return "Minimum salary must be less than maximum salary";
+    }
+    return true;
+  };
+
+  const validateMaxSalary = (value: string) => {
+    const numValue = parseFloat(value) || 0;
+    if (numValue < 0) {
+      return "Maximum salary cannot be negative";
+    }
+    if (minSalary && numValue <= parseFloat(minSalary)) {
+      return "Maximum salary must be greater than minimum salary";
+    }
+    return true;
+  };
+
+  const onUpdate = async (data: JobFormData) => {
+    if (!edit) {
+      toast.error("Can not find the id to your job");
+      return;
+    }
+    // console.log("here");
+    // return;
+    const file = fileInputRef.current?.files?.[0];
+
+    // Prepare data with correct file
+    const submissionData = {
+      ...data,
+      assignment: {
+        ...data.assignment,
+        file,
+      },
+    };
+
+    // Console logs for debugging
+    // console.log("Raw File Object:", file);
+    // console.log("Form Submission Data (Object):", submissionData);
+    // console.log(file);
+    // return;
+
+    setLoading(true);
+
+    try {
+      const idToken = localStorage.getItem(token);
+
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+      console.log("Updating");
+
+      const response = await axios.get(`${host}/company`, {
+        headers: {
+          Authorization: idToken,
+        },
+      });
+      const companyId = response.data.id;
+      // console.log(response.data.id);
+
+      //create job
+
+      const job = await axios.put(
+        `${host}/company/${response.data.id}/job/${edit}`,
+        {
+          title: submissionData.title,
+          description: submissionData.description,
+          type: submissionData.type,
+          city:
+            submissionData.location == "Remote"
+              ? ""
+              : submissionData.city || "",
+          min_salary:
+            submissionData.type == "full-time"
+              ? +submissionData!.salary!.min
+              : +submissionData!.stipend!,
+          max_salary:
+            submissionData.type == "full-time"
+              ? +submissionData!.salary!.max
+              : +submissionData!.stipend!,
+          status: submissionData.status,
+          duration:
+            submissionData.type == "internship"
+              ? +submissionData.duration! || 0
+              : 0,
+          deadline: moment(submissionData.applicationDeadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString(),
+          work_mode: submissionData.location,
+        },
+        {
+          headers: {
+            Authorization: idToken, // Use ID token for authorization
+          },
+        }
+      );
+      const jobId = job.data.id;
+      // console.log("Job", job.data);
+
+      //create skills
+
+      const skillPromises: Promise<any>[] = [];
+      //delete skills
+
+      fetchedJobDetails.skills.preferredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.delete(
+            `${host}/company/${companyId}/job/${edit}/skills/${skill.id}`,
+
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      fetchedJobDetails.skills.requiredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.delete(
+            `${host}/company/${companyId}/job/${edit}/skills/${skill.id}`,
+
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      // Preferred skills
+      submissionData.preferredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.post(
+            `${host}/company/${companyId}/job/${edit}/skills`,
+            {
+              skill,
+              type: "preferred",
+            },
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      // Required skills
+      submissionData.requiredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.post(
+            `${host}/company/${companyId}/job/${edit}/skills`,
+            {
+              skill,
+              type: "required",
+            },
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      // Wait for all skills to be added
+      // console.log(fetchedJobDetails);
+
+      let skillResponses = await Promise.all(skillPromises);
+      // console.log(
+      //   "Skills Added:",
+      //   skillResponses.map((res) => res.data)
+      // );
+      skillResponses = skillResponses.map((res) => res.data);
+      // console.log(skillResponses);
+
+      const preferredSkills: Array<{ id: string; skill: string }> =
+        skillResponses
+          .filter((e) => e.type === "preferred")
+          .map((e) => ({
+            id: e.id,
+            skill: e.skill,
+          }));
+
+      const requiredSkills: Array<{ id: string; skill: string }> =
+        skillResponses
+          .filter((e) => e.type === "required")
+          .map((e) => ({
+            id: e.id,
+            skill: e.skill,
+          }));
+      // console.log(preferredSkills);
+      // console.log(requiredSkills);
+      let temp = {
+        ...fetchedJobDetails,
+        skills: {
+          preferredSkills: [...preferredSkills],
+          requiredSkills: [...requiredSkills],
+        },
+      };
+      // console.log(temp);
+
+      // setFetchedJobDetails(temp);
+
+      //create assignment
+      const assign = await axios.put(
+        `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
+        {
+          description: submissionData.assignment.description,
+          SubmissionType: "file",
+          deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString(),
+          requireGitHubRepo:
+            submissionData.assignment.submissionPreferences.includes("github"),
+          requireLiveLink:
+            submissionData.assignment.submissionPreferences.includes(
+              "liveLink"
+            ),
+          requireDocumentation:
+            submissionData.assignment.submissionPreferences.includes(
+              "documentation"
+            ),
+        },
+        {
+          headers: {
+            Authorization: idToken, // Use ID token for authorization
+          },
+        }
+      );
+      // console.log("Assignment", assign.data);
+
+      //create file
+      if (submissionData.assignment.file) {
+        // Validate file (required and PDF)
+        let fileValidationError: string | undefined;
+        if (!file) {
+          fileValidationError = "Assignment file is required";
+          setFileError(fileValidationError);
+          setLoading(false);
+          return;
+        }
+        if (file.type !== "application/pdf") {
+          fileValidationError = "Only PDF files are allowed";
+          setFileError(fileValidationError);
+          setLoading(false);
+          return;
+        }
+        setFileError(undefined);
+
+        const fileFormData = new FormData();
+
+        fileFormData.append("file", submissionData.assignment.file);
+        const updatefile = await axios.put(
+          `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${fetchedJobDetails.assignment.id}/files/${fetchedJobDetails.file.id}`,
+          fileFormData,
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        // console.log("File", updatefile.data);
+
+        const assign = await axios.get(
+          `${host}/company/${companyId}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}/files/${fetchedJobDetails.file.id}`,
+          {
+            headers: {
+              Authorization: idToken,
+            },
+          }
+        );
+        // console.log(assign.data);
+        setlink(assign.data.download_url);
+        temp = {
+          ...temp,
+          file: { file: assign.data.download_url, id: updatefile.data.id },
+        };
+
+        // console.log("File get", assign.data);
+      }
+      setFetchedJobDetails(temp);
+
+      toast.success("Job updated successfully!");
+    } catch (e) {
+      toast.error("Something went wrong");
+      console.log("Error", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   console.log(fetchedJobDetails.skills);
+  // }, [fetchedJobDetails]);
+
+  useEffect(() => {
+    console.log(fetchedJobDetails.file);
+  }, [fetchedJobDetails]);
+  const onSubmit = async (data: JobFormData) => {
+    // Get the file from ref
+    const file = fileInputRef.current?.files?.[0];
+
+    // Validate file (required and PDF)
+    let fileValidationError: string | undefined;
+    if (!file) {
+      fileValidationError = "Assignment file is required";
+      setFileError(fileValidationError);
+      setLoading(false);
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      fileValidationError = "Only PDF files are allowed";
+      setFileError(fileValidationError);
+      setLoading(false);
+      return;
+    }
+    setFileError(undefined);
+
+    // Prepare data with correct file
+    const submissionData = {
+      ...data,
+      assignment: {
+        ...data.assignment,
+        file,
+      },
+    };
+
+    // Console logs for debugging
+    console.log("Raw File Object:", file);
+    console.log("Form Submission Data (Object):", submissionData);
+    setLoading(true);
+
+    try {
+      const idToken = localStorage.getItem(token);
+
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+
+      console.log("adding");
+      // return;
+
+      //for companyId
+      const response = await axios.get(`${host}/company`, {
+        headers: {
+          Authorization: idToken,
+        },
+      });
+      const companyId = response.data.id;
+      console.log(response.data.id);
+
+      //create job
+
+      const job = await axios.post(
+        `${host}/company/${response.data.id}/job`,
+        {
+          title: submissionData.title,
+          description: submissionData.description,
+          type: submissionData.type,
+          city:
+            submissionData.location == "Remote"
+              ? ""
+              : submissionData.city || "",
+          min_salary:
+            submissionData.type == "full-time"
+              ? +submissionData!.salary!.min
+              : +submissionData!.stipend!,
+          max_salary:
+            submissionData.type == "full-time"
+              ? +submissionData!.salary!.max
+              : +submissionData!.stipend!,
+          status: "active",
+          duration:
+            submissionData.type == "internship"
+              ? +submissionData.duration! || 0
+              : 0,
+          deadline: moment(submissionData.applicationDeadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString(),
+          work_mode: submissionData.location,
+        },
+        {
+          headers: {
+            Authorization: idToken, // Use ID token for authorization
+          },
+        }
+      );
+      const jobId = job.data.id;
+      console.log("Job", job.data);
+      // console.log();
+
+      //create skills
+
+      const skillPromises: Promise<any>[] = [];
+
+      // Preferred skills
+      submissionData.preferredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.post(
+            `${host}/company/${companyId}/job/${jobId}/skills`,
+            {
+              skill,
+              type: "preferred",
+            },
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      // Required skills
+      submissionData.requiredSkills.forEach((skill) => {
+        skillPromises.push(
+          axios.post(
+            `${host}/company/${companyId}/job/${jobId}/skills`,
+            {
+              skill,
+              type: "required",
+            },
+            {
+              headers: {
+                Authorization: idToken,
+                "Content-Type": "application/json",
+              },
+            }
+          )
+        );
+      });
+
+      // Wait for all skills to be added
+      const skillResponses = await Promise.all(skillPromises);
+      console.log(
+        "Skills Added:",
+        skillResponses.map((res) => res.data)
+      );
+
+      //create assignment
+      const assign = await axios.post(
+        `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
+        {
+          description: submissionData.assignment.description,
+          SubmissionType: "file",
+          deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString(),
+          submissionPreferences: {
+            githubRepo:
+              submissionData.assignment.submissionPreferences.includes(
+                "github"
+              ),
+            liveLink:
+              submissionData.assignment.submissionPreferences.includes(
+                "liveLink"
+              ),
+            documentation:
+              submissionData.assignment.submissionPreferences.includes(
+                "documentation"
+              ),
+          },
+        },
+        {
+          headers: {
+            Authorization: idToken, // Use ID token for authorization
+          },
+        }
+      );
+      console.log("Assignment", assign.data);
+
+      //create file
+      if (submissionData.assignment.file) {
+        const fileFormData = new FormData();
+        fileFormData.append("file", submissionData.assignment.file);
+        const file = await axios.post(
+          `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${assign.data.id}/files`,
+          fileFormData,
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        console.log("File", file.data);
+      }
+
+      // Reset form fields after successful submission
+      reset({
+        title: "",
+        type: "full-time",
+        status: "active",
+        location: "Remote",
+        city: "",
+        stipend: "",
+        salary: { min: "", max: "" },
+        description: "",
+        requiredSkills: [],
+        preferredSkills: [],
+        assignment: {
+          description: "",
+          deadline: "",
+          file: new File([], ""), // Reset file input
+          submissionPreferences: [],
+        },
+        applicationDeadline: "",
+        duration: "1",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Clear file input manually
+      }
+      setPreferredSkills([]);
+      setRequiredSkills([]);
+      setFileError(undefined); // Clear any file error
+      toast.success("Job added successfully!");
+    } catch (e) {
+      toast.error("Something went wrong");
+      console.log("Error", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New handler for Save as Draft
+  const handleSaveDraft = async () => {
+    setLoading(true);
+
+    // Trigger form validation for all fields
+    const isFormValid = await trigger();
+
+    // Validate file (same as onSubmit)
+    const file = fileInputRef.current?.files?.[0];
+    let fileValidationError: string | undefined;
+    if (!file) {
+      fileValidationError = "Assignment file is required";
+      setFileError(fileValidationError);
+      setLoading(false);
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      fileValidationError = "Only PDF files are allowed";
+      setFileError(fileValidationError);
+      setLoading(false);
+      return;
+    }
+    setFileError(undefined);
+
+    if (isFormValid && !fileValidationError) {
+      // If validations pass, prepare the submission data
+      const formData = watch(); // Get current form values
+      const submissionData = {
+        ...formData,
+        assignment: {
+          ...formData.assignment,
+          file,
+        },
+      };
+
+      // Call saveDraft with the validated data
+      saveDraft(submissionData);
+    }
+
+    setLoading(false);
+  };
+
+  const saveDraft = async (submissionData: JobFormData) => {
+    // Your saveDraft logic here
+    console.log("Saving draft with data:", data);
+
+    try {
+      setDraftLoading(true);
+      try {
+        const idToken = localStorage.getItem(token);
+
+        if (!idToken) {
+          toast.error("Seems like you are not logged in");
+          setTimeout(() => {
+            navigate("/sign-in");
+          }, 2000);
+          return;
+        }
+
+        console.log("adding");
+
+        //for companyId
+        const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        const companyId = response.data.id;
+        console.log(response.data.id);
+
+        //create job
+
+        const job = await axios.post(
+          `${host}/company/${response.data.id}/job`,
+          {
+            title: submissionData.title,
+            description: submissionData.description,
+            type: submissionData.type,
+            city:
+              submissionData.location == "Remote"
+                ? ""
+                : submissionData.city || "",
+            min_salary:
+              submissionData.type == "full-time"
+                ? +submissionData!.salary!.min
+                : +submissionData!.stipend!,
+            max_salary:
+              submissionData.type == "full-time"
+                ? +submissionData!.salary!.max
+                : +submissionData!.stipend!,
+            status: "draft",
+            duration:
+              submissionData.type == "internship"
+                ? +submissionData.duration! || 0
+                : 0,
+            deadline: moment(submissionData.applicationDeadline, "YYYY-MM-DD")
+              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+              .toISOString(),
+            work_mode: submissionData.location,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        const jobId = job.data.id;
+        console.log("Job", job.data);
+        // console.log();
+
+        //create skills
+
+        const skillPromises: Promise<any>[] = [];
+
+        // Preferred skills
+        submissionData.preferredSkills.forEach((skill) => {
+          skillPromises.push(
+            axios.post(
+              `${host}/company/${companyId}/job/${jobId}/skills`,
+              {
+                skill,
+                type: "preferred",
+              },
+              {
+                headers: {
+                  Authorization: idToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+          );
+        });
+
+        // Required skills
+        submissionData.requiredSkills.forEach((skill) => {
+          skillPromises.push(
+            axios.post(
+              `${host}/company/${companyId}/job/${jobId}/skills`,
+              {
+                skill,
+                type: "required",
+              },
+              {
+                headers: {
+                  Authorization: idToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+          );
+        });
+
+        // Wait for all skills to be added
+        const skillResponses = await Promise.all(skillPromises);
+        console.log(
+          "Skills Added:",
+          skillResponses.map((res) => res.data)
+        );
+
+        //create assignment
+        const assign = await axios.post(
+          `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
+          {
+            description: submissionData.assignment.description,
+            SubmissionType: "file",
+            deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+              .toISOString(),
+            submissionPreferences: {
+              githubRepo:
+                submissionData.assignment.submissionPreferences.includes(
+                  "github"
+                ),
+              liveLink:
+                submissionData.assignment.submissionPreferences.includes(
+                  "liveLink"
+                ),
+              documentation:
+                submissionData.assignment.submissionPreferences.includes(
+                  "documentation"
+                ),
+            },
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        console.log("Assignment", assign.data);
+
+        //create file
+        if (submissionData.assignment.file) {
+          const fileFormData = new FormData();
+          fileFormData.append("file", submissionData.assignment.file);
+          const file = await axios.post(
+            `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${assign.data.id}/files`,
+            fileFormData,
+            {
+              headers: {
+                Authorization: idToken, // Use ID token for authorization
+              },
+            }
+          );
+          console.log("File", file.data);
+        }
+
+        // Reset form fields after successful submission
+        reset({
+          title: "",
+          type: "full-time",
+          status: "active",
+          location: "Remote",
+          city: "",
+          stipend: "",
+          salary: { min: "", max: "" },
+          description: "",
+          requiredSkills: [],
+          preferredSkills: [],
+          assignment: {
+            description: "",
+            deadline: "",
+            file: new File([], ""), // Reset file input
+            submissionPreferences: [],
+          },
+          applicationDeadline: "",
+          duration: "1",
+        });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Clear file input manually
+        }
+        setPreferredSkills([]);
+        setRequiredSkills([]);
+        setFileError(undefined); // Clear any file error
+        toast.success("Job drafted successfully!");
+      } catch (e) {
+        toast.error("Something went wrong");
+        console.log("Error", e);
+      } finally {
+        setDraftLoading(false);
+      }
+    } catch (e) {
+      console.log("error", e);
+    } finally {
+      console.log("drafting done");
+      setDraftLoading(false);
+    }
+    // Example: Save to localStorage, send to an API endpoint, etc.
+    // localStorage.setItem("jobDraft", JSON.stringify(data));
+    // Or make an API call:
+    // await fetch("/api/save-draft", { method: "POST", body: JSON.stringify(data) });
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -301,7 +1264,10 @@ export const PostJob = () => {
           <Spinner />
         ) : (
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={handleSubmit(isEditing ? onUpdate : onSubmit)}
+              className="space-y-6"
+            >
               <div className="w-full md:w-1/2 relative">
                 <label
                   htmlFor="title"
@@ -509,6 +1475,8 @@ export const PostJob = () => {
                         required:
                           jobType !== "internship" &&
                           "Minimum salary is required",
+                        validate: validateMinSalary, // Add custom validation
+                        valueAsNumber: true, // Ensures value is treated as a number
                       })}
                       error={errors.salary?.min?.message}
                     />
@@ -528,6 +1496,8 @@ export const PostJob = () => {
                         required:
                           jobType !== "internship" &&
                           "Maximum salary is required",
+                        validate: validateMaxSalary, // Add custom validation
+                        valueAsNumber: true, // Ensures value is treated as a number
                       })}
                       error={errors.salary?.max?.message}
                     />
@@ -698,6 +1668,14 @@ export const PostJob = () => {
                       error={fileError}
                     />
                   </div>
+                  {link && (
+                    <a
+                      className="text-sm ml-3 underline text-blue-800"
+                      href={link}
+                    >
+                      Curret assignment
+                    </a>
+                  )}
                   <div>
                     <label
                       htmlFor="assignmentDeadline"
@@ -710,6 +1688,7 @@ export const PostJob = () => {
                       type="date"
                       {...register("assignment.deadline", {
                         required: "Assignment deadline is required",
+                        validate: validateDeadline, // Add custom validation
                       })}
                       error={errors.assignment?.deadline?.message}
                     />
@@ -761,6 +1740,7 @@ export const PostJob = () => {
                   type="date"
                   {...register("applicationDeadline", {
                     required: "Application deadline is required",
+                    validate: validateDeadline,
                   })}
                   error={errors.applicationDeadline?.message}
                 />
@@ -771,14 +1751,29 @@ export const PostJob = () => {
                   <Button
                     variant="outline"
                     type="button"
+                    disabled={loading || isSubmitting || draftLoading}
+                    onClick={handleSaveDraft}
                     className="hover:text-white"
                   >
-                    Save as Draft
+                    {draftLoading ? <BlackSpinner /> : "Save as Draft"}
                   </Button>
                 )}
-                <Button type="submit" disabled={loading || isSubmitting}>
-                  {loading || isSubmitting ? <Spinner /> : "Publish Job"}
-                </Button>
+                {isEditing ? (
+                  <Button
+                    type="submit"
+                    // onClick={onUpdate}
+                    disabled={loading || isSubmitting || draftLoading}
+                  >
+                    {loading || isSubmitting ? <Spinner /> : "Update job"}
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={loading || isSubmitting || draftLoading}
+                  >
+                    {loading || isSubmitting ? <Spinner /> : "Publish Job"}
+                  </Button>
+                )}
               </div>
             </form>
           </CardContent>

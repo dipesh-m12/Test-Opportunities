@@ -54,11 +54,14 @@ export const SignUp = () => {
       //   uid: uid, // Log the UID
       //   idToken: idToken,
       // });
+      console.log(idToken);
 
       const response = await axios.post(
         `${host}/users`,
         {
           email: data.email,
+          first_name: "",
+          last_name: "",
         },
         {
           headers: {

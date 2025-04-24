@@ -1,137 +1,235 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Eye, Edit, Trash2, Clock, Users, PlusCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { api } from "@/lib/api";
 import toast from "react-hot-toast";
+import { token } from "@/utils";
+import { host } from "@/utils/routes";
+import axios from "axios";
 
 const ManageJobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
+  const [companyId, setcompanyId] = useState("");
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state == "shortlisted")
+      toast.success("Select a job to view application");
+  }, []);
+
+  React.useEffect(() => {
+    const checkCompanyAccess = async () => {
+      const idToken = localStorage.getItem(token);
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+
+      try {
+        console.log("here");
+        const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        if (response.status === 200) {
+          setIsPostJobEnabled(true);
+          console.log(response.data.id);
+          setcompanyId(response.data.id);
+        }
+      } catch (error) {
+        console.log(error);
+        setIsPostJobEnabled(false);
+      }
+    };
+
+    checkCompanyAccess();
+  }, []);
+
+  // const loadJobs = async () => {
+  //   setLoading(true);
+  //   try {
+  //     // const jobs = await api.jobs.getAll();
+  //     const jobs = [
+  //       {
+  //         id: "1",
+  //         title: "Senior Full Stack Developer",
+  //         type: "Full-time",
+  //         location: "Remote",
+
+  //         created_at: "2025-04-13T00:00:00.000Z", // Approximate ISO timestamp
+  //         status: "active",
+  //         salary_min: 500000,
+  //         salary_max: 800000,
+  //       },
+  //       {
+  //         id: "2",
+  //         title: "Backend Engineer",
+  //         type: "Full-time",
+  //         location: "On-site",
+  //         salary: {
+  //           min: 600000,
+  //           max: 900000,
+  //           currency: "INR",
+  //         },
+  //         requiredSkills: [
+  //           "Go",
+  //           "Python",
+  //           "PostgreSQL",
+  //           "Redis",
+  //           "Docker",
+  //           "Kubernetes",
+  //         ],
+  //         preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
+  //         created_at: "2025-04-13T00:00:00.000Z",
+  //         recruiter_id: "1",
+  //         status: "active",
+  //         currency: "INR",
+  //         salary_min: 600000,
+  //         salary_max: 900000,
+  //         description: "Sample job description",
+  //         requirements: "Sample requirements",
+  //         deadline: "2025-05-13T00:00:00.000Z",
+  //       },
+  //       {
+  //         id: "3",
+  //         title: "DevOps Engineer",
+  //         type: "Full-time",
+  //         location: "Hybrid",
+  //         salary: {
+  //           min: 700000,
+  //           max: 1000000,
+  //           currency: "INR",
+  //         },
+  //         requiredSkills: [
+  //           "Kubernetes",
+  //           "Docker",
+  //           "AWS",
+  //           "Terraform",
+  //           "CI/CD",
+  //           "Python",
+  //         ],
+  //         preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
+  //         created_at: "2025-04-13T00:00:00.000Z",
+  //         recruiter_id: "1",
+  //         status: "active",
+  //         currency: "INR",
+  //         salary_min: 700000,
+  //         salary_max: 1000000,
+  //         description: "Sample job description",
+  //         requirements: "Sample requirements",
+  //         deadline: "2025-05-13T00:00:00.000Z",
+  //       },
+  //     ];
+  //     setJobs(jobs);
+  //   } catch (error) {
+  //     console.error("Error loading jobs:", error);
+  //     toast.error("Error fetching jobs...");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const loadJobs = async () => {
     setLoading(true);
     try {
-      // const jobs = await api.jobs.getAll();
-      const jobs = [
-        {
-          id: "1",
-          title: "Senior Full Stack Developer",
-          type: "Full-time",
-          location: "Remote",
-          salary: {
-            min: 500000,
-            max: 800000,
-            currency: "INR",
-          },
-          requiredSkills: [
-            "React",
-            "TypeScript",
-            "Node.js",
-            "MongoDB",
-            "AWS",
-            "Docker",
-            "Git",
-          ],
-          preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
-          created_at: "2025-04-13T00:00:00.000Z", // Approximate ISO timestamp
-          recruiter_id: "1",
-          status: "active",
-          currency: "INR",
-          salary_min: 500000,
-          salary_max: 800000,
-          description: "Sample job description",
-          requirements: "Sample requirements",
-          deadline: "2025-05-13T00:00:00.000Z", // 30 days from April 13, 2025
+      const idToken = localStorage.getItem(token);
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+
+        return;
+      }
+      let response = await axios.get(`${host}/company/${companyId}/job`, {
+        headers: {
+          Authorization: idToken,
         },
-        {
-          id: "2",
-          title: "Backend Engineer",
-          type: "Full-time",
-          location: "On-site",
+      });
+
+      let data: any[] = [];
+      if (response.data.length !== 0) {
+        data = response.data.map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          type: e.type == "full-time" ? "Full-time" : "Internship",
+          location: e.work_mode,
           salary: {
-            min: 600000,
-            max: 900000,
+            min: e.min_salary,
+            max: e.max_salary,
             currency: "INR",
           },
-          requiredSkills: [
-            "Go",
-            "Python",
-            "PostgreSQL",
-            "Redis",
-            "Docker",
-            "Kubernetes",
-          ],
-          preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
-          created_at: "2025-04-13T00:00:00.000Z",
-          recruiter_id: "1",
-          status: "active",
+          created_at: e.created_at, // Approximate ISO timestamp
+          status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
           currency: "INR",
-          salary_min: 600000,
-          salary_max: 900000,
-          description: "Sample job description",
-          requirements: "Sample requirements",
+          salary_min: e.min_salary,
+          salary_max: e.max_salary,
           deadline: "2025-05-13T00:00:00.000Z",
-        },
-        {
-          id: "3",
-          title: "DevOps Engineer",
-          type: "Full-time",
-          location: "Hybrid",
-          salary: {
-            min: 700000,
-            max: 1000000,
-            currency: "INR",
-          },
-          requiredSkills: [
-            "Kubernetes",
-            "Docker",
-            "AWS",
-            "Terraform",
-            "CI/CD",
-            "Python",
-          ],
-          preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
-          created_at: "2025-04-13T00:00:00.000Z",
-          recruiter_id: "1",
-          status: "active",
-          currency: "INR",
-          salary_min: 700000,
-          salary_max: 1000000,
-          description: "Sample job description",
-          requirements: "Sample requirements",
-          deadline: "2025-05-13T00:00:00.000Z",
-        },
-      ];
-      setJobs(jobs);
+          city: e.city,
+        }));
+        // data = [];
+      }
+      setJobs(data);
+      console.log("API Response:", response.data);
     } catch (error) {
       console.error("Error loading jobs:", error);
-      toast.error("Error fetching jobs...");
+      toast.error("somwthing went wrong...");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadJobs();
-  }, []);
+    if (companyId) loadJobs();
+  }, [companyId]);
 
   const deleteJob = async (jobId: string) => {
     try {
-      await api.jobs.delete(jobId);
+      const idToken = localStorage.getItem(token);
+
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+      setDeleteLoading(true);
+      //api call
+      const response = await axios.delete(
+        `${host}/company/${companyId}/job/${jobId}`,
+        {
+          headers: {
+            Authorization: idToken,
+          },
+        }
+      );
+      console.log("delete job", response.data);
       setJobs(jobs.filter((job) => job.id !== jobId));
+      toast.success("The job was removed successfully");
       setIsModalOpen(false);
       setJobToDelete(null);
     } catch (error) {
       console.error("Error deleting job:", error);
+      toast.error("Issue deleting your job");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -148,6 +246,8 @@ const ManageJobs = () => {
   const confirmDelete = () => {
     if (jobToDelete) {
       deleteJob(jobToDelete);
+    } else {
+      console.log("Wrong elsed code...");
     }
   };
 
@@ -156,7 +256,9 @@ const ManageJobs = () => {
   };
 
   const viewApplicants = (jobId: string) => {
-    navigate(`/candidates/${jobId}`);
+    location.state === "shortlisted"
+      ? navigate(`/candidates/${jobId}`, { state: location.state })
+      : navigate(`/candidates/${jobId}`);
   };
 
   return (
@@ -171,6 +273,7 @@ const ManageJobs = () => {
         <Button
           className="w-full sm:w-auto"
           onClick={() => navigate("/post-job")}
+          disabled={!isPostJobEnabled}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           Post New Job
@@ -198,7 +301,11 @@ const ManageJobs = () => {
             <div className="flex h-32 items-center justify-center">
               <div className="text-center">
                 <p className="text-gray-500">No job listings found</p>
-                <Button className="mt-4" onClick={() => navigate("/post-job")}>
+                <Button
+                  disabled={!isPostJobEnabled}
+                  className="mt-4"
+                  onClick={() => navigate("/post-job")}
+                >
                   Create Your First Job Listing
                 </Button>
               </div>
@@ -208,7 +315,13 @@ const ManageJobs = () => {
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="rounded-lg border bg-white p-6 shadow-sm"
+                  className={`rounded-lg border bg-white p-6 shadow-sm  border-solid border-l-4  ${
+                    job.status == "Active"
+                      ? "border-green-600"
+                      : job.status == "Draft"
+                      ? "border-blue-700"
+                      : "border-red-600"
+                  }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-4 sm:space-y-0">
                     <div className="space-y-1 min-w-0">
@@ -226,10 +339,16 @@ const ManageJobs = () => {
                         </div>
                         <div className="flex items-center space-x-1">
                           <span>
-                            <span className="font-medium">
-                              INR {job.salary_min.toLocaleString()} -{" "}
-                              {job.salary_max.toLocaleString()}
-                            </span>
+                            {job.type == "Internship" ? (
+                              <span className="font-medium">
+                                INR {job.salary_min.toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="font-medium">
+                                INR {job.salary_min.toLocaleString()} -{" "}
+                                {job.salary_max.toLocaleString()}
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -262,8 +381,17 @@ const ManageJobs = () => {
                     <Badge variant="secondary">{job.type}</Badge>
                     <Badge variant="secondary">{job.location}</Badge>
                     {job.city && <Badge variant="secondary">{job.city}</Badge>}
-                    <Badge variant="success">
+                    <Badge
+                      variant={
+                        job.status == "Active"
+                          ? "success"
+                          : job.status == "Draft"
+                          ? "default"
+                          : "danger"
+                      }
+                    >
                       {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                      {/* {job.status} */}
                     </Badge>
                   </div>
                 </div>
@@ -291,6 +419,7 @@ const ManageJobs = () => {
               <button
                 className="px-4 py-2 text-sm font-medium text-gray-800 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
                 onClick={closeModal}
+                disabled={deleteLoading}
               >
                 Cancel
               </button>
