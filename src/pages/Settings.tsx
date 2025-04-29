@@ -21,7 +21,7 @@ import { collection, doc, setDoc, getFirestore } from "firebase/firestore";
 interface SettingsFormData {
   companyName: string;
   website: string;
-  linkedin?: string; // Optional
+  linkedin?: string;
   contactName: string;
   email: string;
   assignmentNotifications: boolean;
@@ -51,12 +51,12 @@ export const Settings = () => {
   const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
 
-  // Initialize reCAPTCHA verifier
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
-    // Ensure browser environment and DOM element exist
+    auth.languageCode = "en-IN"; // Set for India
+
     if (
       typeof window === "undefined" ||
       !document.getElementById("recaptcha-container")
@@ -67,7 +67,6 @@ export const Settings = () => {
       return;
     }
 
-    // Enable testing mode for localhost
     const isLocalhost = window.location.hostname === "localhost";
     if (isLocalhost) {
       console.log("Running in localhost, disabling reCAPTCHA for testing");
@@ -77,9 +76,8 @@ export const Settings = () => {
       return;
     }
 
-    // Wait for reCAPTCHA script to load with retry limit
     let retryCount = 0;
-    const maxRetries = 50; // 5 seconds
+    const maxRetries = 50;
     const checkRecaptchaScript = () => {
       console.log(`Checking reCAPTCHA script, attempt ${retryCount + 1}`);
       if (window.grecaptcha) {
@@ -137,7 +135,6 @@ export const Settings = () => {
     console.log("Starting reCAPTCHA script check");
     checkRecaptchaScript();
 
-    // Cleanup on unmount
     return () => {
       if (recaptchaVerifier) {
         recaptchaVerifier.clear();
@@ -343,6 +340,7 @@ export const Settings = () => {
     }
 
     const isLocalhost = window.location.hostname === "localhost";
+    console.log("Testing mode enabled:", isLocalhost);
     if (
       !isLocalhost &&
       (!recaptchaVerifier || recaptchaError || !recaptchaReady)
@@ -359,7 +357,7 @@ export const Settings = () => {
 
     setPhoneLoading(true);
     try {
-      const formattedPhone = `+91${phoneNumber}`; // Assuming US country code
+      const formattedPhone = `+91${phoneNumber}`; // India country code
       console.log("Sending verification code to:", formattedPhone);
       const result = await signInWithPhoneNumber(
         auth,
@@ -371,13 +369,22 @@ export const Settings = () => {
       toast.success("Verification code sent to your phone!");
     } catch (error: any) {
       console.error("Error sending verification code:", error);
+      console.log("Error code:", error.code, "Error message:", error.message);
       if (error.code === "auth/invalid-phone-number") {
-        toast.error("Invalid phone number format.");
+        toast.error(
+          isLocalhost
+            ? "Phone number must be registered in Firebase Console for testing."
+            : "Invalid phone number format. Ensure it is valid for India (+91)."
+        );
       } else if (error.code === "auth/too-many-requests") {
         toast.error("Too many requests. Please try again later.");
       } else if (error.code === "auth/invalid-app-credential") {
+        toast.error("reCAPTCHA verification failed. Please refresh the page.");
+      } else if (error.code === "auth/argument-error") {
         toast.error(
-          "reCAPTCHA verification failed. Please refresh the page and try again."
+          isLocalhost
+            ? "Invalid arguments. Ensure the phone number is a registered test number."
+            : "Invalid arguments. Check reCAPTCHA and Firebase settings."
         );
       } else {
         toast.error("Failed to send verification code: " + error.message);
@@ -400,7 +407,6 @@ export const Settings = () => {
       const result = await confirmationResult.confirm(verificationCode);
       const user = result.user;
 
-      // Store verified phone number in Firestore
       const db = getFirestore();
       const phoneCollection = collection(db, "RecruiterPhoneNumbers");
       await setDoc(doc(phoneCollection, user.uid), {
@@ -417,8 +423,9 @@ export const Settings = () => {
       setConfirmationResult(null);
     } catch (error: any) {
       console.error("Error verifying code:", error);
+      console.log("Error code:", error.code, "Error message:", error.message);
       if (error.code === "auth/invalid-verification-code") {
-        toast.error("Invalid verification code.");
+        toast.error("Invalid verification code. Please check and try again.");
       } else {
         toast.error("Failed to verify code: " + error.message);
       }
