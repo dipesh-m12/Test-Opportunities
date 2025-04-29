@@ -10,6 +10,13 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { token } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import { auth } from "@/utils/firebaseConfig";
+import {
+  ConfirmationResult,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+} from "firebase/auth";
+import { collection, doc, setDoc, getFirestore } from "firebase/firestore";
 
 interface SettingsFormData {
   companyName: string;
@@ -34,23 +41,123 @@ export const Settings = () => {
   const [fetchedData, setFetchedData] = useState<SettingsFormData>();
   const [companyId, setCompanyId] = useState<string>("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
+
+  // Initialize reCAPTCHA verifier
+  const [recaptchaVerifier, setRecaptchaVerifier] =
+    useState<RecaptchaVerifier | null>(null);
+
+  useEffect(() => {
+    // Ensure browser environment and DOM element exist
+    if (
+      typeof window === "undefined" ||
+      !document.getElementById("recaptcha-container")
+    ) {
+      setRecaptchaError(
+        "reCAPTCHA container not found or not in browser environment."
+      );
+      return;
+    }
+
+    // Enable testing mode for localhost
+    const isLocalhost = window.location.hostname === "localhost";
+    if (isLocalhost) {
+      console.log("Running in localhost, disabling reCAPTCHA for testing");
+      auth.settings.appVerificationDisabledForTesting = true;
+      setRecaptchaReady(true);
+      setRecaptchaVerifier(null);
+      return;
+    }
+
+    // Wait for reCAPTCHA script to load with retry limit
+    let retryCount = 0;
+    const maxRetries = 50; // 5 seconds
+    const checkRecaptchaScript = () => {
+      console.log(`Checking reCAPTCHA script, attempt ${retryCount + 1}`);
+      if (window.grecaptcha) {
+        console.log("reCAPTCHA script loaded successfully");
+        try {
+          const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+            size: "invisible",
+            "data-type": "normal",
+            callback: () => {
+              console.log("reCAPTCHA solved");
+              setRecaptchaReady(true);
+            },
+            "expired-callback": () => {
+              console.log("reCAPTCHA expired");
+              setRecaptchaReady(false);
+              setRecaptchaError("reCAPTCHA expired. Please try again.");
+              toast.error("reCAPTCHA expired. Please refresh the page.");
+            },
+          });
+          setRecaptchaVerifier(verifier);
+          verifier
+            .render()
+            .then(() => {
+              console.log("reCAPTCHA rendered");
+              setRecaptchaReady(true);
+            })
+            .catch((error) => {
+              console.error("Error rendering reCAPTCHA:", error);
+              setRecaptchaError("Failed to render reCAPTCHA: " + error.message);
+              toast.error(
+                "Failed to initialize reCAPTCHA. Please refresh the page."
+              );
+            });
+        } catch (error: any) {
+          console.error("Error initializing reCAPTCHA:", error);
+          setRecaptchaError("Failed to initialize reCAPTCHA: " + error.message);
+          toast.error(
+            "Failed to initialize reCAPTCHA. Please refresh the page."
+          );
+        }
+      } else if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(checkRecaptchaScript, 100);
+      } else {
+        console.error("reCAPTCHA script failed to load after max retries");
+        setRecaptchaError(
+          "reCAPTCHA script failed to load. Please check your network, ad blocker, or browser settings."
+        );
+        toast.error(
+          "Failed to load reCAPTCHA. Please check your network, ad blocker, or browser settings."
+        );
+      }
+    };
+
+    console.log("Starting reCAPTCHA script check");
+    checkRecaptchaScript();
+
+    // Cleanup on unmount
+    return () => {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const createCompany = async () => {
       setLoading(true);
       try {
-        // Get the current user and their ID token
         const idToken = localStorage.getItem(token);
         if (!idToken) {
           toast.error("Seems like you are not logged in");
           setTimeout(() => {
             navigate("/sign-in");
           }, 2000);
-
           return;
         }
 
-        // Make API call to get company
         const response = await axios.get(`${host}/company`, {
           headers: {
             Authorization: idToken,
@@ -113,27 +220,22 @@ export const Settings = () => {
     };
 
     createCompany();
-  }, []);
-
-  const [loading, setLoading] = useState(false);
+  }, [navigate, reset]);
 
   const onSubmit = async (data: SettingsFormData) => {
     if (loading) return;
     setLoading(true);
 
     try {
-      // Get the current user and their ID token
       const idToken = localStorage.getItem(token);
       if (!idToken) {
         toast.error("Seems like you are not logged in");
         setTimeout(() => {
           navigate("/sign-in");
         }, 2000);
-
         return;
       }
       if (fetchedData?.companyName) {
-        console.log("updating");
         const response = await axios.put(
           `${host}/company/${companyId}`,
           {
@@ -144,11 +246,10 @@ export const Settings = () => {
           },
           {
             headers: {
-              Authorization: idToken, // Use ID token for authorization
+              Authorization: idToken,
             },
           }
         );
-        console.log("API Response:", response.data);
 
         const api2 = await axios.put(
           `${host}/users`,
@@ -159,16 +260,12 @@ export const Settings = () => {
           },
           {
             headers: {
-              Authorization: idToken, // Use ID token for authorization
+              Authorization: idToken,
             },
           }
         );
-        console.log("API Response:", api2.data);
         toast.success("Company settings updated successfully!");
       } else {
-        console.log("adding");
-        // Make API call to create company
-        console.log(data.linkedin);
         const response = await axios.post(
           `${host}/company`,
           {
@@ -179,12 +276,10 @@ export const Settings = () => {
           },
           {
             headers: {
-              Authorization: idToken, // Use ID token for authorization
+              Authorization: idToken,
             },
           }
         );
-
-        console.log("API Response:", response.data);
 
         const api2 = await axios.put(
           `${host}/users`,
@@ -195,16 +290,15 @@ export const Settings = () => {
           },
           {
             headers: {
-              Authorization: idToken, // Use ID token for authorization
+              Authorization: idToken,
             },
           }
         );
-        console.log("API Response:", api2.data);
         setCompanyId(response.data.id);
         setFetchedData({
           companyName: data.companyName,
           website: data.website,
-          linkedin: data.linkedin || "", // Optional
+          linkedin: data.linkedin || "",
           contactName: data.contactName,
           email: data.email,
           assignmentNotifications: data.assignmentNotifications,
@@ -214,7 +308,6 @@ export const Settings = () => {
     } catch (error: any) {
       console.error("Error updating settings:", error);
       if (error.response) {
-        // API-specific errors
         switch (error.response.status) {
           case 400:
             toast.error("Invalid data provided. Please check your inputs.");
@@ -235,6 +328,102 @@ export const Settings = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendCode = async () => {
+    if (phoneLoading) {
+      return;
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      toast.error("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    const isLocalhost = window.location.hostname === "localhost";
+    if (
+      !isLocalhost &&
+      (!recaptchaVerifier || recaptchaError || !recaptchaReady)
+    ) {
+      if (recaptchaError) {
+        toast.error(recaptchaError);
+      } else if (!recaptchaReady) {
+        toast.error(
+          "reCAPTCHA is not ready. Please wait a moment and try again."
+        );
+      }
+      return;
+    }
+
+    setPhoneLoading(true);
+    try {
+      const formattedPhone = `+91${phoneNumber}`; // Assuming US country code
+      console.log("Sending verification code to:", formattedPhone);
+      const result = await signInWithPhoneNumber(
+        auth,
+        formattedPhone,
+        isLocalhost ? undefined : recaptchaVerifier!
+      );
+      setConfirmationResult(result);
+      setCodeSent(true);
+      toast.success("Verification code sent to your phone!");
+    } catch (error: any) {
+      console.error("Error sending verification code:", error);
+      if (error.code === "auth/invalid-phone-number") {
+        toast.error("Invalid phone number format.");
+      } else if (error.code === "auth/too-many-requests") {
+        toast.error("Too many requests. Please try again later.");
+      } else if (error.code === "auth/invalid-app-credential") {
+        toast.error(
+          "reCAPTCHA verification failed. Please refresh the page and try again."
+        );
+      } else {
+        toast.error("Failed to send verification code: " + error.message);
+      }
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (phoneLoading || !confirmationResult) return;
+
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code.");
+      return;
+    }
+
+    setPhoneLoading(true);
+    try {
+      const result = await confirmationResult.confirm(verificationCode);
+      const user = result.user;
+
+      // Store verified phone number in Firestore
+      const db = getFirestore();
+      const phoneCollection = collection(db, "RecruiterPhoneNumbers");
+      await setDoc(doc(phoneCollection, user.uid), {
+        userId: user.uid,
+        companyId: companyId || "unknown",
+        phoneNumber: `+91${phoneNumber}`,
+        verifiedAt: new Date().toISOString(),
+      });
+
+      toast.success("Phone number verified and saved!");
+      setCodeSent(false);
+      setPhoneNumber("");
+      setVerificationCode("");
+      setConfirmationResult(null);
+    } catch (error: any) {
+      console.error("Error verifying code:", error);
+      if (error.code === "auth/invalid-verification-code") {
+        toast.error("Invalid verification code.");
+      } else {
+        toast.error("Failed to verify code: " + error.message);
+      }
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
@@ -374,6 +563,86 @@ export const Settings = () => {
                   </p>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Phone Number Verification</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!codeSent ? (
+                <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-4 space-y-4 sm:space-y-0">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="phoneNumber"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Phone Number
+                    </label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      placeholder="1234567890"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={
+                        phoneLoading || !!recaptchaError || !recaptchaReady
+                      }
+                    />
+                    {recaptchaError && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {recaptchaError}
+                      </p>
+                    )}
+                    {!recaptchaError && !recaptchaReady && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        Loading reCAPTCHA, please wait...
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:mt-6">
+                    <Button
+                      type="button"
+                      onClick={handleSendCode}
+                      disabled={
+                        phoneLoading || !!recaptchaError || !recaptchaReady
+                      }
+                    >
+                      {phoneLoading ? <Spinner /> : "Verify"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-4 space-y-4 sm:space-y-0">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="verificationCode"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Verification Code
+                    </label>
+                    <Input
+                      id="verificationCode"
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      disabled={phoneLoading}
+                    />
+                  </div>
+                  <div className="sm:mt-6">
+                    <Button
+                      type="button"
+                      onClick={handleVerifyCode}
+                      disabled={phoneLoading}
+                    >
+                      {phoneLoading ? <Spinner /> : "Verify Code"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div id="recaptcha-container" />
             </CardContent>
           </Card>
 

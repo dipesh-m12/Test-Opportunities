@@ -16,6 +16,8 @@ import {
   XCircle,
   ExternalLink,
   ArrowLeft,
+  Files,
+  Info,
 } from "lucide-react";
 import { calculateGitHubScore } from "@/lib/utils";
 import { Select } from "@/components/ui/Select";
@@ -504,6 +506,7 @@ export const Candidates = () => {
   });
 
   const scheduleInterview = (candidateId: string) => {
+    // console.log(1);
     if (!user.email) {
       toast.error("We can't find your email");
       return;
@@ -515,7 +518,8 @@ export const Candidates = () => {
     date.setDate(date.getDate() + 1); // Set to tomorrow
     date.setHours(10, 0, 0, 0); // Set to 10:00 AM
 
-    const meetingTitle = `Interview with ${candidate.name} for ${currentJob?.title}`;
+    const meetingTitle = `Company Name <${candidate.name}> `;
+    // for ${currentJob?.title}
     const meetingDuration = 60; // 60 minutes
     const endDate = new Date(date.getTime() + meetingDuration * 60000);
 
@@ -681,8 +685,8 @@ export const Candidates = () => {
                             <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
                               {candidate.name}
                             </h3>
-                            <p className="text-xs text-gray-500">
-                              +91 {candidate.phoneNumber}
+                            <p className="text-xs text-blue-500 underline hover:no-underline">
+                              {candidate.phoneNumber}
                             </p>
                             <p className="text-xs text-gray-500">
                               Rank #{index + 1}
@@ -708,8 +712,8 @@ export const Candidates = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center space-x-1 hover:text-gray-700"
                               >
-                                <Linkedin className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span>LinkedIn</span>
+                                <Files className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span>Portfolio</span>
                               </a>
                               <a
                                 href={candidate.linkedinUrl}
@@ -1003,6 +1007,19 @@ export const Candidates = () => {
                                           View
                                         </a>
                                       </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">
+                                          Documentation
+                                        </span>
+                                        <a
+                                          href={`https://${candidate.githubUsername}.github.io/assignment`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-blue-600 hover:underline"
+                                        >
+                                          View
+                                        </a>
+                                      </div>
                                     </>
                                   )}
                                   <div className="flex items-center justify-between">
@@ -1017,7 +1034,7 @@ export const Candidates = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="rounded-lg bg-blue-50 p-3">
+                              {/* <div className="rounded-lg bg-blue-50 p-3">
                                 <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                                   Inovact Score
                                 </h4>
@@ -1045,7 +1062,7 @@ export const Candidates = () => {
                                     </div>
                                   </div>
                                 </div>
-                              </div>
+                              </div> */}
                             </div>
                           </div>
 
@@ -1109,8 +1126,27 @@ export const Candidates = () => {
                                         </Badge>
                                       ))}
                                     </div>
-                                    <div className="text-xs bg-blue-300/40 text-blue-700 w-fit ml-auto font-semibold p-2 rounded-lg text-right">
-                                      Code Quality: 85%
+                                    <div className="relative flex items-center justify-end">
+                                      <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
+                                        <span className="group relative">
+                                          <Info
+                                            className="h-4 w-4 text-blue-700 cursor-help"
+                                            aria-label="Code Quality score details"
+                                          />
+                                          <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-16 right-0 z-10 text-left">
+                                            <p className="font-semibold">
+                                              Code Quality Score
+                                            </p>
+                                            <ul className="list-disc list-inside mt-1">
+                                              <li>Code Readability: 40%</li>
+                                              <li>Test Coverage: 30%</li>
+                                              <li>Complexity: 20%</li>
+                                              <li>Documentation: 10%</li>
+                                            </ul>
+                                          </div>
+                                        </span>
+                                        Code Quality: 85%
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1118,43 +1154,60 @@ export const Candidates = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
                                 <div className="text-xs font-medium text-gray-500">
                                   Commits
                                 </div>
-                                <div className="mt-1 text-base font-semibold text-gray-900">
+                                <div className="mt-1 text-sm font-semibold text-gray-900">
                                   {candidate.githubStats.commits}
                                 </div>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
                                 <div className="text-xs font-medium text-gray-500">
                                   Contributions
                                 </div>
-                                <div className="mt-1 text-base font-semibold text-gray-900">
+                                <div className="mt-1 text-sm font-semibold text-gray-900">
                                   {candidate.githubStats.contributions}
                                 </div>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-gray-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
                                 <div className="text-xs font-medium text-gray-500">
                                   Code Quality
                                 </div>
-                                <div className="mt-1 text-base font-semibold text-gray-900">
+                                <div className="mt-1 text-sm font-semibold text-gray-900">
                                   {candidate.githubStats.codeQuality}%
                                 </div>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-blue-50 p-2 min-h-[8rem] bg-gradient-to-t from-blue-100 to-blue-50 flex items-center justify-center">
+                            <div className="rounded-lg bg-blue-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-100 to-blue-50 flex items-center justify-center">
                               <div className="text-center">
                                 <div className="text-xs font-medium text-blue-600">
                                   Overall Score
                                 </div>
-                                <div className="mt-1 text-base font-semibold text-blue-600">
+                                <div className="mt-1 text-sm font-semibold text-blue-600 flex items-center justify-center gap-1">
+                                  <span className="group relative">
+                                    <Info
+                                      className="h-4 w-4 text-blue-600 cursor-help"
+                                      aria-label="Overall Score details"
+                                    />
+                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-20 right-0 z-10 text-left">
+                                      <p className="font-semibold">
+                                        Overall Score
+                                      </p>
+                                      <ul className="list-disc list-inside mt-1">
+                                        <li>Commits: 30%</li>
+                                        <li>Contributions: 25%</li>
+                                        <li>Average Code Quality: 30%</li>
+                                        <li>Project Impact: 15%</li>
+                                      </ul>
+                                    </div>
+                                  </span>
                                   {calculateGitHubScore(candidate.githubStats)}
                                 </div>
                               </div>
