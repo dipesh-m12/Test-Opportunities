@@ -214,13 +214,14 @@ export const PostJob = () => {
         //companyId
         try {
           setRenderLoading(true);
+          console.log("here");
           const response = await axios.get(`${host}/company`, {
             headers: {
               Authorization: idToken,
             },
           });
+          console.log("Company", response.data);
           const companyId = response.data.id;
-          // console.log("Company", response.data);
 
           const job = await axios.get(
             `${host}/company/${companyId}/job/${edit}`,
@@ -230,18 +231,18 @@ export const PostJob = () => {
               },
             }
           );
-          // console.log("Job", job.data);
+          console.log("Job", job.data);
           const data = job.data;
 
           const assign = await axios.get(
-            `${host}/company/${companyId}/job/${edit}/assignment/${job.data.assignments[0].id}/files/${job.data.assignments[0].assignment_files[0].id}`,
+            `${host}/company/${companyId}/job/${edit}/assignment/${job.data.assignments[0].id}`,
             {
               headers: {
                 Authorization: idToken,
               },
             }
           );
-          // console.log("Assignment", assign.data);
+          console.log("Assignment", assign.data);
           const refineData: FetchedJobDetails = {
             job: {
               id: job.data.id,
@@ -279,8 +280,8 @@ export const PostJob = () => {
                 .map((e: any) => ({ skill: e.skill, id: e.id })),
             },
             file: {
-              file: assign.data.download_url,
-              id: job.data.assignments[0].assignment_files[0].id,
+              file: assign.data.file_download_url,
+              id: job.data.assignments[0].id,
             },
             blob: job.data,
             assignBlob: assign.data,
@@ -337,7 +338,7 @@ export const PostJob = () => {
           setPreferredSkills(
             refineData.skills.preferredSkills.map((e) => e.skill)
           );
-          setlink(assign.data.download_url);
+          setlink(assign.data.file_download_url);
         } catch (e) {
           console.error("Error", e);
           toast.error("Error fetching the job");
@@ -543,7 +544,7 @@ export const PostJob = () => {
             submissionData.type == "full-time"
               ? +submissionData!.salary!.max
               : +submissionData!.stipend!,
-          status: submissionData.status,
+          status: submissionData.status || "active",
           duration:
             submissionData.type == "internship"
               ? +submissionData.duration! || 0
@@ -675,37 +676,37 @@ export const PostJob = () => {
       // setFetchedJobDetails(temp);
 
       //create assignment
-      const assign = await axios.put(
-        `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
-        {
-          description: submissionData.assignment.description,
-          SubmissionType: "file",
-          deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
-            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-            .toISOString(),
-          requireGitHubRepo:
-            submissionData.assignment.submissionPreferences.includes("github"),
-          requireLiveLink:
-            submissionData.assignment.submissionPreferences.includes(
-              "liveLink"
-            ),
-          requireDocumentation:
-            submissionData.assignment.submissionPreferences.includes(
-              "documentation"
-            ),
-        },
-        {
-          headers: {
-            Authorization: idToken, // Use ID token for authorization
-          },
-        }
+      const formData = new FormData();
+      formData.append("description", submissionData.assignment.description);
+      formData.append("submissionType", "project");
+      formData.append(
+        "deadline",
+        moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+          .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+          .toISOString()
       );
-      // console.log("Assignment", assign.data);
+      formData.append(
+        "requireGitHubRepo",
+        `${submissionData.assignment.submissionPreferences.includes("github")}`
+      );
+      formData.append(
+        "requireLiveLink",
+        `${submissionData.assignment.submissionPreferences.includes(
+          "liveLink"
+        )}`
+      );
+      formData.append(
+        "requireDocumentation",
+        `${submissionData.assignment.submissionPreferences.includes(
+          "documentation"
+        )}`
+      );
 
-      //create file
+      // Validate and append file if present
       if (submissionData.assignment.file) {
         // Validate file (required and PDF)
-        let fileValidationError: string | undefined;
+        const file = submissionData.assignment.file;
+        let fileValidationError;
         if (!file) {
           fileValidationError = "Assignment file is required";
           setFileError(fileValidationError);
@@ -719,38 +720,43 @@ export const PostJob = () => {
           return;
         }
         setFileError(undefined);
+        formData.append("file", file);
+      }
 
-        const fileFormData = new FormData();
+      // Update assignment with FormData
+      const assign = await axios.put(
+        `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: idToken,
+            // Content-Type is automatically set to multipart/form-data by axios when using FormData
+          },
+        }
+      );
+      console.log("Assignment", assign.data);
 
-        fileFormData.append("file", submissionData.assignment.file);
-        const updatefile = await axios.put(
-          `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${fetchedJobDetails.assignment.id}/files/${fetchedJobDetails.file.id}`,
-          fileFormData,
-          {
-            headers: {
-              Authorization: idToken, // Use ID token for authorization
-            },
-          }
-        );
-        // console.log("File", updatefile.data);
-
-        const assign = await axios.get(
-          `${host}/company/${companyId}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}/files/${fetchedJobDetails.file.id}`,
+      // Fetch download URL if file was updated
+      if (submissionData.assignment.file) {
+        const fileFetch = await axios.get(
+          `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
           {
             headers: {
               Authorization: idToken,
             },
           }
         );
-        // console.log(assign.data);
-        setlink(assign.data.download_url);
+        console.log("Assign get", fileFetch.data);
+        setlink(fileFetch.data.file_download_url);
         temp = {
           ...temp,
-          file: { file: assign.data.download_url, id: updatefile.data.id },
+          file: {
+            file: fileFetch.data.file_download_url,
+            id: fetchedJobDetails.file.id,
+          },
         };
-
-        // console.log("File get", assign.data);
       }
+
       setFetchedJobDetails(temp);
 
       toast.success("Job updated successfully!");
@@ -766,9 +772,9 @@ export const PostJob = () => {
   //   console.log(fetchedJobDetails.skills);
   // }, [fetchedJobDetails]);
 
-  useEffect(() => {
-    console.log(fetchedJobDetails.file);
-  }, [fetchedJobDetails]);
+  // useEffect(() => {
+  //   console.log(fetchedJobDetails.file);
+  // }, [fetchedJobDetails]);
   const onSubmit = async (data: JobFormData) => {
     // Get the file from ref
     const file = fileInputRef.current?.files?.[0];
@@ -916,52 +922,48 @@ export const PostJob = () => {
       );
 
       //create assignment
+      const formData = new FormData();
+      formData.append("description", submissionData.assignment.description);
+      formData.append("submissionType", "project");
+      formData.append(
+        "deadline",
+        moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+          .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+          .toISOString()
+      );
+      formData.append(
+        "githubRepo",
+        `${submissionData.assignment.submissionPreferences.includes("github")}`
+      );
+      formData.append(
+        "liveLink",
+        `${submissionData.assignment.submissionPreferences.includes(
+          "liveLink"
+        )}`
+      );
+      formData.append(
+        "documentation",
+        `${submissionData.assignment.submissionPreferences.includes(
+          "documentation"
+        )}`
+      );
+
+      // Append file if it exists
+      if (submissionData.assignment.file) {
+        formData.append("file", submissionData.assignment.file);
+      }
+
       const assign = await axios.post(
         `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
-        {
-          description: submissionData.assignment.description,
-          SubmissionType: "file",
-          deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
-            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-            .toISOString(),
-          submissionPreferences: {
-            githubRepo:
-              submissionData.assignment.submissionPreferences.includes(
-                "github"
-              ),
-            liveLink:
-              submissionData.assignment.submissionPreferences.includes(
-                "liveLink"
-              ),
-            documentation:
-              submissionData.assignment.submissionPreferences.includes(
-                "documentation"
-              ),
-          },
-        },
+        formData,
         {
           headers: {
-            Authorization: idToken, // Use ID token for authorization
+            Authorization: idToken,
+            // Note: Content-Type is automatically set to multipart/form-data by axios when using FormData
           },
         }
       );
       console.log("Assignment", assign.data);
-
-      //create file
-      if (submissionData.assignment.file) {
-        const fileFormData = new FormData();
-        fileFormData.append("file", submissionData.assignment.file);
-        const file = await axios.post(
-          `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${assign.data.id}/files`,
-          fileFormData,
-          {
-            headers: {
-              Authorization: idToken, // Use ID token for authorization
-            },
-          }
-        );
-        console.log("File", file.data);
-      }
 
       // Reset form fields after successful submission
       reset({
@@ -1159,52 +1161,50 @@ export const PostJob = () => {
         );
 
         //create assignment
+        const formData = new FormData();
+        formData.append("description", submissionData.assignment.description);
+        formData.append("submissionType", "project");
+        formData.append(
+          "deadline",
+          moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString()
+        );
+        formData.append(
+          "githubRepo",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "github"
+          )}`
+        );
+        formData.append(
+          "liveLink",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "liveLink"
+          )}`
+        );
+        formData.append(
+          "documentation",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "documentation"
+          )}`
+        );
+
+        // Append file if it exists
+        if (submissionData.assignment.file) {
+          formData.append("file", submissionData.assignment.file);
+        }
+
         const assign = await axios.post(
           `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
-          {
-            description: submissionData.assignment.description,
-            SubmissionType: "file",
-            deadline: moment(submissionData.assignment.deadline, "YYYY-MM-DD")
-              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-              .toISOString(),
-            submissionPreferences: {
-              githubRepo:
-                submissionData.assignment.submissionPreferences.includes(
-                  "github"
-                ),
-              liveLink:
-                submissionData.assignment.submissionPreferences.includes(
-                  "liveLink"
-                ),
-              documentation:
-                submissionData.assignment.submissionPreferences.includes(
-                  "documentation"
-                ),
-            },
-          },
+          formData,
           {
             headers: {
-              Authorization: idToken, // Use ID token for authorization
+              Authorization: idToken,
+              // Note: Content-Type is automatically set to multipart/form-data by axios when using FormData
             },
           }
         );
         console.log("Assignment", assign.data);
-
-        //create file
-        if (submissionData.assignment.file) {
-          const fileFormData = new FormData();
-          fileFormData.append("file", submissionData.assignment.file);
-          const file = await axios.post(
-            `${host}/company/${response.data.id}/job/${job.data.id}/assignment/${assign.data.id}/files`,
-            fileFormData,
-            {
-              headers: {
-                Authorization: idToken, // Use ID token for authorization
-              },
-            }
-          );
-          console.log("File", file.data);
-        }
 
         // Reset form fields after successful submission
         reset({

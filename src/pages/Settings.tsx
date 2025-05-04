@@ -10,13 +10,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { token } from "@/utils";
 import { useNavigate } from "react-router-dom";
-import { auth } from "@/utils/firebaseConfig";
-import {
-  ConfirmationResult,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-} from "firebase/auth";
-import { collection, doc, setDoc, getFirestore } from "firebase/firestore";
+import { addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { phoneCollection } from "@/utils/firebaseConfig";
 
 interface SettingsFormData {
   companyName: string;
@@ -43,105 +38,29 @@ export const Settings = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [confirmationResult, setConfirmationResult] =
-    useState<ConfirmationResult | null>(null);
-  const [phoneLoading, setPhoneLoading] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
-  const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [phoneQueryLoading, setPhoneQueryLoading] = useState(false);
 
-  const [recaptchaVerifier, setRecaptchaVerifier] =
-    useState<RecaptchaVerifier | null>(null);
-
+  // Timer effect for 30 seconds after OTP is sent
   useEffect(() => {
-    auth.languageCode = "en-IN"; // Set for India
-
-    if (
-      typeof window === "undefined" ||
-      !document.getElementById("recaptcha-container")
-    ) {
-      setRecaptchaError(
-        "reCAPTCHA container not found or not in browser environment."
-      );
-      return;
+    let interval: NodeJS.Timeout | null = null;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (interval) {
+      clearInterval(interval);
     }
-
-    const isLocalhost = window.location.hostname === "localhost";
-    if (isLocalhost) {
-      console.log("Running in localhost, disabling reCAPTCHA for testing");
-      auth.settings.appVerificationDisabledForTesting = true;
-      setRecaptchaReady(true);
-      setRecaptchaVerifier(null);
-      return;
-    }
-
-    let retryCount = 0;
-    const maxRetries = 50;
-    const checkRecaptchaScript = () => {
-      console.log(`Checking reCAPTCHA script, attempt ${retryCount + 1}`);
-      if (window.grecaptcha) {
-        console.log("reCAPTCHA script loaded successfully");
-        try {
-          const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-            size: "invisible",
-            "data-type": "normal",
-            callback: () => {
-              console.log("reCAPTCHA solved");
-              setRecaptchaReady(true);
-            },
-            "expired-callback": () => {
-              console.log("reCAPTCHA expired");
-              setRecaptchaReady(false);
-              setRecaptchaError("reCAPTCHA expired. Please try again.");
-              toast.error("reCAPTCHA expired. Please refresh the page.");
-            },
-          });
-          setRecaptchaVerifier(verifier);
-          verifier
-            .render()
-            .then(() => {
-              console.log("reCAPTCHA rendered");
-              setRecaptchaReady(true);
-            })
-            .catch((error) => {
-              console.error("Error rendering reCAPTCHA:", error);
-              setRecaptchaError("Failed to render reCAPTCHA: " + error.message);
-              toast.error(
-                "Failed to initialize reCAPTCHA. Please refresh the page."
-              );
-            });
-        } catch (error: any) {
-          console.error("Error initializing reCAPTCHA:", error);
-          setRecaptchaError("Failed to initialize reCAPTCHA: " + error.message);
-          toast.error(
-            "Failed to initialize reCAPTCHA. Please refresh the page."
-          );
-        }
-      } else if (retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(checkRecaptchaScript, 100);
-      } else {
-        console.error("reCAPTCHA script failed to load after max retries");
-        setRecaptchaError(
-          "reCAPTCHA script failed to load. Please check your network, ad blocker, or browser settings."
-        );
-        toast.error(
-          "Failed to load reCAPTCHA. Please check your network, ad blocker, or browser settings."
-        );
-      }
-    };
-
-    console.log("Starting reCAPTCHA script check");
-    checkRecaptchaScript();
-
     return () => {
-      if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
-      }
+      if (interval) clearInterval(interval);
     };
-  }, []);
+  }, [timer]);
 
+  // Fetch company data
   useEffect(() => {
     const createCompany = async () => {
       setLoading(true);
@@ -187,11 +106,9 @@ export const Settings = () => {
           assignmentNotifications: false,
         });
 
-        console.log("API Response:", response.data);
-        console.log("API2 Response:", api2.data);
         toast.success("Company fetched successfully!");
       } catch (error: any) {
-        console.error("Error creating company:", error);
+        console.error("Error fetching company:", error);
         if (error.response) {
           switch (error.response.status) {
             case 400:
@@ -219,6 +136,126 @@ export const Settings = () => {
     createCompany();
   }, [navigate, reset]);
 
+  // Fetch phone number from Firestore
+  useEffect(() => {
+    async function getNumber() {
+      if (!companyId) {
+        return;
+      }
+      setPhoneQueryLoading(true);
+      try {
+        const q = query(phoneCollection, where("companyId", "==", companyId));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          const data = doc.data();
+          if (data.phoneNumber) {
+            // Remove +91 prefix if present
+            const number = data.phoneNumber.replace(/^\+91/, "");
+            setPhoneNumber(number);
+          }
+        }
+      } catch (error: any) {
+        console.error("Error fetching phone number:", error);
+        toast.error("Failed to fetch phone number.");
+      } finally {
+        setPhoneQueryLoading(false);
+      }
+    }
+    getNumber();
+  }, [companyId]);
+
+  // Generate a 6-digit OTP
+  const generateOtp = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // Handle sending OTP via Twilio
+  const handleSendOtp = async () => {
+    if (otpLoading || timer > 0 || phoneQueryLoading) return;
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      toast.error("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      const newOtp = generateOtp();
+      const formattedPhone = `+91${phoneNumber}`;
+      const response = await axios.post(
+        "https://inovact-twilio-service.vercel.app/inovactservice/send-sms",
+        {
+          to: formattedPhone,
+          body: `Your OTP is ${newOtp}. Valid for 5 minutes.`,
+        }
+      );
+
+      if (response.data.success) {
+        setGeneratedOtp(newOtp);
+        setOtpSent(true);
+        setTimer(30); // Start 30-second timer
+        toast.success("OTP sent to your phone!");
+      } else {
+        throw new Error(response.data.message || "Failed to send OTP");
+      }
+    } catch (error: any) {
+      console.error("Error sending OTP:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to send OTP. Please try again."
+      );
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // Handle OTP verification
+  const handleVerifyOtp = async () => {
+    if (otpLoading || !generatedOtp) return;
+
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      if (otp === generatedOtp) {
+        // Delete existing documents with matching companyId
+        const q = query(phoneCollection, where("companyId", "==", companyId));
+        const querySnapshot = await getDocs(q);
+        const deletePromises = querySnapshot.docs.map((doc) =>
+          deleteDoc(doc.ref)
+        );
+        await Promise.all(deletePromises);
+        console.log(
+          `Deleted ${querySnapshot.size} documents for companyId: ${companyId}`
+        );
+
+        // Add new document
+        await addDoc(phoneCollection, {
+          companyId: companyId || "unknown",
+          phoneNumber: `+91${phoneNumber}`,
+          verifiedAt: new Date().toISOString(),
+        });
+
+        toast.success("Phone number verified and saved!");
+        setOtpSent(false);
+        setOtp("");
+        setGeneratedOtp(null);
+      } else {
+        toast.error("Invalid OTP. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Error verifying OTP:", error);
+      toast.error("Failed to verify OTP: " + error.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // Handle form submission for company settings
   const onSubmit = async (data: SettingsFormData) => {
     if (loading) return;
     setLoading(true);
@@ -233,7 +270,7 @@ export const Settings = () => {
         return;
       }
       if (fetchedData?.companyName) {
-        const response = await axios.put(
+        await axios.put(
           `${host}/company/${companyId}`,
           {
             name: data.companyName,
@@ -248,7 +285,7 @@ export const Settings = () => {
           }
         );
 
-        const api2 = await axios.put(
+        await axios.put(
           `${host}/users`,
           {
             email: data.email,
@@ -278,7 +315,7 @@ export const Settings = () => {
           }
         );
 
-        const api2 = await axios.put(
+        await axios.put(
           `${host}/users`,
           {
             email: data.email,
@@ -328,112 +365,6 @@ export const Settings = () => {
     }
   };
 
-  const handleSendCode = async () => {
-    if (phoneLoading) {
-      return;
-    }
-
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      toast.error("Please enter a valid 10-digit phone number.");
-      return;
-    }
-
-    const isLocalhost = window.location.hostname === "localhost";
-    console.log("Testing mode enabled:", isLocalhost);
-    if (
-      !isLocalhost &&
-      (!recaptchaVerifier || recaptchaError || !recaptchaReady)
-    ) {
-      if (recaptchaError) {
-        toast.error(recaptchaError);
-      } else if (!recaptchaReady) {
-        toast.error(
-          "reCAPTCHA is not ready. Please wait a moment and try again."
-        );
-      }
-      return;
-    }
-
-    setPhoneLoading(true);
-    try {
-      const formattedPhone = `+91${phoneNumber}`; // India country code
-      console.log("Sending verification code to:", formattedPhone);
-      const result = await signInWithPhoneNumber(
-        auth,
-        formattedPhone,
-        isLocalhost ? undefined : recaptchaVerifier!
-      );
-      setConfirmationResult(result);
-      setCodeSent(true);
-      toast.success("Verification code sent to your phone!");
-    } catch (error: any) {
-      console.error("Error sending verification code:", error);
-      console.log("Error code:", error.code, "Error message:", error.message);
-      if (error.code === "auth/invalid-phone-number") {
-        toast.error(
-          isLocalhost
-            ? "Phone number must be registered in Firebase Console for testing."
-            : "Invalid phone number format. Ensure it is valid for India (+91)."
-        );
-      } else if (error.code === "auth/too-many-requests") {
-        toast.error("Too many requests. Please try again later.");
-      } else if (error.code === "auth/invalid-app-credential") {
-        toast.error("reCAPTCHA verification failed. Please refresh the page.");
-      } else if (error.code === "auth/argument-error") {
-        toast.error(
-          isLocalhost
-            ? "Invalid arguments. Ensure the phone number is a registered test number."
-            : "Invalid arguments. Check reCAPTCHA and Firebase settings."
-        );
-      } else {
-        toast.error("Failed to send verification code: " + error.message);
-      }
-    } finally {
-      setPhoneLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (phoneLoading || !confirmationResult) return;
-
-    if (!verificationCode || verificationCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code.");
-      return;
-    }
-
-    setPhoneLoading(true);
-    try {
-      const result = await confirmationResult.confirm(verificationCode);
-      const user = result.user;
-
-      const db = getFirestore();
-      const phoneCollection = collection(db, "RecruiterPhoneNumbers");
-      await setDoc(doc(phoneCollection, user.uid), {
-        userId: user.uid,
-        companyId: companyId || "unknown",
-        phoneNumber: `+91${phoneNumber}`,
-        verifiedAt: new Date().toISOString(),
-      });
-
-      toast.success("Phone number verified and saved!");
-      setCodeSent(false);
-      setPhoneNumber("");
-      setVerificationCode("");
-      setConfirmationResult(null);
-    } catch (error: any) {
-      console.error("Error verifying code:", error);
-      console.log("Error code:", error.code, "Error message:", error.message);
-      if (error.code === "auth/invalid-verification-code") {
-        toast.error("Invalid verification code. Please check and try again.");
-      } else {
-        toast.error("Failed to verify code: " + error.message);
-      }
-    } finally {
-      setPhoneLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -441,6 +372,82 @@ export const Settings = () => {
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto">
         <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Phone Number Verification</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!otpSent ? (
+                <div className="flex items-start space-x-4">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="phoneNumber"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Phone Number
+                    </label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      placeholder="1234567890"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                    />
+                    {phoneQueryLoading && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        Loading phone number...
+                      </p>
+                    )}
+                  </div>
+                  <div className="mt-6 ">
+                    <Button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                    >
+                      {otpLoading ? (
+                        <Spinner />
+                      ) : timer > 0 ? (
+                        `Resend OTP (${timer}s)`
+                      ) : (
+                        "Send OTP"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start space-x-4">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="otp"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      OTP
+                    </label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="Enter 6-digit OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      disabled={otpLoading}
+                    />
+                  </div>
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={otpLoading}
+                    >
+                      {otpLoading ? <Spinner /> : "Verify OTP"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Company Profile</CardTitle>
@@ -478,8 +485,7 @@ export const Settings = () => {
                   id="website"
                   type="url"
                   {...register("website", {
-                    required: "Website is required",
-                    pattern: {
+                    nate: {
                       value:
                         /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i,
                       message: "Please enter a valid URL",
@@ -570,86 +576,6 @@ export const Settings = () => {
                   </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Phone Number Verification</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {!codeSent ? (
-                <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-4 space-y-4 sm:space-y-0">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="phoneNumber"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Phone Number
-                    </label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
-                      placeholder="1234567890"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      disabled={
-                        phoneLoading || !!recaptchaError || !recaptchaReady
-                      }
-                    />
-                    {recaptchaError && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {recaptchaError}
-                      </p>
-                    )}
-                    {!recaptchaError && !recaptchaReady && (
-                      <p className="mt-1 text-sm text-gray-600">
-                        Loading reCAPTCHA, please wait...
-                      </p>
-                    )}
-                  </div>
-                  <div className="sm:mt-6">
-                    <Button
-                      type="button"
-                      onClick={handleSendCode}
-                      disabled={
-                        phoneLoading || !!recaptchaError || !recaptchaReady
-                      }
-                    >
-                      {phoneLoading ? <Spinner /> : "Verify"}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-4 space-y-4 sm:space-y-0">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="verificationCode"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Verification Code
-                    </label>
-                    <Input
-                      id="verificationCode"
-                      type="text"
-                      placeholder="Enter 6-digit code"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      disabled={phoneLoading}
-                    />
-                  </div>
-                  <div className="sm:mt-6">
-                    <Button
-                      type="button"
-                      onClick={handleVerifyCode}
-                      disabled={phoneLoading}
-                    >
-                      {phoneLoading ? <Spinner /> : "Verify Code"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-              <div id="recaptcha-container" />
             </CardContent>
           </Card>
 

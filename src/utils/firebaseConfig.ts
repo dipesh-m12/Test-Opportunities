@@ -43,3 +43,4 @@ export const auth = getAuth(app);
 
 const firestore = getFirestore(app);
 export const requests = collection(firestore, "Requests");
+export const phoneCollection = collection(firestore, "RecruiterPhoneNumbers");
