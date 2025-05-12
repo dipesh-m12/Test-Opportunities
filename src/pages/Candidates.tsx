@@ -972,7 +972,7 @@ export const Candidates = () => {
                                           ).toLocaleDateString()}
                                         </span>
                                       </div>
-                                      <div className="flex items-center justify-between">
+                                      {/* <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">
                                           Score
                                         </span>
@@ -980,7 +980,7 @@ export const Candidates = () => {
                                           {candidate.assignmentStatus.score ??
                                             "Pending Review"}
                                         </span>
-                                      </div>
+                                      </div> */}
                                       <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">
                                           GitHub
@@ -1196,15 +1196,19 @@ export const Candidates = () => {
                                       className="h-4 w-4 text-blue-600 cursor-help"
                                       aria-label="Overall Score details"
                                     />
-                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-20 right-0 z-10 text-left">
+                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
                                       <p className="font-semibold">
                                         Overall Score
                                       </p>
                                       <ul className="list-disc list-inside mt-1">
-                                        <li>Commits: 30%</li>
-                                        <li>Contributions: 25%</li>
-                                        <li>Average Code Quality: 30%</li>
-                                        <li>Project Impact: 15%</li>
+                                        <li>Readability: 20%</li>
+                                        <li>Consistency: 15%</li>
+                                        <li>Indentation and Formattin: 15%</li>
+                                        <li>Code Smells: 20%</li>
+                                        <li>
+                                          Naming and Declaration Practices: 10%
+                                        </li>
+                                        <li>Use of Language Features: 5%</li>
                                       </ul>
                                     </div>
                                   </span>

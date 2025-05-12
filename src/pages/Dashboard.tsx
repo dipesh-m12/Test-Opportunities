@@ -133,10 +133,19 @@ export const Dashboard = () => {
             Authorization: idToken,
           },
         });
+        const candidate = await axios.get(
+          `${host}/application/company/${companyId}`,
+          {
+            headers: {
+              Authorization: idToken,
+            },
+          }
+        );
+        console.log(candidate.data);
         let data = response.data;
         setjobs(data);
         data = data.filter((e: any) => e.status == "active");
-        console.log(data);
+        // console.log(data);
         const updatedStats = stats.map((e) =>
           e.label == "Active Jobs"
             ? {
@@ -146,7 +155,24 @@ export const Dashboard = () => {
                 route: "/manage-jobs",
                 filter: "active",
               }
-            : e
+            : e.label == "Total Candidates"
+            ? {
+                label: "Total Candidates",
+                value: candidate.data.length || 0,
+                icon: Users,
+                route: "/manage-jobs",
+                filter: "all",
+              }
+            : {
+                label: "Shortlisted",
+                value:
+                  candidate.data.filter(
+                    (e) => e.application.status == "shortlisted"
+                  ).length || 0,
+                icon: Award,
+                route: "/manage-jobs",
+                filter: "shortlisted",
+              }
         );
         setStats(updatedStats);
       }
