@@ -120,6 +120,9 @@ export const Settings = () => {
             case 409:
               toast.error("Company name already exists.");
               break;
+            case 404:
+              // toast.error("Company name already exists.");
+              break;
             default:
               toast.error("Failed to get company.");
           }

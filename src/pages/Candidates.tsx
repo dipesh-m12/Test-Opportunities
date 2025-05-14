@@ -104,210 +104,58 @@ interface Job {
   preferredSkills: string[];
 }
 
-const fetchJobs = async (): Promise<Job[]> => {
-  // Simulate API call with dummy data
-  return [
-    {
-      id: "1",
-      title: "Senior Full Stack Developer",
-      type: "Full-time",
-      location: "Remote",
-      salary: { min: 500000, max: 800000, currency: "INR" },
-      requiredSkills: [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "MongoDB",
-        "AWS",
-        "Docker",
-        "Git",
-      ],
-      preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
-    },
-    {
-      id: "2",
-      title: "Backend Engineer",
-      type: "Full-time",
-      location: "On-site",
-      salary: { min: 600000, max: 900000, currency: "INR" },
-      requiredSkills: [
-        "Go",
-        "Python",
-        "PostgreSQL",
-        "Redis",
-        "Docker",
-        "Kubernetes",
-      ],
-      preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
-    },
-    {
-      id: "3",
-      title: "DevOps Engineer",
-      type: "Full-time",
-      location: "Hybrid",
-      salary: { min: 700000, max: 1000000, currency: "INR" },
-      requiredSkills: [
-        "Kubernetes",
-        "Docker",
-        "AWS",
-        "Terraform",
-        "CI/CD",
-        "Python",
-      ],
-      preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
-    },
-  ];
-};
-
-const fetchCandidates = async (): Promise<Candidate[]> => {
-  // Simulate API call with dummy data
-  return [
-    {
-      id: "1",
-      name: "John Doe",
-      email: "mavinash422@gmail.com",
-      phoneNumber: "998877665544",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-      githubUsername: "johndoe",
-      linkedinUrl: "https://linkedin.com/in/johndoe",
-      applyingFor: "Senior Full Stack Developer",
-      status: "new",
-      assignmentStatus: {
-        submitted: true,
-        submittedAt: "2024-03-15T10:30:00Z",
-        deadline: "2024-03-20T23:59:59Z",
-        score: null,
-      },
-      skills: {
-        languages: ["JavaScript", "TypeScript", "Python"],
-        frameworks: ["React", "Node.js", "Express", "Next.js"],
-        databases: ["MongoDB", "PostgreSQL", "Redis"],
-        tools: ["Docker", "AWS", "Git", "Jest"],
-      },
-      githubStats: {
-        commits: 234,
-        contributions: 456,
-        codeQuality: 85,
-      },
-      inovactScore: {
-        technical: 89,
-        collaboration: 92,
-        communication: 85,
-        overall: 88,
-      },
-      projects: [
-        {
-          name: "E-commerce Platform",
-          description:
-            "Full-stack e-commerce platform with React, Node.js, and MongoDB",
-          repoUrl: "https://github.com/johndoe/ecommerce",
-          liveUrl: "https://ecommerce-demo.com",
-          technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
-          highlights: [
-            "Implemented real-time inventory management using WebSocket",
-            "Integrated Stripe payment gateway with custom checkout flow",
-            "Built responsive admin dashboard with real-time analytics",
-          ],
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "dipesh22it@student.mes.ac.in",
-      phoneNumber: "223344556677",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      githubUsername: "janesmith",
-      linkedinUrl: "https://linkedin.com/in/janesmith",
-      applyingFor: "Backend Engineer",
-      status: "new",
-      assignmentStatus: {
-        submitted: true,
-        submittedAt: "2024-03-14T15:45:00Z",
-        deadline: "2024-03-19T23:59:59Z",
-        score: 92,
-      },
-      skills: {
-        languages: ["Go", "Python", "Rust"],
-        frameworks: ["Gin", "FastAPI", "gRPC"],
-        databases: ["PostgreSQL", "Redis", "Cassandra"],
-        tools: ["Docker", "Kubernetes", "Terraform"],
-      },
-      githubStats: {
-        commits: 567,
-        contributions: 789,
-        codeQuality: 92,
-      },
-      inovactScore: {
-        technical: 94,
-        collaboration: 88,
-        communication: 90,
-        overall: 91,
-      },
-      projects: [
-        {
-          name: "Distributed Cache",
-          description: "High-performance distributed caching system in Go",
-          repoUrl: "https://github.com/janesmith/dcache",
-          liveUrl: "https://dcache-demo.com",
-          technologies: ["Go", "Redis", "gRPC", "Prometheus"],
-          highlights: [
-            "Implemented consistent hashing for data distribution",
-            "Built monitoring system with Prometheus and Grafana",
-            "Achieved 99.99% uptime in production",
-          ],
-        },
-      ],
-    },
-    {
-      id: "3",
-      name: "Alex Chen",
-      email: "mdipesh2626@gmail.com",
-      phoneNumber: "6633882299",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-      githubUsername: "alexchen",
-      linkedinUrl: "https://linkedin.com/in/alexchen",
-      applyingFor: "Senior Full Stack Developer",
-      status: "shortlisted",
-      assignmentStatus: {
-        submitted: true,
-        submittedAt: "2024-03-13T09:15:00Z",
-        deadline: "2024-03-18T23:59:59Z",
-        score: 88,
-      },
-      skills: {
-        languages: ["JavaScript", "TypeScript"],
-        frameworks: ["React", "Next.js"],
-        databases: ["MongoDB"],
-        tools: ["Docker", "Git"],
-      },
-      githubStats: {
-        commits: 789,
-        contributions: 567,
-        codeQuality: 88,
-      },
-      inovactScore: {
-        technical: 91,
-        collaboration: 87,
-        communication: 89,
-        overall: 89,
-      },
-      projects: [
-        {
-          name: "Task Manager",
-          description: "Real-time collaborative task management app",
-          repoUrl: "https://github.com/alexchen/task-manager",
-          liveUrl: "https://task-manager-demo.com",
-          technologies: ["React", "Node.js", "MongoDB"],
-          highlights: [
-            "Built real-time collaboration features",
-            "Implemented drag-and-drop interface",
-          ],
-        },
-      ],
-    },
-  ];
-};
+//   return [
+//     {
+//       id: "1",
+//       title: "Senior Full Stack Developer",
+//       type: "Full-time",
+//       location: "Remote",
+//       salary: { min: 500000, max: 800000, currency: "INR" },
+//       requiredSkills: [
+//         "React",
+//         "TypeScript",
+//         "Node.js",
+//         "MongoDB",
+//         "AWS",
+//         "Docker",
+//         "Git",
+//       ],
+//       preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
+//     },
+//     {
+//       id: "2",
+//       title: "Backend Engineer",
+//       type: "Full-time",
+//       location: "On-site",
+//       salary: { min: 600000, max: 900000, currency: "INR" },
+//       requiredSkills: [
+//         "Go",
+//         "Python",
+//         "PostgreSQL",
+//         "Redis",
+//         "Docker",
+//         "Kubernetes",
+//       ],
+//       preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
+//     },
+//     {
+//       id: "3",
+//       title: "DevOps Engineer",
+//       type: "Full-time",
+//       location: "Hybrid",
+//       salary: { min: 700000, max: 1000000, currency: "INR" },
+//       requiredSkills: [
+//         "Kubernetes",
+//         "Docker",
+//         "AWS",
+//         "Terraform",
+//         "CI/CD",
+//         "Python",
+//       ],
+//       preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
+//     },
+//   ];
+// };
 
 const calculateSkillMatch = (
   candidateSkills: string[],
@@ -397,6 +245,265 @@ export const Candidates = () => {
   const [user, setUser] = useState<any>();
   const location = useLocation();
 
+  const fetchCandidates = async (): Promise<Candidate[]> => {
+    // Simulate API call with dummy data
+
+    const idToken = localStorage.getItem(token);
+    if (!idToken) {
+      toast.error("Seems like you are not logged in");
+      setTimeout(() => {
+        navigate("/sign-in");
+      }, 2000);
+      return [];
+    }
+
+    try {
+      const companRes = await axios.get(`${host}/company`, {
+        headers: {
+          Authorization: idToken,
+        },
+      });
+      const response = await axios.get(
+        `${host}/company/${companRes.data.id}/job/${jobId}/application`,
+        {
+          headers: {
+            Authorization: idToken,
+          },
+        }
+      );
+      console.log(response.data);
+
+      const data: Candidate[] = response.data.map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        type: e.type === "full-time" ? "Full-time" : "Internship",
+        location: e.work_mode,
+        salary: {
+          min: e.min_salary,
+          max: e.max_salary,
+          currency: "INR",
+        },
+        requiredSkills: e.requiredSkills || [], // Fallback to empty array if not provided
+        preferredSkills: e.preferredSkills || [], // Fallback to empty array if not provided
+        created_at: e.created_at,
+        status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
+        currency: "INR",
+        salary_min: e.min_salary,
+        salary_max: e.max_salary,
+        deadline: e.deadline || "2025-05-13T00:00:00.000Z", // Fallback to default if not provided
+        city: e.city,
+      }));
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast.error("Something went wrong...");
+      return [];
+    }
+    // return [
+    //   {
+    //     id: "1",
+    //     name: "John Doe",
+    //     email: "mavinash422@gmail.com",
+    //     phoneNumber: "998877665544",
+    //     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+    //     githubUsername: "johndoe",
+    //     linkedinUrl: "https://linkedin.com/in/johndoe",
+    //     applyingFor: "Senior Full Stack Developer",
+    //     status: "new",
+    //     assignmentStatus: {
+    //       submitted: true,
+    //       submittedAt: "2024-03-15T10:30:00Z",
+    //       deadline: "2024-03-20T23:59:59Z",
+    //       score: null,
+    //     },
+    //     skills: {
+    //       languages: ["JavaScript", "TypeScript", "Python"],
+    //       frameworks: ["React", "Node.js", "Express", "Next.js"],
+    //       databases: ["MongoDB", "PostgreSQL", "Redis"],
+    //       tools: ["Docker", "AWS", "Git", "Jest"],
+    //     },
+    //     githubStats: {
+    //       commits: 234,
+    //       contributions: 456,
+    //       codeQuality: 85,
+    //     },
+    //     inovactScore: {
+    //       technical: 89,
+    //       collaboration: 92,
+    //       communication: 85,
+    //       overall: 88,
+    //     },
+    //     projects: [
+    //       {
+    //         name: "E-commerce Platform",
+    //         description:
+    //           "Full-stack e-commerce platform with React, Node.js, and MongoDB",
+    //         repoUrl: "https://github.com/johndoe/ecommerce",
+    //         liveUrl: "https://ecommerce-demo.com",
+    //         technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
+    //         highlights: [
+    //           "Implemented real-time inventory management using WebSocket",
+    //           "Integrated Stripe payment gateway with custom checkout flow",
+    //           "Built responsive admin dashboard with real-time analytics",
+    //         ],
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     id: "2",
+    //     name: "Jane Smith",
+    //     email: "dipesh22it@student.mes.ac.in",
+    //     phoneNumber: "223344556677",
+    //     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+    //     githubUsername: "janesmith",
+    //     linkedinUrl: "https://linkedin.com/in/janesmith",
+    //     applyingFor: "Backend Engineer",
+    //     status: "new",
+    //     assignmentStatus: {
+    //       submitted: true,
+    //       submittedAt: "2024-03-14T15:45:00Z",
+    //       deadline: "2024-03-19T23:59:59Z",
+    //       score: 92,
+    //     },
+    //     skills: {
+    //       languages: ["Go", "Python", "Rust"],
+    //       frameworks: ["Gin", "FastAPI", "gRPC"],
+    //       databases: ["PostgreSQL", "Redis", "Cassandra"],
+    //       tools: ["Docker", "Kubernetes", "Terraform"],
+    //     },
+    //     githubStats: {
+    //       commits: 567,
+    //       contributions: 789,
+    //       codeQuality: 92,
+    //     },
+    //     inovactScore: {
+    //       technical: 94,
+    //       collaboration: 88,
+    //       communication: 90,
+    //       overall: 91,
+    //     },
+    //     projects: [
+    //       {
+    //         name: "Distributed Cache",
+    //         description: "High-performance distributed caching system in Go",
+    //         repoUrl: "https://github.com/janesmith/dcache",
+    //         liveUrl: "https://dcache-demo.com",
+    //         technologies: ["Go", "Redis", "gRPC", "Prometheus"],
+    //         highlights: [
+    //           "Implemented consistent hashing for data distribution",
+    //           "Built monitoring system with Prometheus and Grafana",
+    //           "Achieved 99.99% uptime in production",
+    //         ],
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     id: "3",
+    //     name: "Alex Chen",
+    //     email: "mdipesh2626@gmail.com",
+    //     phoneNumber: "6633882299",
+    //     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    //     githubUsername: "alexchen",
+    //     linkedinUrl: "https://linkedin.com/in/alexchen",
+    //     applyingFor: "Senior Full Stack Developer",
+    //     status: "shortlisted",
+    //     assignmentStatus: {
+    //       submitted: true,
+    //       submittedAt: "2024-03-13T09:15:00Z",
+    //       deadline: "2024-03-18T23:59:59Z",
+    //       score: 88,
+    //     },
+    //     skills: {
+    //       languages: ["JavaScript", "TypeScript"],
+    //       frameworks: ["React", "Next.js"],
+    //       databases: ["MongoDB"],
+    //       tools: ["Docker", "Git"],
+    //     },
+    //     githubStats: {
+    //       commits: 789,
+    //       contributions: 567,
+    //       codeQuality: 88,
+    //     },
+    //     inovactScore: {
+    //       technical: 91,
+    //       collaboration: 87,
+    //       communication: 89,
+    //       overall: 89,
+    //     },
+    //     projects: [
+    //       {
+    //         name: "Task Manager",
+    //         description: "Real-time collaborative task management app",
+    //         repoUrl: "https://github.com/alexchen/task-manager",
+    //         liveUrl: "https://task-manager-demo.com",
+    //         technologies: ["React", "Node.js", "MongoDB"],
+    //         highlights: [
+    //           "Built real-time collaboration features",
+    //           "Implemented drag-and-drop interface",
+    //         ],
+    //       },
+    //     ],
+    //   },
+    // ];
+  };
+
+  const fetchJobs = async (): Promise<Job[]> => {
+    // Simulate API call with dummy data
+    const idToken = localStorage.getItem(token);
+    if (!idToken) {
+      toast.error("Seems like you are not logged in");
+      setTimeout(() => {
+        navigate("/sign-in");
+      }, 2000);
+      return [];
+    }
+
+    try {
+      const companRes = await axios.get(`${host}/company`, {
+        headers: {
+          Authorization: idToken,
+        },
+      });
+      const response = await axios.get(
+        `${host}/company/${companRes.data.id}/job/${jobId}/application`,
+        {
+          headers: {
+            Authorization: idToken,
+          },
+        }
+      );
+      console.log(response.data);
+
+      const data: Job[] = response.data.map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        type: e.type === "full-time" ? "Full-time" : "Internship",
+        location: e.work_mode,
+        salary: {
+          min: e.min_salary,
+          max: e.max_salary,
+          currency: "INR",
+        },
+        requiredSkills: e.requiredSkills || [], // Fallback to empty array if not provided
+        preferredSkills: e.preferredSkills || [], // Fallback to empty array if not provided
+        created_at: e.created_at,
+        status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
+        currency: "INR",
+        salary_min: e.min_salary,
+        salary_max: e.max_salary,
+        deadline: e.deadline || "2025-05-13T00:00:00.000Z", // Fallback to default if not provided
+        city: e.city,
+      }));
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast.error("Something went wrong...");
+      return [];
+    }
+  };
+
   useEffect(() => {
     if (!location.state) return;
     setStatusFilter(location.state);
@@ -406,33 +513,6 @@ export const Candidates = () => {
   useEffect(() => {
     console.log(statusFilter);
   }, [statusFilter]);
-
-  useEffect(() => {
-    async function getUser() {
-      try {
-        const idToken = localStorage.getItem(token);
-        if (!idToken) {
-          toast.error("Seems like you are not logged in");
-          setTimeout(() => {
-            navigate("/sign-in");
-          }, 2000);
-
-          return;
-        }
-        const response = await axios.get(`${host}/users`, {
-          headers: {
-            Authorization: idToken,
-          },
-        });
-        setUser(response.data);
-        console.log(response.data.id);
-      } catch (e) {
-        console.error("Error", e);
-        toast.error("Error fetching your details");
-      }
-    }
-    getUser();
-  }, []);
 
   useEffect(() => {
     const loadData = async () => {

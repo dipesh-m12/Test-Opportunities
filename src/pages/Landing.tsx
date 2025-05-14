@@ -47,6 +47,7 @@ export default function Home() {
     linkedIn: "",
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [phoneNumber, setphoneNumber] = useState("");
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -795,6 +796,12 @@ export default function Home() {
     );
   };
 
+  const handlePhoneVerify = async () => {
+    toast.success(
+      "Sms will be sent to you. This feature will be available soon"
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen font-poppins">
       <header className="sticky top-0 z-50 bg-white border-b">
@@ -906,9 +913,6 @@ export default function Home() {
               >
                 Join waitlist <ArrowRight className="ml-2 h-4 w-4" />
               </span>
-              {/* <span className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
-        See Demo
-      </span> */}
             </div>
           </div>
         </section>
@@ -934,312 +938,6 @@ export default function Home() {
         </section>
 
         {/* How It Works */}
-        {/* <section className="py-20 px-6" id="how-it-works">
-          <div className="container mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold mb-4 text-center">
-              How It Works
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600 mb-12 max-w-5xl mx-auto text-center">
-              Our Proof of work-based recruitment platform replaces traditional
-              résumés with real projects, eliminating guesswork and saving you
-              time.
-            </p>
-
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
-              <div className="flex border-b overflow-x-auto">
-                <button
-                  className={`px-6 py-3 font-medium ${
-                    activeTab === "dashboard"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("dashboard")}
-                >
-                  Dashboard
-                </button>
-                <button
-                  className={`px-6 py-3 font-medium ${
-                    activeTab === "postJobs"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("postJobs")}
-                >
-                  Post Jobs
-                </button>
-                <button
-                  className={`px-6 py-3 font-medium ${
-                    activeTab === "screenCandidates"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("screenCandidates")}
-                >
-                  Screen Candidates
-                </button>
-                <button
-                  className={`px-6 py-3 font-medium ${
-                    activeTab === "reviewProjects"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("reviewProjects")}
-                >
-                  Review Projects
-                </button>
-                <button
-                  className={`px-6 py-3 font-medium ${
-                    activeTab === "manageJobs"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                  onClick={() => setActiveTab("manageJobs")}
-                >
-                  Manage Jobs
-                </button>
-              </div>
-              <div className="p-6">
-                {activeTab === "dashboard" && (
-                  <div>
-                    <div className="text-left mb-6">
-                      <h3 className="text-xl font-bold mb-2">
-                        Recruiter Dashboard
-                      </h3>
-                      <p className="text-gray-600">
-                        Get a complete overview of your hiring process with
-                        active jobs, total candidates, and shortlisted profiles
-                        all in one place.
-                      </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full">
-                        <img
-                          src={dashboard}
-                          alt="Dashboard Interface"
-                          className="w-full rounded-lg border border-gray-200"
-                        />
-                      </div>
-                      <div className="w-full md:w-1/3 space-y-4">
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            View active jobs, total candidates, and shortlisted
-                            applicants at a glance
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Track recent applications in real-time with
-                            application status
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Quickly access shortlisted candidates and schedule
-                            interviews
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "postJobs" && (
-                  <div>
-                    <div className="text-left mb-6">
-                      <h3 className="text-xl font-bold mb-2">Post Jobs</h3>
-                      <p className="text-gray-600">
-                        Create detailed job listings with skill requirements
-                        that our AI will use to match with candidate profiles
-                        and projects.
-                      </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full">
-                        <img
-                          src={post}
-                          alt="Post Jobs Interface"
-                          className="w-full rounded-lg border border-gray-200"
-                        />
-                      </div>
-                      <div className="w-full md:w-1/3 space-y-4">
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Define technical requirements with precision using
-                            our skill taxonomy
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Set up custom technical assessments specific to your
-                            role
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "screenCandidates" && (
-                  <div>
-                    <div className="text-left mb-6">
-                      <h3 className="text-xl font-bold mb-2">
-                        Screen Candidates
-                      </h3>
-                      <p className="text-gray-600">
-                        Our AI analyzes candidates' GitHub repositories and code
-                        to match them with your job requirements.
-                      </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full">
-                        <img
-                          src={screencandi}
-                          alt="Screen Candidates Interface"
-                          className="w-full rounded-lg border border-gray-200"
-                        />
-                      </div>
-                      <div className="w-full md:w-1/3 space-y-4">
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            AI-powered matching of candidate skills to job
-                            requirements
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Objective evaluation of code quality and
-                            problem-solving approach
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Eliminate bias with blind screening focused only on
-                            technical merit
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "reviewProjects" && (
-                  <div>
-                    <div className="text-left mb-6">
-                      <h3 className="text-xl font-bold mb-2">
-                        Review Projects
-                      </h3>
-                      <p className="text-gray-600">
-                        Evaluate candidates based on their Proof of work and
-                        code contributions rather than just their resume claims.
-                      </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full">
-                        <img
-                          src={projects}
-                          alt="Review Projects Interface"
-                          className="w-full rounded-lg border border-gray-200"
-                        />
-                      </div>
-                      <div className="w-full md:w-1/3 space-y-4">
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Deep analysis of code structure, patterns, and best
-                            practices
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Compare candidate solutions to industry benchmarks
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Identify top performers based on actual coding
-                            ability
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "manageJobs" && (
-                  <div>
-                    <div className="text-left mb-6">
-                      <h3 className="text-xl font-bold mb-2">Manage Jobs</h3>
-                      <p className="text-gray-600">
-                        Track the progress of all your open positions and manage
-                        the entire hiring pipeline efficiently.
-                      </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="w-full">
-                        <img
-                          src={manage}
-                          alt="Manage Jobs Interface"
-                          className="w-full rounded-lg border border-gray-200"
-                        />
-                      </div>
-                      <div className="w-full md:w-1/3 space-y-4">
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            Centralized dashboard for all recruitment activities
-                          </p>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-1 text-blue-600">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                          <p className="ml-2 text-gray-700">
-                            One-click scheduling for interviews with calendar
-                            integration
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section> */}
 
         <HowItWorksSection />
 
@@ -1821,81 +1519,37 @@ export default function Home() {
                   </button>
                 </form>
               )}
+              <div className="mt-6">
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Phone Number
+                </label>
+                <div className="flex gap-4">
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={phoneNumber}
+                    onChange={(e) => setphoneNumber(e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="Enter your phone number"
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePhoneVerify}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
+                  >
+                    Verify
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">Inovact Opportunities</h3>
-              <p className="text-gray-400 mb-4">
-                Simplifying tech recruitment through proof of work.
-              </p>
-              <div className="flex space-x-4">
-               
-                <Link
-                  target="__blank"
-                  to="https://www.linkedin.com/company/inovact-pvt-ltd2/"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <Linkedin className="h-5 w-5" />
-                </Link>
-                
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="https://www.inovact.in/"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="#features"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Features
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-4">Contact Us</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <Mail className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                  <span className="text-gray-400">support@inovact.com</span>
-                </li>
-                <li className="flex items-start">
-                  <Phone className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                  <span className="text-gray-400">+1 (555) 123-4567</span>
-                </li>
-                <li className="flex items-start">
-                  <MapPin className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                  <span className="text-gray-400">
-                    123 Tech Way, San Francisco, CA 94107
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-            <div className=" text-center text-xs sm:text-sm">
-              &copy; {new Date().getFullYear()} All rights reserved by Inovact
-              Private Limited
-            </div>
-          
-          </div>
-        </div>
-      </footer> */}
       <Footer scrollUp={scrollUp} scrollUpEffort={scrollUpEffort} />
       <Toaster />
     </div>

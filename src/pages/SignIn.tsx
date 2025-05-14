@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react"; // Added Eye and EyeOff icons
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../utils/firebaseConfig"; // Adjust path as needed
@@ -30,7 +30,9 @@ export const SignIn = () => {
     formState: { errors },
   } = useForm<SignInFormData>();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
   const navigate = useNavigate();
+  const [phoneNumber, setphoneNumber] = useState("");
 
   const onSubmit = async (data: SignInFormData) => {
     setLoading(true);
@@ -117,6 +119,12 @@ export const SignIn = () => {
     }
   };
 
+  const handlePhoneVerify = async () => {
+    toast.success(
+      "Sms will be sent to you. This feature will be available soon"
+    );
+  };
+
   return (
     <div className="font-poppins min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8 sm:px-6 lg:px-8">
       {/* Toaster for notifications */}
@@ -176,19 +184,32 @@ export const SignIn = () => {
               <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
               Password
             </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              className="mt-1 w-full text-sm sm:text-base"
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-              })}
-            />
+            <div className="relative mt-1">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"} // Toggle type based on state
+                placeholder="••••••••"
+                className="w-full text-sm sm:text-base pr-10" // Added padding-right for icon
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {!showPassword ? (
+                  <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+                ) : (
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-xs text-red-600">
                 {errors.password.message}
@@ -230,6 +251,33 @@ export const SignIn = () => {
           )}
           {loading ? "Loading..." : "Google"}
         </button>
+
+        <div className="mt-6">
+          <label
+            htmlFor="phoneNumber"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Phone Number
+          </label>
+          <div className="flex gap-4">
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              value={phoneNumber}
+              onChange={(e) => setphoneNumber(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="Enter your phone number"
+            />
+            <button
+              type="button"
+              onClick={handlePhoneVerify}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
+            >
+              Verify
+            </button>
+          </div>
+        </div>
 
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Don’t have an account?{" "}

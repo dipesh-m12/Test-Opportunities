@@ -103,7 +103,7 @@ export const Dashboard = () => {
         }
       } catch (error) {
         setIsPostJobEnabled(false);
-        toast.error("Company cant be fetched due to an issue");
+        // toast.error("Company cant be fetched due to an issue");
         console.log(error);
       }
     };
