@@ -252,7 +252,7 @@ export const SignIn = () => {
           {loading ? "Loading..." : "Google"}
         </button>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <label
             htmlFor="phoneNumber"
             className="block text-sm font-medium text-gray-700 mb-1"
@@ -277,7 +277,7 @@ export const SignIn = () => {
               Verify
             </button>
           </div>
-        </div>
+        </div> */}
 
         <p className="text-center text-xs sm:text-sm text-gray-600">
           Don’t have an account?{" "}

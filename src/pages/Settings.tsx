@@ -186,12 +186,13 @@ export const Settings = () => {
     setOtpLoading(true);
     try {
       const newOtp = generateOtp();
-      const formattedPhone = `+91${phoneNumber}`;
+      const formattedPhone = `${phoneNumber}`;
       const response = await axios.post(
         "https://inovact-twilio-service.vercel.app/inovactservice/send-sms",
+        // "http://localhost:3000/inovactservice/send-sms",
         {
           to: formattedPhone,
-          body: `Your OTP is ${newOtp}. Valid for 5 minutes.`,
+          body: `${newOtp}`,
         }
       );
 
@@ -239,7 +240,7 @@ export const Settings = () => {
         // Add new document
         await addDoc(phoneCollection, {
           companyId: companyId || "unknown",
-          phoneNumber: `+91${phoneNumber}`,
+          phoneNumber: `${phoneNumber}`,
           verifiedAt: new Date().toISOString(),
         });
 

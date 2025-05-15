@@ -1519,7 +1519,7 @@ export default function Home() {
                   </button>
                 </form>
               )}
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <label
                   htmlFor="phoneNumber"
                   className="block text-sm font-medium text-gray-700 mb-1"
@@ -1544,7 +1544,7 @@ export default function Home() {
                     Verify
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </section>
