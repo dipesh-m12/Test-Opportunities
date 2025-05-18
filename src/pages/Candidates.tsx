@@ -511,40 +511,47 @@ export const Candidates = () => {
       toast.error("We can't find your email");
       return;
     }
+
     const candidate = candidatesForJob.find((c) => c.id === candidateId);
     if (!candidate) {
       toast.error("Candidate not found");
       return;
     }
 
+    // Set date for the meeting (tomorrow at 10:00 AM)
     const date = new Date();
     date.setDate(date.getDate() + 1);
     date.setHours(10, 0, 0, 0);
 
-    const meetingTitle = ` ${user.name}  <${candidate.name}>`;
-    const meetingDuration = 60;
+    const meetingTitle = `${user.name} <${candidate.name}>`;
+    const meetingDuration = 60; // in minutes
     const endDate = new Date(date.getTime() + meetingDuration * 60000);
+
+    // Format start and end times in Google Calendar's expected format
+    const start = date.toISOString().replace(/[-:]/g, "").split(".")[0];
+    const end = endDate.toISOString().replace(/[-:]/g, "").split(".")[0];
 
     const attendees = [candidate.email, user.email].filter(Boolean);
     const location = "Virtual (Google Meet)";
     const additionalNotes = `Preparation: Review candidate's GitHub profile at https://github.com/${candidate.githubUsername}\nAgenda: Technical assessment, behavioral questions`;
     const reminders = "15";
 
-    const googleMeetUrl =
-      `https://calendar.google.com/calendar/u/0/r/eventedit?` +
-      `text=${encodeURIComponent(meetingTitle)}` +
-      `&dates=${date.toISOString().replace(/[-:]/g, "").split(".")[0]}/${
-        endDate.toISOString().replace(/[-:]/g, "").split(".")[0]
-      }` +
-      `&details=${encodeURIComponent(
-        `Interview for ${job?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`
-      )}` +
-      `&location=${encodeURIComponent(location)}` +
-      `&add=${encodeURIComponent("meet.google.com")}` +
-      `&add=${encodeURIComponent(attendees.join(","))}` +
-      `&recur=RRULE:FREQ=DAILY;COUNT=1` +
-      `&sf=true&output=xml` +
-      `&trp=${encodeURIComponent(reminders)}`;
+    const params = new URLSearchParams({
+      text: meetingTitle,
+      dates: `${start}/${end}`,
+      details: `Interview for ${job?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`,
+      location: location,
+      recur: "RRULE:FREQ=DAILY;COUNT=1",
+      sf: "true",
+      output: "xml",
+      trp: reminders,
+    });
+
+    // Add guests
+    attendees.forEach((email) => params.append("add", email));
+
+    // Final URL
+    const googleMeetUrl = `https://calendar.google.com/calendar/u/0/r/eventedit?${params.toString()}`;
 
     window.open(googleMeetUrl, "_blank");
   };
