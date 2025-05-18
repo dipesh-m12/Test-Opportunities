@@ -63,7 +63,8 @@ export const SignIn = () => {
       console.log("API Response:", response.data);
 
       toast.success("Successfully signed in!");
-      setTimeout(() => navigate("/dashboard"), 2000);
+      handleNavigation();
+      // setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error: any) {
       console.error("Email Sign-In Error:", error.message);
       switch (error.code) {
@@ -84,6 +85,33 @@ export const SignIn = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNavigation = async () => {
+    const idToken = localStorage.getItem(token);
+    if (!idToken) {
+      // toast.error("Seems like you are not logged in");
+      // setTimeout(() => {
+      //   navigate("/sign-in");
+      // }, 2000);
+      return;
+    }
+
+    try {
+      console.log("dashboard companyId");
+      const response = await axios.get(`${host}/company`, {
+        headers: {
+          Authorization: idToken,
+        },
+      });
+      if (response.status === 200) {
+        console.log(response.data.id);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.log(error);
+      navigate("/settings");
     }
   };
 

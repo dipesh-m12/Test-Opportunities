@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 
-export const Layout = () => {
+export const Layout = ({ isPostJobEnabled }: any) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [showSidebar, setShowSidebar] = useState(true);
@@ -13,7 +14,7 @@ export const Layout = () => {
   }, [navigate]);
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-50">
-      {showSidebar && <Sidebar />}
+      {showSidebar && <Sidebar isPostJobEnabled={isPostJobEnabled} />}
       <main className={`flex-1 overflow-auto ${showSidebar && "p-2 md:p-8"}`}>
         <Outlet />
       </main>

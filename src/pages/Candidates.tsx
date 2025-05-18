@@ -1,25 +1,26 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect, useMemo } from "react";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
+import avatar from "../assets/default_avatar.png";
 import {
   Github,
-  Linkedin,
   Video,
-  Code,
-  Star,
   CheckCircle2,
   XCircle,
-  ExternalLink,
   ArrowLeft,
   Files,
-  Info,
+  ExternalLink,
 } from "lucide-react";
-import { calculateGitHubScore } from "@/lib/utils";
 import { Select } from "@/components/ui/Select";
 import Spinner from "@/components/Spinner";
 import toast from "react-hot-toast";
@@ -27,11 +28,18 @@ import { token } from "@/utils";
 import { host } from "@/utils/routes";
 import axios from "axios";
 
+interface Skill {
+  skill: string;
+  matched: boolean;
+}
+
 interface SkillSet {
   languages: string[];
   frameworks: string[];
   databases: string[];
   tools: string[];
+  preferred: Skill[];
+  required: Skill[];
 }
 
 interface Project {
@@ -41,29 +49,32 @@ interface Project {
   liveUrl: string;
   technologies: string[];
   highlights: string[];
+  score: number;
 }
 
 interface AssignmentStatus {
   submitted: boolean;
   submittedAt: string;
   deadline: string;
-  score: number | null;
+  score: number;
+  liveLink?: string;
+  documentation?: string;
+  githubRepo?: string;
 }
 
 interface GithubStats {
   commits: number;
   contributions: number;
   codeQuality: number;
+  overall_score: number;
 }
 
-interface InovactScore {
-  technical: number;
-  collaboration: number;
-  communication: number;
-  overall: number;
+interface CandidateStatus {
+  value: string;
+  label: string;
 }
 
-type CandidateStatus =
+type CandidateStatusValue =
   | "assign_status"
   | "new"
   | "shortlisted"
@@ -78,13 +89,12 @@ interface Candidate {
   email?: string;
   phoneNumber?: string;
   githubUsername: string;
-  linkedinUrl: string;
+  portfolioUrl: string;
   applyingFor: string;
-  status: CandidateStatus;
+  status: CandidateStatusValue;
   assignmentStatus: AssignmentStatus;
   skills: SkillSet;
   githubStats: GithubStats;
-  inovactScore: InovactScore;
   projects: Project[];
 }
 
@@ -104,95 +114,16 @@ interface Job {
   preferredSkills: string[];
 }
 
-//   return [
-//     {
-//       id: "1",
-//       title: "Senior Full Stack Developer",
-//       type: "Full-time",
-//       location: "Remote",
-//       salary: { min: 500000, max: 800000, currency: "INR" },
-//       requiredSkills: [
-//         "React",
-//         "TypeScript",
-//         "Node.js",
-//         "MongoDB",
-//         "AWS",
-//         "Docker",
-//         "Git",
-//       ],
-//       preferredSkills: ["Next.js", "Redis", "Jest", "GraphQL"],
-//     },
-//     {
-//       id: "2",
-//       title: "Backend Engineer",
-//       type: "Full-time",
-//       location: "On-site",
-//       salary: { min: 600000, max: 900000, currency: "INR" },
-//       requiredSkills: [
-//         "Go",
-//         "Python",
-//         "PostgreSQL",
-//         "Redis",
-//         "Docker",
-//         "Kubernetes",
-//       ],
-//       preferredSkills: ["Rust", "gRPC", "Kafka", "Terraform"],
-//     },
-//     {
-//       id: "3",
-//       title: "DevOps Engineer",
-//       type: "Full-time",
-//       location: "Hybrid",
-//       salary: { min: 700000, max: 1000000, currency: "INR" },
-//       requiredSkills: [
-//         "Kubernetes",
-//         "Docker",
-//         "AWS",
-//         "Terraform",
-//         "CI/CD",
-//         "Python",
-//       ],
-//       preferredSkills: ["Go", "Prometheus", "ELK Stack", "Ansible"],
-//     },
-//   ];
-// };
+interface User {
+  email: string;
+  name: string;
+}
 
-const calculateSkillMatch = (
-  candidateSkills: string[],
-  requiredSkills: string[],
-  preferredSkills: string[]
-) => {
-  const requiredMatches = requiredSkills.filter((skill) =>
-    candidateSkills.some(
-      (candidateSkill) => candidateSkill.toLowerCase() === skill.toLowerCase()
-    )
-  );
-
-  const preferredMatches = preferredSkills.filter((skill) =>
-    candidateSkills.some(
-      (candidateSkill) => candidateSkill.toLowerCase() === skill.toLowerCase()
-    )
-  );
-
-  const requiredMatchPercentage =
-    (requiredMatches.length / requiredSkills.length) * 100;
-  const preferredMatchPercentage =
-    (preferredMatches.length / preferredSkills.length) * 100;
-
-  return {
-    required: {
-      matched: requiredMatches,
-      percentage: requiredMatchPercentage,
-    },
-    preferred: {
-      matched: preferredMatches,
-      percentage: preferredMatchPercentage,
-    },
-    recommendation: getRecommendation(
-      requiredMatchPercentage,
-      preferredMatchPercentage
-    ),
-  };
+const calculateSkillMatch = (skills: Skill[], jobSkills: string[]) => {
+  const matchedSkills = skills.filter((s) => s.matched).map((s) => s.skill);
+  const percentage =
+    jobSkills.length > 0 ? (matchedSkills.length / jobSkills.length) * 100 : 0;
+  return { matched: matchedSkills, percentage };
 };
 
 const getRecommendation = (requiredMatch: number, preferredMatch: number) => {
@@ -234,222 +165,71 @@ export const Candidates = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
     null
   );
-  const { jobId } = useParams();
+  const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const [skillFilter, setSkillFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [job, setJob] = useState<Job | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusLoading, setStatusLoading] = useState<[] | string[]>([]);
-  const [user, setUser] = useState<any>();
+  const [statusLoading, setStatusLoading] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const scrollToCandidate = searchParams.get("candidate");
 
-  const fetchCandidates = async (): Promise<Candidate[]> => {
-    // Simulate API call with dummy data
-
-    const idToken = localStorage.getItem(token);
+  const fetchUser = async () => {
+    const idToken = await localStorage.getItem(token);
     if (!idToken) {
-      toast.error("Seems like you are not logged in");
-      setTimeout(() => {
-        navigate("/sign-in");
-      }, 2000);
-      return [];
+      toast.error("No session found. Please sign in.");
+      navigate("/sign-in");
+      return;
     }
 
     try {
-      const companRes = await axios.get(`${host}/company`, {
+      const res = await axios.get(`${host}/company`, {
+        headers: { Authorization: idToken },
+      });
+      const api2 = await axios.get(`${host}/users`, {
         headers: {
           Authorization: idToken,
         },
       });
-      const response = await axios.get(
-        `${host}/company/${companRes.data.id}/job/${jobId}/application`,
-        {
-          headers: {
-            Authorization: idToken,
-          },
+      // console.log(res.data);
+      console.log({ email: api2.data.email, name: res.data.name || "" });
+      setUser({ email: api2.data.email, name: res.data.name || "" });
+    } catch (error: any) {
+      console.error("Error fetching user:", error);
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            toast.error("Session expired. Please sign in again.");
+            localStorage.removeItem(token); // Clear invalid token
+            navigate("/sign-in");
+            break;
+          case 400:
+            toast.error("Invalid request. Please try again.");
+            break;
+          case 403:
+            toast.error("Access denied. Insufficient permissions.");
+            break;
+          case 404:
+            toast.error("Company data not found.");
+            navigate("/settings");
+            break;
+          case 500:
+            toast.error("Server error. Please try again later.");
+            break;
+          default:
+            toast.error("Failed to fetch user data.");
         }
-      );
-      console.log(response.data);
-
-      const data: Candidate[] = response.data.map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        type: e.type === "full-time" ? "Full-time" : "Internship",
-        location: e.work_mode,
-        salary: {
-          min: e.min_salary,
-          max: e.max_salary,
-          currency: "INR",
-        },
-        requiredSkills: e.requiredSkills || [], // Fallback to empty array if not provided
-        preferredSkills: e.preferredSkills || [], // Fallback to empty array if not provided
-        created_at: e.created_at,
-        status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
-        currency: "INR",
-        salary_min: e.min_salary,
-        salary_max: e.max_salary,
-        deadline: e.deadline || "2025-05-13T00:00:00.000Z", // Fallback to default if not provided
-        city: e.city,
-      }));
-
-      return data;
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-      toast.error("Something went wrong...");
-      return [];
+      } else {
+        toast.error("Network error. Please check your connection.");
+      }
     }
-    // return [
-    //   {
-    //     id: "1",
-    //     name: "John Doe",
-    //     email: "mavinash422@gmail.com",
-    //     phoneNumber: "998877665544",
-    //     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-    //     githubUsername: "johndoe",
-    //     linkedinUrl: "https://linkedin.com/in/johndoe",
-    //     applyingFor: "Senior Full Stack Developer",
-    //     status: "new",
-    //     assignmentStatus: {
-    //       submitted: true,
-    //       submittedAt: "2024-03-15T10:30:00Z",
-    //       deadline: "2024-03-20T23:59:59Z",
-    //       score: null,
-    //     },
-    //     skills: {
-    //       languages: ["JavaScript", "TypeScript", "Python"],
-    //       frameworks: ["React", "Node.js", "Express", "Next.js"],
-    //       databases: ["MongoDB", "PostgreSQL", "Redis"],
-    //       tools: ["Docker", "AWS", "Git", "Jest"],
-    //     },
-    //     githubStats: {
-    //       commits: 234,
-    //       contributions: 456,
-    //       codeQuality: 85,
-    //     },
-    //     inovactScore: {
-    //       technical: 89,
-    //       collaboration: 92,
-    //       communication: 85,
-    //       overall: 88,
-    //     },
-    //     projects: [
-    //       {
-    //         name: "E-commerce Platform",
-    //         description:
-    //           "Full-stack e-commerce platform with React, Node.js, and MongoDB",
-    //         repoUrl: "https://github.com/johndoe/ecommerce",
-    //         liveUrl: "https://ecommerce-demo.com",
-    //         technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS"],
-    //         highlights: [
-    //           "Implemented real-time inventory management using WebSocket",
-    //           "Integrated Stripe payment gateway with custom checkout flow",
-    //           "Built responsive admin dashboard with real-time analytics",
-    //         ],
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     id: "2",
-    //     name: "Jane Smith",
-    //     email: "dipesh22it@student.mes.ac.in",
-    //     phoneNumber: "223344556677",
-    //     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    //     githubUsername: "janesmith",
-    //     linkedinUrl: "https://linkedin.com/in/janesmith",
-    //     applyingFor: "Backend Engineer",
-    //     status: "new",
-    //     assignmentStatus: {
-    //       submitted: true,
-    //       submittedAt: "2024-03-14T15:45:00Z",
-    //       deadline: "2024-03-19T23:59:59Z",
-    //       score: 92,
-    //     },
-    //     skills: {
-    //       languages: ["Go", "Python", "Rust"],
-    //       frameworks: ["Gin", "FastAPI", "gRPC"],
-    //       databases: ["PostgreSQL", "Redis", "Cassandra"],
-    //       tools: ["Docker", "Kubernetes", "Terraform"],
-    //     },
-    //     githubStats: {
-    //       commits: 567,
-    //       contributions: 789,
-    //       codeQuality: 92,
-    //     },
-    //     inovactScore: {
-    //       technical: 94,
-    //       collaboration: 88,
-    //       communication: 90,
-    //       overall: 91,
-    //     },
-    //     projects: [
-    //       {
-    //         name: "Distributed Cache",
-    //         description: "High-performance distributed caching system in Go",
-    //         repoUrl: "https://github.com/janesmith/dcache",
-    //         liveUrl: "https://dcache-demo.com",
-    //         technologies: ["Go", "Redis", "gRPC", "Prometheus"],
-    //         highlights: [
-    //           "Implemented consistent hashing for data distribution",
-    //           "Built monitoring system with Prometheus and Grafana",
-    //           "Achieved 99.99% uptime in production",
-    //         ],
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     id: "3",
-    //     name: "Alex Chen",
-    //     email: "mdipesh2626@gmail.com",
-    //     phoneNumber: "6633882299",
-    //     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-    //     githubUsername: "alexchen",
-    //     linkedinUrl: "https://linkedin.com/in/alexchen",
-    //     applyingFor: "Senior Full Stack Developer",
-    //     status: "shortlisted",
-    //     assignmentStatus: {
-    //       submitted: true,
-    //       submittedAt: "2024-03-13T09:15:00Z",
-    //       deadline: "2024-03-18T23:59:59Z",
-    //       score: 88,
-    //     },
-    //     skills: {
-    //       languages: ["JavaScript", "TypeScript"],
-    //       frameworks: ["React", "Next.js"],
-    //       databases: ["MongoDB"],
-    //       tools: ["Docker", "Git"],
-    //     },
-    //     githubStats: {
-    //       commits: 789,
-    //       contributions: 567,
-    //       codeQuality: 88,
-    //     },
-    //     inovactScore: {
-    //       technical: 91,
-    //       collaboration: 87,
-    //       communication: 89,
-    //       overall: 89,
-    //     },
-    //     projects: [
-    //       {
-    //         name: "Task Manager",
-    //         description: "Real-time collaborative task management app",
-    //         repoUrl: "https://github.com/alexchen/task-manager",
-    //         liveUrl: "https://task-manager-demo.com",
-    //         technologies: ["React", "Node.js", "MongoDB"],
-    //         highlights: [
-    //           "Built real-time collaboration features",
-    //           "Implemented drag-and-drop interface",
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ];
   };
 
-  const fetchJobs = async (): Promise<Job[]> => {
-    // Simulate API call with dummy data
+  const fetchCandidates = async (): Promise<Candidate[]> => {
     const idToken = localStorage.getItem(token);
     if (!idToken) {
       toast.error("Seems like you are not logged in");
@@ -460,69 +240,219 @@ export const Candidates = () => {
     }
 
     try {
-      const companRes = await axios.get(`${host}/company`, {
-        headers: {
-          Authorization: idToken,
-        },
+      const companyRes = await axios.get(`${host}/company`, {
+        headers: { Authorization: idToken },
       });
+
       const response = await axios.get(
-        `${host}/company/${companRes.data.id}/job/${jobId}/application`,
-        {
-          headers: {
-            Authorization: idToken,
-          },
-        }
+        `${host}/company/${companyRes.data.id}/job/${jobId}/application`,
+        { headers: { Authorization: idToken } }
       );
-      console.log(response.data);
 
-      const data: Job[] = response.data.map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        type: e.type === "full-time" ? "Full-time" : "Internship",
-        location: e.work_mode,
-        salary: {
-          min: e.min_salary,
-          max: e.max_salary,
-          currency: "INR",
-        },
-        requiredSkills: e.requiredSkills || [], // Fallback to empty array if not provided
-        preferredSkills: e.preferredSkills || [], // Fallback to empty array if not provided
-        created_at: e.created_at,
-        status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
-        currency: "INR",
-        salary_min: e.min_salary,
-        salary_max: e.max_salary,
-        deadline: e.deadline || "2025-05-13T00:00:00.000Z", // Fallback to default if not provided
-        city: e.city,
-      }));
+      const jobData = response.data[0]?.application.job;
+      if (jobData) {
+        setJob({
+          id: jobData.id,
+          title: jobData.title,
+          type: jobData.type === "internship" ? "Internship" : "Full-time",
+          location: jobData.work_mode,
+          salary: {
+            min: jobData.min_salary,
+            max: jobData.max_salary,
+            currency: "INR",
+          },
+          requiredSkills: jobData.job_skills
+            .filter((s: any) => s.type === "required")
+            .map((s: any) => s.skill),
+          preferredSkills: jobData.job_skills
+            .filter((s: any) => s.type === "preferred")
+            .map((s: any) => s.skill),
+        });
+      }
 
-      return data;
+      const candidatesData = await Promise.all(
+        response.data.map(async (e: any) => {
+          const skillsRes = await axios.get(
+            `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
+            { headers: { Authorization: idToken } }
+          );
+
+          return {
+            id: e.application.id,
+            name: `${e.user.first_name || "Unknown"} ${
+              e.user.last_name || ""
+            }`.trim(),
+            avatar: e.user.avatar || avatar,
+            email: e.application.applicant.user.email,
+            phoneNumber: e.user.phone_number,
+            githubUsername: e.application.applicant.github_username,
+            portfolioUrl: e.user.portfolio_link,
+            applyingFor: jobData.title,
+            overall_score: e.application.overall_score || 0,
+            status: e.application.status.toLowerCase() as CandidateStatusValue,
+            assignmentStatus: {
+              submitted:
+                !!e.application.assignment_file?.github_repo_url ||
+                !!e.application.assignment_file?.live_link_url ||
+                !!e.application.assignment_file?.documentation,
+              submittedAt:
+                e.application.assignment_file?.created_at ||
+                new Date().toISOString(),
+              deadline:
+                jobData.assignments[0]?.deadline || "2025-05-27T18:29:59",
+              score: e.application.overall_score || 0,
+              liveLink: e.application.assignment_file?.live_link_url,
+              documentation: e.application.assignment_file?.documentation,
+              githubRepo: e.application.assignment_file?.github_repo_url,
+            },
+            skills: {
+              preferred: (skillsRes.data.application.enhanced_skills || [])
+                .filter((e: any) => e.type === "preferred")
+                .map((e: any) => ({ skill: e.skill, matched: e.is_matched })),
+              required: (skillsRes.data.application.enhanced_skills || [])
+                .filter((e: any) => e.type === "required")
+                .map((e: any) => ({ skill: e.skill, matched: e.is_matched })),
+              languages: (e.application.applicant.projects || []).reduce(
+                (acc: string[], project: any) =>
+                  acc.concat(
+                    project && typeof project === "object"
+                      ? project.Programming_languages || []
+                      : []
+                  ),
+                []
+              ),
+              frameworks: (e.application.applicant.projects || []).reduce(
+                (acc: string[], project: any) =>
+                  acc.concat(
+                    project && typeof project === "object"
+                      ? project.framework || []
+                      : []
+                  ),
+                []
+              ),
+              databases: (e.application.applicant.projects || []).reduce(
+                (acc: string[], project: any) =>
+                  acc.concat(
+                    project && typeof project === "object"
+                      ? project.database || []
+                      : []
+                  ),
+                []
+              ),
+              tools: (e.application.applicant.projects || []).reduce(
+                (acc: string[], project: any) =>
+                  acc.concat(
+                    project && typeof project === "object"
+                      ? project.tools || []
+                      : []
+                  ),
+                []
+              ),
+            },
+            githubStats: {
+              commits: (e.application.applicant.projects || []).reduce(
+                (sum: number, project: any) =>
+                  sum +
+                  (project && typeof project === "object"
+                    ? project.commit_count || 0
+                    : 0),
+                0
+              ),
+              contributions: (e.application.applicant.projects || []).reduce(
+                (sum: number, project: any) =>
+                  sum +
+                  (project && typeof project === "object"
+                    ? project.contribution_days || 0
+                    : 0),
+                0
+              ),
+              codeQuality:
+                e.application.applicant.projects?.length > 0
+                  ? (e.application.applicant.projects || []).reduce(
+                      (sum: number, project: any) =>
+                        sum +
+                        (project && typeof project === "object"
+                          ? project.score || 0
+                          : 0),
+                      0
+                    ) / e.application.applicant.projects.length
+                  : 0,
+              overall_score: e.application.overall_score || 0,
+            },
+            projects: (e.application.applicant.projects || [])
+              .map((project: any) => ({
+                name: project.title || "",
+                description: project.description || "",
+                repoUrl: project.github_repo_name
+                  ? `https://github.com/${e.application.applicant.github_username}/${project.github_repo_name}`
+                  : "",
+                liveUrl: project?.live_link_url || "",
+                technologies: [
+                  ...(project.Programming_languages || []),
+                  ...(project.framework || []),
+                  ...(project.database || []),
+                  ...(project.tools || []),
+                ],
+                highlights: project.highlights || [],
+                score: project.score || 0,
+              }))
+              .filter((project: any) => project.name),
+          };
+        })
+      );
+
+      return candidatesData;
     } catch (error) {
-      console.error("Error fetching jobs:", error);
-      toast.error("Something went wrong...");
+      console.error("Error fetching candidates:", error);
+      // toast.error("Something went wrong...");
       return [];
+    }
+  };
+
+  const getScoreBasedFit = (overallScore: number) => {
+    if (overallScore >= 8) {
+      return {
+        type: "great",
+        label: "Great Fit",
+        color: "bg-green-100 text-green-800",
+        description: "Candidate has an overall score of 8 or higher",
+      };
+    } else if (overallScore >= 6.5) {
+      return {
+        type: "good",
+        label: "Good Fit",
+        color: "bg-blue-100 text-blue-800",
+        description: "Candidate has an overall score between 6.5 and 8",
+      };
+    } else {
+      return {
+        type: "average",
+        label: "Average Fit",
+        color: "bg-red-100 text-red-800",
+        description: "Candidate has an overall score below 6.5",
+      };
     }
   };
 
   useEffect(() => {
-    if (!location.state) return;
-    setStatusFilter(location.state);
-    console.log(statusFilter);
+    fetchUser();
   }, []);
 
   useEffect(() => {
-    console.log(statusFilter);
-  }, [statusFilter]);
+    if (location.state) setStatusFilter(location.state);
+  }, [location.state]);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [jobData, candidateData] = await Promise.all([
-          fetchJobs(),
-          fetchCandidates(),
-        ]);
-        setJobs(jobData);
+        let candidateData = await fetchCandidates();
+        if (scrollToCandidate) {
+          candidateData = candidateData.filter(
+            (e) => e.id == scrollToCandidate
+          );
+        }
+        console.log(candidateData);
         setCandidates(candidateData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -531,22 +461,15 @@ export const Candidates = () => {
       }
     };
     loadData();
-  }, []);
+  }, [jobId]);
 
-  const currentJob = jobs.find((job) => job.id === jobId);
-  // if (!jobId || !currentJob) {
-  //   return (
-  //     <div className="flex h-full items-center justify-center">
-  //       <p className="text-gray-500">Invalid job ID</p>
-  //     </div>
-  //   );
-  // }
-
-  const candidatesForJob = candidates.filter(
-    (candidate) => candidate.applyingFor === currentJob?.title
+  const candidatesForJob = useMemo(
+    () =>
+      candidates.filter((candidate) => candidate.applyingFor === job?.title),
+    [candidates, job]
   );
 
-  const statusOptions: { value: CandidateStatus; label: string }[] = [
+  const statusOptions: CandidateStatus[] = [
     { value: "assign_status", label: "Assign status" },
     { value: "new", label: "New" },
     { value: "shortlisted", label: "Shortlisted" },
@@ -558,7 +481,7 @@ export const Candidates = () => {
   const skillFilters = [
     { value: "great", label: "Great Fit" },
     { value: "good", label: "Good Fit" },
-    { value: "not", label: "Not a Fit" },
+    { value: "average", label: "Average Fit" },
   ];
 
   const statusFilters = statusOptions.map((opt) => ({
@@ -566,91 +489,104 @@ export const Candidates = () => {
     label: opt.label,
   }));
 
-  const filteredCandidates = candidatesForJob.filter((candidate) => {
-    const skillMatch = calculateSkillMatch(
-      [
-        ...candidate.skills.languages,
-        ...candidate.skills.frameworks,
-        ...candidate.skills.databases,
-        ...candidate.skills.tools,
-      ],
-      currentJob!.requiredSkills,
-      currentJob!.preferredSkills
-    );
+  const filteredCandidates = useMemo(
+    () =>
+      candidatesForJob.filter((candidate) => {
+        if (!job) return false;
+        const scoreBasedFit = getScoreBasedFit(
+          candidate.githubStats.overall_score
+        );
 
-    const skillMatchPass =
-      !skillFilter || skillMatch.recommendation.type === skillFilter;
-    const statusPass = !statusFilter || candidate.status === statusFilter;
+        const skillMatchPass =
+          !skillFilter || scoreBasedFit.type === skillFilter;
+        const statusPass = !statusFilter || candidate.status === statusFilter;
 
-    return skillMatchPass && statusPass;
-  });
+        return skillMatchPass && statusPass;
+      }),
+    [candidatesForJob, skillFilter, statusFilter, job]
+  );
 
   const scheduleInterview = (candidateId: string) => {
-    // console.log(1);
-    if (!user.email) {
+    if (!user?.email) {
       toast.error("We can't find your email");
       return;
     }
     const candidate = candidatesForJob.find((c) => c.id === candidateId);
-    if (!candidate) return;
+    if (!candidate) {
+      toast.error("Candidate not found");
+      return;
+    }
 
     const date = new Date();
-    date.setDate(date.getDate() + 1); // Set to tomorrow
-    date.setHours(10, 0, 0, 0); // Set to 10:00 AM
+    date.setDate(date.getDate() + 1);
+    date.setHours(10, 0, 0, 0);
 
-    const meetingTitle = `Company Name <${candidate.name}> `;
-    // for ${currentJob?.title}
-    const meetingDuration = 60; // 60 minutes
+    const meetingTitle = ` ${user.name}  <${candidate.name}>`;
+    const meetingDuration = 60;
     const endDate = new Date(date.getTime() + meetingDuration * 60000);
 
-    // Additional attendees (e.g., interviewer, HR, etc.)
-    const attendees = [
-      candidate.email, // Candidate's email
-      user.email, // Interviewer's email
-      // "hr@example.com", // HR's email
-    ].filter(Boolean); // Remove undefined/null values
-
-    // Additional data for the event
-    const location = "Virtual (Google Meet)"; // Optional location
+    const attendees = [candidate.email, user.email].filter(Boolean);
+    const location = "Virtual (Google Meet)";
     const additionalNotes = `Preparation: Review candidate's GitHub profile at https://github.com/${candidate.githubUsername}\nAgenda: Technical assessment, behavioral questions`;
-    const reminders = "15"; // Reminder 15 minutes before (in minutes)
+    const reminders = "15";
 
-    // Construct the Google Calendar eventedit URL with enhanced parameters
     const googleMeetUrl =
       `https://calendar.google.com/calendar/u/0/r/eventedit?` +
-      `text=${encodeURIComponent(meetingTitle)}` + // Event title
+      `text=${encodeURIComponent(meetingTitle)}` +
       `&dates=${date.toISOString().replace(/[-:]/g, "").split(".")[0]}/${
         endDate.toISOString().replace(/[-:]/g, "").split(".")[0]
-      }` + // Start and end times
+      }` +
       `&details=${encodeURIComponent(
-        `Interview for ${currentJob?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`
-      )}` + // Description with additional notes
-      `&location=${encodeURIComponent(location)}` + // Location
-      `&add=${encodeURIComponent("meet.google.com")}` + // Add Google Meet
-      `&add=${encodeURIComponent(attendees.join(","))}` + // Add attendees (comma-separated emails)
-      `&recur=RRULE:FREQ=DAILY;COUNT=1` + // Optional: Single occurrence
-      `&sf=true&output=xml` + // Show event details, force form display
-      `&trp=${encodeURIComponent(reminders)}`; // Reminder (pop-up)
+        `Interview for ${job?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`
+      )}` +
+      `&location=${encodeURIComponent(location)}` +
+      `&add=${encodeURIComponent("meet.google.com")}` +
+      `&add=${encodeURIComponent(attendees.join(","))}` +
+      `&recur=RRULE:FREQ=DAILY;COUNT=1` +
+      `&sf=true&output=xml` +
+      `&trp=${encodeURIComponent(reminders)}`;
 
     window.open(googleMeetUrl, "_blank");
   };
 
-  const updateCandidateStatus = (
+  const updateCandidateStatus = async (
     candidateId: string,
-    newStatus: CandidateStatus
+    newStatus: CandidateStatusValue
   ) => {
-    console.log(candidateId, newStatus);
-    setStatusLoading([...statusLoading, candidateId]);
-    setCandidates((prev) =>
-      prev.map((candidate) =>
-        candidate.id === candidateId
-          ? { ...candidate, status: newStatus }
-          : candidate
-      )
-    );
-    setTimeout(() => {
-      setStatusLoading(statusLoading.filter((ele) => ele !== candidateId));
-    }, 2000);
+    try {
+      const idToken = localStorage.getItem(token);
+      if (!idToken) {
+        toast.error("Seems like you are not logged in");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 2000);
+        return;
+      }
+      setStatusLoading((prev) => [...prev, candidateId]);
+      const companyRes = await axios.get(`${host}/company`, {
+        headers: { Authorization: idToken },
+      });
+      await axios.put(
+        `${host}/company/${companyRes.data.id}/job/${jobId}/application/${candidateId}`,
+        {
+          status: newStatus === "new" ? "New" : newStatus,
+        },
+        { headers: { Authorization: idToken } }
+      );
+      setCandidates((prev) =>
+        prev.map((candidate) =>
+          candidate.id === candidateId
+            ? { ...candidate, status: newStatus }
+            : candidate
+        )
+      );
+      toast.success("Status updated successfully");
+    } catch (e: any) {
+      console.error("Error updating status", e.message);
+      toast.error("Application status was not updated!");
+    } finally {
+      setStatusLoading((prev) => prev.filter((ele) => ele !== candidateId));
+    }
   };
 
   const toggleFilter = (type: "skill" | "status", value: string | null) => {
@@ -661,31 +597,35 @@ export const Candidates = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(statusLoading);
-  }, [statusLoading]);
+  if (!jobId || !job) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-gray-500">No Candidates found for the job</p>
+      </div>
+    );
+  }
 
   return (
     <>
       <Button
         size="sm"
-        className="bg-blue-600 px-2 sm: justify-start hover:bg-blue-800 text-white w-24 sm:w-24"
+        className="bg-blue-600 px-2 justify-start hover:bg-blue-800 text-white w-24"
         onClick={() => navigate("/manage-jobs")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
-      <div className="space-y-4 mt-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-hidden">
+      <div className="space-y-4 mt-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-auto">
         <div className="space-y-3">
           <div className="flex flex-col gap-3">
             <div className="space-y-1 text-center sm:text-left">
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                Candidates for {currentJob?.title}
+                Candidates for {job.title}
               </h1>
               <p className="text-xs sm:text-sm text-gray-500">
-                {currentJob?.type} · {currentJob?.location} · INR{" "}
-                {currentJob?.salary.min.toLocaleString()} -{" "}
-                {currentJob?.salary.max.toLocaleString()}
+                {job.type} · {job.location} · INR{" "}
+                {job.salary.min.toLocaleString()} -{" "}
+                {job.salary.max.toLocaleString()}
               </p>
               <p className="mt-1 text-xs sm:text-sm text-gray-500">
                 {filteredCandidates.length} candidate
@@ -700,11 +640,12 @@ export const Candidates = () => {
                 variant={skillFilter === filter.value ? "primary" : "outline"}
                 size="sm"
                 onClick={() => toggleFilter("skill", filter.value)}
-                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
+                className={`rounded-full hover:text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
                   skillFilter === filter.value
                     ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
+                    : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                 }`}
+                aria-label={`Filter by ${filter.label}`}
               >
                 {filter.label}
               </Button>
@@ -715,11 +656,12 @@ export const Candidates = () => {
                 variant={statusFilter === filter.value ? "primary" : "outline"}
                 size="sm"
                 onClick={() => toggleFilter("status", filter.value)}
-                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
+                className={`rounded-full hover:text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all ${
                   statusFilter === filter.value
                     ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-white text-gray-700 hover:bg-gray-100 hover:text-white border-gray-300"
+                    : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                 }`}
+                aria-label={`Filter by ${filter.label} status`}
               >
                 {filter.label}
               </Button>
@@ -727,29 +669,31 @@ export const Candidates = () => {
           </div>
         </div>
         {loading ? (
-          <>
-            <Spinner />
-            <div className="flex-1"></div>
-          </>
+          <Spinner />
         ) : (
           <div className="grid gap-4">
-            {filteredCandidates.map((candidate, index) => {
-              const skillMatch = calculateSkillMatch(
-                [
-                  ...candidate.skills.languages,
-                  ...candidate.skills.frameworks,
-                  ...candidate.skills.databases,
-                  ...candidate.skills.tools,
-                ],
-                currentJob?.requiredSkills as string[],
-                currentJob?.preferredSkills as string[]
+            {filteredCandidates.map((candidate) => {
+              const requiredMatch = calculateSkillMatch(
+                candidate.skills.required,
+                job.requiredSkills
+              );
+              const preferredMatch = calculateSkillMatch(
+                candidate.skills.preferred,
+                job.preferredSkills
+              );
+              const scoreBasedFit = getScoreBasedFit(
+                candidate.githubStats.overall_score
               );
               const topSkills = getTopSkills(candidate.skills);
 
               return (
                 <Card
                   key={candidate.id}
-                  className="max-w-[21rem] mx-auto sm:mx-0 sm:max-w-full"
+                  id={candidate.id}
+                  className={`w-full max-w-full mx-auto sm:mx-0 ${
+                    candidate.id === scrollToCandidate &&
+                    "shadow-blue-700 shadow-2xl border-blue-200 border-solid border-2"
+                  }`}
                 >
                   <CardContent className="p-3 sm:p-4">
                     <div className="space-y-4">
@@ -766,10 +710,7 @@ export const Candidates = () => {
                               {candidate.name}
                             </h3>
                             <p className="text-xs text-blue-500 underline hover:no-underline">
-                              {candidate.phoneNumber}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Rank #{index + 1}
+                              {candidate.phoneNumber || "N/A"}
                             </p>
                             <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1">
                               Applying for: {candidate.applyingFor}
@@ -780,30 +721,25 @@ export const Candidates = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center space-x-1 hover:text-gray-700"
+                                aria-label={`View ${candidate.name}'s GitHub profile`}
                               >
                                 <Github className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span className="truncate">
                                   {candidate.githubUsername}
                                 </span>
                               </a>
-                              <a
-                                href={candidate.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-1 hover:text-gray-700"
-                              >
-                                <Files className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span>Portfolio</span>
-                              </a>
-                              <a
-                                href={candidate.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-1 hover:text-gray-700"
-                              >
-                                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span>Inovact</span>
-                              </a>
+                              {candidate.portfolioUrl && (
+                                <a
+                                  href={candidate.portfolioUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center space-x-1 hover:text-gray-700"
+                                  aria-label={`View ${candidate.name}'s portfolio`}
+                                >
+                                  <Files className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  <span>Portfolio</span>
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -821,9 +757,10 @@ export const Candidates = () => {
                               ) => {
                                 updateCandidateStatus(
                                   candidate.id,
-                                  e.target.value as CandidateStatus
+                                  e.target.value as CandidateStatusValue
                                 );
                               }}
+                              aria-label={`Change status for ${candidate.name}`}
                             />
                           </div>
                           <Button
@@ -837,6 +774,11 @@ export const Candidates = () => {
                                   : candidate.id
                               )
                             }
+                            aria-label={
+                              selectedCandidate === candidate.id
+                                ? `Hide details for ${candidate.name}`
+                                : `View details for ${candidate.name}`
+                            }
                           >
                             {selectedCandidate === candidate.id
                               ? "Hide"
@@ -846,6 +788,7 @@ export const Candidates = () => {
                             size="sm"
                             className="w-full sm:w-28 sm:mt-5 text-xs sm:text-sm"
                             onClick={() => scheduleInterview(candidate.id)}
+                            aria-label={`Schedule interview with ${candidate.name}`}
                           >
                             <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                             Schedule
@@ -859,15 +802,21 @@ export const Candidates = () => {
                             Top Skills
                           </h4>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {topSkills.map((skill) => (
-                              <Badge
-                                key={skill}
-                                variant="default"
-                                className="text-xs sm:text-sm font-medium"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
+                            {topSkills.length > 0 ? (
+                              topSkills.map((skill) => (
+                                <Badge
+                                  key={skill}
+                                  variant="default"
+                                  className="text-xs sm:text-sm font-medium"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                No skills listed
+                              </span>
+                            )}
                           </div>
                           <div className="space-y-2">
                             <div>
@@ -876,13 +825,16 @@ export const Candidates = () => {
                                   Required Skills Match
                                 </h4>
                                 <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                  {Math.round(skillMatch.required.percentage)}%
+                                  {Number.isFinite(requiredMatch.percentage)
+                                    ? Math.round(requiredMatch.percentage)
+                                    : 0}
+                                  %
                                 </span>
                               </div>
                               <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                                {currentJob?.requiredSkills.map((skill) => {
+                                {job.requiredSkills.map((skill) => {
                                   const isMatched =
-                                    skillMatch.required.matched.includes(skill);
+                                    requiredMatch.matched.includes(skill);
                                   return (
                                     <div
                                       key={skill}
@@ -909,15 +861,16 @@ export const Candidates = () => {
                                   Preferred Skills Match
                                 </h4>
                                 <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                  {Math.round(skillMatch.preferred.percentage)}%
+                                  {Number.isFinite(preferredMatch.percentage)
+                                    ? Math.round(preferredMatch.percentage)
+                                    : 0}
+                                  %
                                 </span>
                               </div>
                               <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
-                                {currentJob?.preferredSkills.map((skill) => {
+                                {job.preferredSkills.map((skill) => {
                                   const isMatched =
-                                    skillMatch.preferred.matched.includes(
-                                      skill
-                                    );
+                                    preferredMatch.matched.includes(skill);
                                   return (
                                     <div
                                       key={skill}
@@ -942,13 +895,13 @@ export const Candidates = () => {
                         </div>
                         <div className="lg:w-60">
                           <div
-                            className={`rounded-lg p-3 ${skillMatch.recommendation.color}`}
+                            className={`rounded-lg p-3 ${scoreBasedFit.color}`}
                           >
                             <h4 className="font-medium text-sm sm:text-base">
-                              {skillMatch.recommendation.label}
+                              {scoreBasedFit.label}
                             </h4>
                             <p className="mt-1 text-xs sm:text-sm">
-                              {skillMatch.recommendation.description}
+                              {scoreBasedFit.description}
                             </p>
                           </div>
                         </div>
@@ -962,59 +915,83 @@ export const Candidates = () => {
                                 Programming Languages
                               </h4>
                               <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.languages.map((lang) => (
-                                  <Badge
-                                    key={lang}
-                                    variant="default"
-                                    className="text-xs sm:text-sm"
-                                  >
-                                    {lang}
-                                  </Badge>
-                                ))}
+                                {candidate.skills.languages.length > 0 ? (
+                                  candidate.skills.languages.map((lang) => (
+                                    <Badge
+                                      key={lang}
+                                      variant="default"
+                                      className="text-xs sm:text-sm"
+                                    >
+                                      {lang}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <span className="text-xs text-gray-500">
+                                    No languages listed
+                                  </span>
+                                )}
                               </div>
                               <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                                 Frameworks & Libraries
                               </h4>
                               <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.frameworks.map(
-                                  (framework) => (
-                                    <Badge
-                                      key={framework}
-                                      variant="default"
-                                      className="text-xs sm:text-sm"
-                                    >
-                                      {framework}
-                                    </Badge>
+                                {candidate.skills.frameworks.length > 0 ? (
+                                  candidate.skills.frameworks.map(
+                                    (framework) => (
+                                      <Badge
+                                        key={framework}
+                                        variant="default"
+                                        className="text-xs sm:text-sm"
+                                      >
+                                        {framework}
+                                      </Badge>
+                                    )
                                   )
+                                ) : (
+                                  <span className="text-xs text-gray-500">
+                                    No frameworks listed
+                                  </span>
                                 )}
                               </div>
                               <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                                 Databases
                               </h4>
                               <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.databases.map((db) => (
-                                  <Badge
-                                    key={db}
-                                    variant="default"
-                                    className="text-xs sm:text-sm"
-                                  >
-                                    {db}
-                                  </Badge>
-                                ))}
+                                {candidate.skills.databases.length > 0 ? (
+                                  candidate.skills.databases.map((db) => (
+                                    <Badge
+                                      key={db}
+                                      variant="default"
+                                      className="text-xs sm:text-sm"
+                                    >
+                                      {db}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <span className="text-xs text-gray-500">
+                                    No databases listed
+                                  </span>
+                                )}
                               </div>
                               <h4 className="font-medium text-gray-900 text-sm sm:text-base">
                                 Tools & Technologies
                               </h4>
                               <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.tools.map((tool) => (
-                                  <Badge
-                                    key={tool}
-                                    variant="default"
-                                    className="text-xs sm:text-sm"
-                                  >
-                                    {tool}
-                                  </Badge>
-                                ))}
+                                {candidate.skills.tools.length > 0 ? (
+                                  candidate.skills.tools.map((tool) => (
+                                    <Badge
+                                      key={tool}
+                                      variant="default"
+                                      className="text-xs sm:text-sm"
+                                    >
+                                      {tool}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <span className="text-xs text-gray-500">
+                                    No tools listed
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="lg:w-60 space-y-3">
@@ -1052,54 +1029,65 @@ export const Candidates = () => {
                                           ).toLocaleDateString()}
                                         </span>
                                       </div>
-                                      {/* <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">
-                                          Score
-                                        </span>
-                                        <span className="text-xs font-medium">
-                                          {candidate.assignmentStatus.score ??
-                                            "Pending Review"}
-                                        </span>
-                                      </div> */}
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">
-                                          GitHub
-                                        </span>
-                                        <a
-                                          href={`https://github.com/${candidate.githubUsername}/assignment`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-blue-600 hover:underline"
-                                        >
-                                          View
-                                        </a>
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">
-                                          Live
-                                        </span>
-                                        <a
-                                          href={`https://${candidate.githubUsername}.github.io/assignment`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-blue-600 hover:underline"
-                                        >
-                                          View
-                                        </a>
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">
-                                          Documentation
-                                        </span>
-                                        <a
-                                          href={`https://${candidate.githubUsername}.github.io/assignment`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-blue-600 hover:underline"
-                                        >
-                                          View
-                                        </a>
-                                      </div>
+                                      {candidate.assignmentStatus
+                                        .githubRepo && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs text-gray-600">
+                                            GitHub
+                                          </span>
+                                          <a
+                                            href={
+                                              candidate.assignmentStatus
+                                                .githubRepo
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:underline"
+                                            aria-label="View assignment GitHub repository"
+                                          >
+                                            View
+                                          </a>
+                                        </div>
+                                      )}
+                                      {candidate.assignmentStatus.liveLink && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs text-gray-600">
+                                            Live
+                                          </span>
+                                          <a
+                                            href={
+                                              candidate.assignmentStatus
+                                                .liveLink
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:underline"
+                                            aria-label="View assignment live demo"
+                                          >
+                                            View
+                                          </a>
+                                        </div>
+                                      )}
+                                      {candidate.assignmentStatus
+                                        .documentation && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs text-gray-600">
+                                            Documentation
+                                          </span>
+                                          <a
+                                            href={
+                                              candidate.assignmentStatus
+                                                .documentation
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:underline"
+                                            aria-label="View assignment documentation"
+                                          >
+                                            View
+                                          </a>
+                                        </div>
+                                      )}
                                     </>
                                   )}
                                   <div className="flex items-center justify-between">
@@ -1114,35 +1102,6 @@ export const Candidates = () => {
                                   </div>
                                 </div>
                               </div>
-                              {/* <div className="rounded-lg bg-blue-50 p-3">
-                                <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                  Inovact Score
-                                </h4>
-                                <div className="mt-2 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Assignment
-                                    </span>
-                                    <div className="flex items-center space-x-1">
-                                      <Code className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                      <span className="font-medium text-blue-600 text-xs sm:text-sm">
-                                        {candidate.inovactScore.technical}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Overall Score
-                                    </span>
-                                    <div className="flex items-center space-x-1">
-                                      <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                      <span className="text-sm sm:text-lg font-semibold text-blue-600">
-                                        {candidate.inovactScore.overall}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div> */}
                             </div>
                           </div>
 
@@ -1151,86 +1110,87 @@ export const Candidates = () => {
                               Projects
                             </h4>
                             <div className="grid gap-3">
-                              {candidate.projects.map((project, index) => (
-                                <div
-                                  key={index}
-                                  className="rounded-lg border p-3"
-                                >
-                                  <div className="space-y-2">
-                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                                      <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                                        {project.name}
-                                      </h5>
-                                      <div className="flex space-x-2">
-                                        <a
-                                          href={project.repoUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-gray-500 hover:text-gray-700"
-                                        >
-                                          <Github className="h-4 w-4 sm:h-5 sm:w-5" />
-                                        </a>
-                                        <a
-                                          href={project.liveUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-gray-500 hover:text-gray-700"
-                                        >
-                                          <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                        </a>
+                              {candidate.projects.length > 0 ? (
+                                candidate.projects.map((project, index) => (
+                                  <div
+                                    key={index}
+                                    className="rounded-lg border p-3"
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                        <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                          {project.name}
+                                        </h5>
+                                        <div className="flex space-x-2">
+                                          {project.repoUrl && (
+                                            <a
+                                              href={project.repoUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-500 hover:text-gray-700"
+                                              aria-label={`View ${project.name} GitHub repository`}
+                                            >
+                                              <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                                            </a>
+                                          )}
+                                          {project.liveUrl && (
+                                            <a
+                                              href={project.liveUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-500 hover:text-gray-700"
+                                              aria-label={`View ${project.name} live demo`}
+                                            >
+                                              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                            </a>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-gray-600">
-                                      {project.description}
-                                    </p>
-                                    <div className="space-y-1">
-                                      <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                        Key Highlights:
-                                      </h6>
-                                      <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                                        {project.highlights.map(
-                                          (highlight, i) => (
-                                            <li key={i}>{highlight}</li>
-                                          )
+                                      <p className="text-xs sm:text-sm text-gray-600">
+                                        {project.description ||
+                                          "No description provided"}
+                                      </p>
+                                      <div className="space-y-1">
+                                        <h6 className="text-xs sm:text-sm font-medium text-gray-700">
+                                          Key Highlights:
+                                        </h6>
+                                        <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
+                                          {project.highlights.length > 0 ? (
+                                            project.highlights.map(
+                                              (highlight, i) => (
+                                                <li key={i}>{highlight}</li>
+                                              )
+                                            )
+                                          ) : (
+                                            <li>No highlights provided</li>
+                                          )}
+                                        </ul>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1 sm:gap-2">
+                                        {project.technologies.length > 0 ? (
+                                          project.technologies.map((tech) => (
+                                            <Badge
+                                              key={tech}
+                                              variant="secondary"
+                                              className="text-xs"
+                                            >
+                                              {tech}
+                                            </Badge>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs text-gray-500">
+                                            No technologies listed
+                                          </span>
                                         )}
-                                      </ul>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 sm:gap-2">
-                                      {project.technologies.map((tech) => (
-                                        <Badge
-                                          key={tech}
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          {tech}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                    <div className="relative flex items-center justify-end">
-                                      <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
-                                        <span className="group relative">
-                                          <Info
-                                            className="h-4 w-4 text-blue-700 cursor-help"
-                                            aria-label="Code Quality score details"
-                                          />
-                                          <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-16 right-0 z-10 text-left">
-                                            <p className="font-semibold">
-                                              Code Quality Score
-                                            </p>
-                                            <ul className="list-disc list-inside mt-1">
-                                              <li>Code Readability: 40%</li>
-                                              <li>Test Coverage: 30%</li>
-                                              <li>Complexity: 20%</li>
-                                              <li>Documentation: 10%</li>
-                                            </ul>
-                                          </div>
-                                        </span>
-                                        Code Quality: 85%
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))
+                              ) : (
+                                <p className="text-xs sm:text-sm text-gray-500">
+                                  No projects listed
+                                </p>
+                              )}
                             </div>
                           </div>
 
@@ -1241,7 +1201,7 @@ export const Candidates = () => {
                                   Commits
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {candidate.githubStats.commits}
+                                  {candidate.githubStats.commits || 0}
                                 </div>
                               </div>
                             </div>
@@ -1251,7 +1211,7 @@ export const Candidates = () => {
                                   Contributions
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {candidate.githubStats.contributions}
+                                  {candidate.githubStats.contributions || 0}
                                 </div>
                               </div>
                             </div>
@@ -1261,38 +1221,31 @@ export const Candidates = () => {
                                   Code Quality
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {candidate.githubStats.codeQuality}%
+                                  {Number.isFinite(
+                                    candidate.githubStats.codeQuality
+                                  )
+                                    ? Math.round(
+                                        candidate.githubStats.codeQuality
+                                      )
+                                    : 0}
+                                  %
                                 </div>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-blue-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-100 to-blue-50 flex items-center justify-center">
+                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-xs font-medium text-blue-600">
+                                <div className="text-xs font-medium text-gray-500">
                                   Overall Score
                                 </div>
-                                <div className="mt-1 text-sm font-semibold text-blue-600 flex items-center justify-center gap-1">
-                                  <span className="group relative">
-                                    <Info
-                                      className="h-4 w-4 text-blue-600 cursor-help"
-                                      aria-label="Overall Score details"
-                                    />
-                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
-                                      <p className="font-semibold">
-                                        Overall Score
-                                      </p>
-                                      <ul className="list-disc list-inside mt-1">
-                                        <li>Readability: 20%</li>
-                                        <li>Consistency: 15%</li>
-                                        <li>Indentation and Formattin: 15%</li>
-                                        <li>Code Smells: 20%</li>
-                                        <li>
-                                          Naming and Declaration Practices: 10%
-                                        </li>
-                                        <li>Use of Language Features: 5%</li>
-                                      </ul>
-                                    </div>
-                                  </span>
-                                  {calculateGitHubScore(candidate.githubStats)}
+                                <div className="mt-1 text-sm font-semibold text-gray-900">
+                                  {Number.isFinite(
+                                    candidate.githubStats.overall_score
+                                  )
+                                    ? Math.round(
+                                        candidate.githubStats.overall_score
+                                      )
+                                    : 0}
+                                  %
                                 </div>
                               </div>
                             </div>
@@ -1302,8 +1255,9 @@ export const Candidates = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="hover:text-white w-full sm:w-36 text-xs sm:text-sm"
+                              className="w-full sm:w-36 text-xs sm:text-sm"
                               onClick={() => setSelectedCandidate(null)}
+                              aria-label={`Close details for ${candidate.name}`}
                             >
                               Close View
                             </Button>

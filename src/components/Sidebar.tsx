@@ -24,43 +24,43 @@ const navItems = [
   { icon: LogOut, label: "Logout", path: "/sign-in" },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ isPostJobEnabled }: any) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
-  const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
+  // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
 
-  React.useEffect(() => {
-    const checkCompanyAccess = async () => {
-      const idToken = localStorage.getItem(token);
-      if (!idToken) {
-        toast.error("Seems like you are not logged in");
-        setTimeout(() => {
-          navigate("/sign-in");
-        }, 2000);
-        return;
-      }
+  // React.useEffect(() => {
+  //   const checkCompanyAccess = async () => {
+  //     const idToken = localStorage.getItem(token);
+  //     if (!idToken) {
+  //       toast.error("Seems like you are not logged in");
+  //       setTimeout(() => {
+  //         navigate("/sign-in");
+  //       }, 2000);
+  //       return;
+  //     }
 
-      try {
-        // console.log("here");
-        const response = await axios.get(`${host}/company`, {
-          headers: {
-            Authorization: idToken,
-          },
-        });
-        if (response.status === 200) {
-          setIsPostJobEnabled(true);
-        }
-      } catch (error) {
-        console.log(error);
+  //     try {
+  //       // console.log("here");
+  //       const response = await axios.get(`${host}/company`, {
+  //         headers: {
+  //           Authorization: idToken,
+  //         },
+  //       });
+  //       if (response.status === 200) {
+  //         setIsPostJobEnabled(true);
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
 
-        setIsPostJobEnabled(false);
-      }
-    };
+  //       setIsPostJobEnabled(false);
+  //     }
+  //   };
 
-    checkCompanyAccess();
-  }, []);
+  //   checkCompanyAccess();
+  // }, []);
 
   const handleLogoutClick = (e: any) => {
     e.preventDefault();
@@ -70,7 +70,7 @@ export const Sidebar = () => {
   const handlePostJobClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!isPostJobEnabled) {
       e.preventDefault(); // Prevent navigation when disabled
-      toast.error("Set your company to post jobs");
+      toast.error("Fill in Company details in the Settings page to post a job");
     }
     setIsMobileMenuOpen(false);
   };

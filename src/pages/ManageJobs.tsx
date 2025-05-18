@@ -13,14 +13,14 @@ import { token } from "@/utils";
 import { host } from "@/utils/routes";
 import axios from "axios";
 
-const ManageJobs = () => {
+const ManageJobs = ({ isPostJobEnabled }: any) => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
+  // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
   const [companyId, setcompanyId] = useState("");
   const location = useLocation();
 
@@ -48,13 +48,13 @@ const ManageJobs = () => {
           },
         });
         if (response.status === 200) {
-          setIsPostJobEnabled(true);
+          // setIsPostJobEnabled(true);
           console.log(response.data.id);
           setcompanyId(response.data.id);
         }
       } catch (error) {
         console.log(error);
-        setIsPostJobEnabled(false);
+        // setIsPostJobEnabled(false);
       }
     };
 
@@ -271,12 +271,24 @@ const ManageJobs = () => {
           </p>
         </div>
         <Button
-          className="w-full sm:w-auto"
-          onClick={() => navigate("/post-job")}
-          disabled={!isPostJobEnabled}
+          onClick={() => {
+            if (!isPostJobEnabled) {
+              toast.error(
+                "Fill in Company details in the Settings page to post a job"
+              );
+            } else {
+              navigate("/post-job");
+            }
+          }}
+          className={`${
+            !isPostJobEnabled
+              ? "cursor-not-allowed opacity-50 bg-gray-300 "
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
+          {" "}
           <PlusCircle className="mr-2 h-4 w-4" />
-          Post New Job
+          Post a Job
         </Button>
       </div>
       <Card>

@@ -21,10 +21,12 @@ import { token } from "@/utils";
 import { host } from "@/utils/routes";
 import axios from "axios";
 import React from "react";
+import moment from "moment";
+import avatar from "../assets/default_avatar.png";
 
-export const Dashboard = () => {
+export const Dashboard = ({ isPostJobEnabled }: any) => {
   const navigate = useNavigate();
-  const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
+  // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState("");
   const [stats, setStats] = useState([
@@ -51,32 +53,9 @@ export const Dashboard = () => {
     },
   ]);
 
-  const [recentApplications, setRecentApplications] = useState([
-    {
-      id: "1",
-      candidate: {
-        name: "John Doe",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-      },
-      position: "Senior Frontend Developer",
-      appliedDate: "2024-03-10",
-      status: "new",
-    },
-    {
-      id: "2",
-      candidate: {
-        name: "Jane Smith",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      },
-      position: "Backend Engineer",
-      appliedDate: "2024-03-09",
-      status: "shortlisted",
-    },
-  ]);
+  const [recentApplications, setRecentApplications] = useState<any[]>([]);
 
-  //fetched data
-  const [jobs, setjobs] = useState<any[]>([]);
-  const [candidates, setCandidates] = useState<any[]>([]);
+  //rex
 
   React.useEffect(() => {
     const checkCompanyAccess = async () => {
@@ -97,13 +76,12 @@ export const Dashboard = () => {
           },
         });
         if (response.status === 200) {
-          setIsPostJobEnabled(true);
+          // setIsPostJobEnabled(true);
           setCompanyId(response.data.id);
           console.log(response.data.id);
         }
       } catch (error) {
-        setIsPostJobEnabled(false);
-        // toast.error("Company cant be fetched due to an issue");
+        // setIsPostJobEnabled(false);
         console.log(error);
       }
     };
@@ -111,28 +89,30 @@ export const Dashboard = () => {
     checkCompanyAccess();
   }, []);
 
-  //active jobs
   useEffect(() => {
-    try {
-      if (!companyId) {
-        console.log("Company Id absent");
-        return;
-      }
-      const idToken = localStorage.getItem(token);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        if (!companyId) {
+          console.log("Company Id absent");
+          return;
+        }
 
-      if (!idToken) {
-        toast.error("Seems like you are not logged in");
-        setTimeout(() => {
-          navigate("/sign-in");
-        }, 2000);
-        return;
-      }
-      async function getActiveJobs() {
+        const idToken = localStorage.getItem(token);
+        if (!idToken) {
+          toast.error("Seems like you are not logged in");
+          setTimeout(() => {
+            navigate("/sign-in");
+          }, 2000);
+          return;
+        }
+
         const response = await axios.get(`${host}/company/${companyId}/job`, {
           headers: {
             Authorization: idToken,
           },
         });
+
         const candidate = await axios.get(
           `${host}/application/company/${companyId}`,
           {
@@ -142,109 +122,90 @@ export const Dashboard = () => {
           }
         );
         console.log(candidate.data);
-        let data = response.data;
-        setjobs(data);
-        data = data.filter((e: any) => e.status == "active");
-        // console.log(data);
+        const recentApplications = [...candidate.data]
+          .sort((a, b) => {
+            const dateA = new Date(a?.application?.updated_at || 0).getTime();
+            const dateB = new Date(b?.application?.updated_at || 0).getTime();
+            return dateB - dateA;
+          })
+          .slice(0, 5)
+          .map((e) => ({
+            id: e?.application?.id || null,
+            job_id: e.application?.job?.id,
+            candidate: {
+              name:
+                `${e.user.first_name || "Unknown"} ${
+                  e.user.last_name || ""
+                }`.trim() || "Unknown",
+              avatar: e?.user?.avatar || avatar,
+            },
+            position: e?.application?.job?.title || "Not Specified",
+            appliedDate: e?.application?.updated_at
+              ? moment(e.application.updated_at).format("MMM DD, YYYY")
+              : "N/A",
+            status: e?.application?.status?.toLowerCase() || "unknown",
+          }));
+
+        setRecentApplications(recentApplications);
+
+        const jobsData = response.data;
+        // setjobs(jobsData);
+
+        const activeJobs = jobsData.filter((e: any) => e.status === "active");
+
         const updatedStats = stats.map((e) =>
-          e.label == "Active Jobs"
-            ? {
-                label: "Active Jobs",
-                value: data.length || 0,
-                icon: Briefcase,
-                route: "/manage-jobs",
-                filter: "active",
-              }
-            : e.label == "Total Candidates"
-            ? {
-                label: "Total Candidates",
-                value: candidate.data.length || 0,
-                icon: Users,
-                route: "/manage-jobs",
-                filter: "all",
-              }
+          e.label === "Active Jobs"
+            ? { ...e, value: activeJobs.length }
+            : e.label === "Total Candidates"
+            ? { ...e, value: candidate.data.length }
             : {
-                label: "Shortlisted",
-                value:
-                  candidate.data.filter(
-                    (e) => e.application.status == "shortlisted"
-                  ).length || 0,
-                icon: Award,
-                route: "/manage-jobs",
-                filter: "shortlisted",
+                ...e,
+                value: candidate.data.filter(
+                  (e: any) => e.application.status === "shortlisted"
+                ).length,
               }
         );
+
         setStats(updatedStats);
+      } catch (e) {
+        console.error("Error fetching dashboard data:", e);
+      } finally {
+        setLoading(false);
       }
-      if (companyId) getActiveJobs();
-    } catch (e) {
-      console.error("Error", e);
+    };
+
+    if (companyId) {
+      fetchData();
     }
   }, [companyId]);
 
-  //shortlisted and all candidates
-  // useEffect(() => {
-  //   try {
-  //     if (!companyId) {
-  //       console.log("Company Id absent");
-  //       return;
-  //     }
-  //     const idToken = localStorage.getItem(token);
-
-  //     if (!idToken) {
-  //       toast.error("Seems like you are not logged in");
-  //       setTimeout(() => {
-  //         navigate("/sign-in");
-  //       }, 2000);
-  //       return;
-  //     }
-  //     async function getActiveJobs() {
-  //       //get the all candidates api
-
-  //       const response = await axios.get(`${host}/company/${companyId}/job`, {
-  //         headers: {
-  //           Authorization: idToken,
-  //         },
-  //       });
-  //       let data = response.data;
-  //       //set the candidates
-  //       setjobs(data);
-  //       data = data.filter((e) => e.status == "active");
-  //       console.log(data);
-
-  //       //two filters for total and shortlisted candidates
-  //       //aslo set recent applications
-  //       const updatedStats = stats.map((e) =>
-  //         e.label == "Active Jobs"
-  //           ? {
-  //               label: "Active Jobs",
-  //               value: data.length || 0,
-  //               icon: Briefcase,
-  //               route: "/manage-jobs",
-  //               filter: "active",
-  //             }
-  //           : e
-  //       );
-
-  //       //set candids
-  //       setStats(updatedStats);
-  //     }
-  //     if (companyId) getActiveJobs();
-  //   } catch (e) {
-  //     console.error("Error", e);
-  //   }
-  // }, [companyId]);
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <Button
-          onClick={() => navigate("/post-job")}
-          disabled={!isPostJobEnabled}
+          onClick={() => {
+            if (!isPostJobEnabled) {
+              toast.error(
+                "Fill in Company details in the Settings page to post a job"
+              );
+            } else {
+              navigate("/post-job");
+            }
+          }}
+          className={`${
+            !isPostJobEnabled
+              ? "cursor-not-allowed opacity-50 bg-gray-300 "
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
+          {" "}
           <PlusCircle className="mr-2 h-4 w-4" />
-          Post New Job
+          Post a Job
         </Button>
       </div>
 
@@ -279,7 +240,6 @@ export const Dashboard = () => {
                       onStart={undefined}
                       onEnd={undefined}
                     />
-                    {/* {stat.value} */}
                   </p>
                 </div>
               </CardContent>
@@ -293,14 +253,22 @@ export const Dashboard = () => {
           <CardTitle>Recent Applications</CardTitle>
         </CardHeader>
         {loading ? (
-          <Spinner />
+          <CardContent>
+            <Spinner />
+          </CardContent>
+        ) : recentApplications.length === 0 ? (
+          <CardContent>
+            <p className="text-gray-500 text-center py-4">
+              No applications found. Post a job to start receiving applications!
+            </p>
+          </CardContent>
         ) : (
           <CardContent>
             <div className="space-y-4 flex flex-col items-start">
-              {recentApplications.map((application) => (
+              {recentApplications.map((application: any) => (
                 <div
                   key={application.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0 w-full max-w-md sm:max-w-lg lg:max-w-xl"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0 w-full max-w-md sm:max-w-xl lg:max-w-2xl"
                 >
                   <div className="flex items-center space-x-4 min-w-0">
                     <Avatar
@@ -330,7 +298,15 @@ export const Dashboard = () => {
                       {formatDate(application.appliedDate)}
                     </div>
                     <button
-                      onClick={() => navigate(`/candidates/${application.id}`)}
+                      onClick={() => {
+                        if (!application.job_id)
+                          return toast.error(
+                            "Oops issues in our server. Please contact the developers"
+                          );
+                        navigate(
+                          `/candidates/${application.job_id}?candidate=${application.id}`
+                        );
+                      }}
                       className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                       <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />

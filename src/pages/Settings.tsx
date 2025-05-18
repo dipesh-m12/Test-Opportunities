@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { host } from "@/utils/routes";
@@ -16,13 +16,13 @@ import { phoneCollection } from "@/utils/firebaseConfig";
 interface SettingsFormData {
   companyName: string;
   website: string;
-  linkedin?: string;
+  linkedin: string;
   contactName: string;
   email: string;
   assignmentNotifications: boolean;
 }
 
-export const Settings = () => {
+export const Settings = ({ setIsPostJobEnabled }: any) => {
   const {
     register,
     handleSubmit,
@@ -189,7 +189,6 @@ export const Settings = () => {
       const formattedPhone = `${phoneNumber}`;
       const response = await axios.post(
         "https://inovact-twilio-service.vercel.app/inovactservice/send-sms",
-        // "http://localhost:3000/inovactservice/send-sms",
         {
           to: formattedPhone,
           body: `${newOtp}`,
@@ -200,7 +199,7 @@ export const Settings = () => {
         setGeneratedOtp(newOtp);
         setOtpSent(true);
         setTimer(30); // Start 30-second timer
-        toast.success("OTP sent to your phone!");
+        toast.success("OTP sent to your phone via WhatsApp!");
       } else {
         throw new Error(response.data.message || "Failed to send OTP");
       }
@@ -336,11 +335,12 @@ export const Settings = () => {
         setFetchedData({
           companyName: data.companyName,
           website: data.website,
-          linkedin: data.linkedin || "",
+          linkedin: data.linkedin,
           contactName: data.contactName,
           email: data.email,
           assignmentNotifications: data.assignmentNotifications,
         });
+        setIsPostJobEnabled(true);
         toast.success("Company settings added successfully!");
       }
     } catch (error: any) {
@@ -382,71 +382,81 @@ export const Settings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {!otpSent ? (
-                <div className="flex items-start space-x-4">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="phoneNumber"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Phone Number
-                    </label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
-                      placeholder="1234567890"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
-                    />
-                    {phoneQueryLoading && (
-                      <p className="mt-1 text-sm text-gray-600">
-                        Loading phone number...
-                      </p>
-                    )}
-                  </div>
-                  <div className="mt-6 ">
-                    <Button
-                      type="button"
-                      onClick={handleSendOtp}
-                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
-                    >
-                      {otpLoading ? (
-                        <Spinner />
-                      ) : timer > 0 ? (
-                        `Resend OTP (${timer}s)`
-                      ) : (
-                        "Send OTP"
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-1">
+                      <label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Phone Number
+                      </label>
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="1234567890"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                      />
+                      {phoneQueryLoading && (
+                        <p className="mt-1 text-sm text-gray-600">
+                          Loading phone number...
+                        </p>
                       )}
-                    </Button>
+                    </div>
+                    <div className="mt-6">
+                      <Button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                      >
+                        {otpLoading ? (
+                          <Spinner />
+                        ) : timer > 0 ? (
+                          `Resend OTP (${timer}s)`
+                        ) : (
+                          "Send OTP"
+                        )}
+                      </Button>
+                    </div>
                   </div>
+                  <p className="text-sm text-gray-600">
+                    OTP will be sent to your phone number via WhatsApp.
+                  </p>
                 </div>
               ) : (
-                <div className="flex items-start space-x-4">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="otp"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      OTP
-                    </label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      placeholder="Enter 6-digit OTP"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      disabled={otpLoading}
-                    />
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-1">
+                      <label
+                        htmlFor="otp"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        OTP
+                      </label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        disabled={otpLoading}
+                      />
+                    </div>
+                    <div className="mt-6">
+                      <Button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        disabled={otpLoading}
+                      >
+                        {otpLoading ? <Spinner /> : "Verify OTP"}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="mt-6">
-                    <Button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      disabled={otpLoading}
-                    >
-                      {otpLoading ? <Spinner /> : "Verify OTP"}
-                    </Button>
-                  </div>
+                  <p className="text-sm text-gray-600">
+                    OTP was sent to your phone number via WhatsApp.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -489,7 +499,8 @@ export const Settings = () => {
                   id="website"
                   type="url"
                   {...register("website", {
-                    nate: {
+                    required: "Website URL is required",
+                    pattern: {
                       value:
                         /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i,
                       message: "Please enter a valid URL",
@@ -507,17 +518,18 @@ export const Settings = () => {
                   htmlFor="linkedin"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  LinkedIn (Optional)
+                  LinkedIn
                 </label>
                 <Input
                   disabled={loading}
                   id="linkedin"
                   type="url"
                   {...register("linkedin", {
+                    required: "LinkedIn URL is required",
                     pattern: {
                       value:
-                        /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i,
-                      message: "Please enter a valid URL",
+                        /^https?:\/\/(www\.)?linkedin\.com\/(company|in)\/[a-zA-Z0-9_-]+\/?$/i,
+                      message: "Please enter a valid LinkedIn URL",
                     },
                   })}
                 />
@@ -570,7 +582,7 @@ export const Settings = () => {
                     required: "Email is required",
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Please enter a valid email address",
+                      message: "Please enter a valid email气的地址",
                     },
                   })}
                 />
