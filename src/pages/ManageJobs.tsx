@@ -49,7 +49,7 @@ const ManageJobs = ({ isPostJobEnabled }: any) => {
         });
         if (response.status === 200) {
           // setIsPostJobEnabled(true);
-          console.log(response.data.id);
+          // console.log(response.data.id);
           setcompanyId(response.data.id);
         }
       } catch (error) {

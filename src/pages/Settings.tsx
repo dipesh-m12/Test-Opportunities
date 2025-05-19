@@ -108,6 +108,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
 
         toast.success("Company fetched successfully!");
       } catch (error: any) {
+        setIsPostJobEnabled(false);
         console.error("Error fetching company:", error);
         if (error.response) {
           switch (error.response.status) {
