@@ -327,14 +327,15 @@ const ManageJobs = ({ isPostJobEnabled }: any) => {
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className={`rounded-lg border bg-white p-6 shadow-sm  border-solid border-l-4  ${
+                  className={`rounded-lg border bg-white p-6 shadow-sm   `}
+                >
+                  {/* ${ border-solid border-l-4
                     job.status == "Active"
                       ? "border-green-600"
                       : job.status == "Draft"
                       ? "border-blue-700"
                       : "border-red-600"
-                  }`}
-                >
+                  } */}
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-4 sm:space-y-0">
                     <div className="space-y-1 min-w-0">
                       <h3 className="text-xl font-semibold text-gray-900 break-words">

@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   Files,
   ExternalLink,
+  Info,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import Spinner from "@/components/Spinner";
@@ -50,6 +51,7 @@ interface Project {
   technologies: string[];
   highlights: string[];
   score: number;
+  tags: string[];
 }
 
 interface AssignmentStatus {
@@ -86,6 +88,7 @@ interface Candidate {
   id: string;
   name: string;
   avatar: string;
+  overall_score: number;
   email?: string;
   phoneNumber?: string;
   githubUsername: string;
@@ -196,7 +199,7 @@ export const Candidates = () => {
         },
       });
       // console.log(res.data);
-      console.log({ email: api2.data.email, name: res.data.name || "" });
+      // console.log({ email: api2.data.email, name: res.data.name || "" });
       setUser({ email: api2.data.email, name: res.data.name || "" });
     } catch (error: any) {
       console.error("Error fetching user:", error);
@@ -248,7 +251,7 @@ export const Candidates = () => {
         `${host}/company/${companyRes.data.id}/job/${jobId}/application`,
         { headers: { Authorization: idToken } }
       );
-
+      console.log(response.data);
       const jobData = response.data[0]?.application.job;
       if (jobData) {
         setJob({
@@ -375,7 +378,10 @@ export const Candidates = () => {
                           ? project.score || 0
                           : 0),
                       0
-                    ) / e.application.applicant.projects.length
+                    ) /
+                    (e.application.applicant.projects.length == 0
+                      ? 1
+                      : e.application.applicant.projects.length)
                   : 0,
               overall_score: e.application.overall_score || 0,
             },
@@ -393,11 +399,12 @@ export const Candidates = () => {
                   ...(project.database || []),
                   ...(project.tools || []),
                 ],
+                tags: project.tags || [],
                 highlights: project.highlights || [],
                 score: project.score || 0,
               }))
               .filter((project: any) => project.name),
-          };
+          } as Candidate;
         })
       );
 
@@ -722,7 +729,7 @@ export const Candidates = () => {
                             <p className="text-xs text-blue-500 underline hover:no-underline">
                               {candidate.phoneNumber || "N/A"}
                             </p>
-                            <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1">
+                            <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1 my-1">
                               Applying for: {candidate.applyingFor}
                             </div>
                             <div className="flex flex-wrap gap-2 text-xs text-gray-500">
@@ -840,6 +847,7 @@ export const Candidates = () => {
                                     : 0}
                                   %
                                 </span>
+                                <span className="hidden sm:flex"></span>
                               </div>
                               <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
                                 {job.requiredSkills.map((skill) => {
@@ -876,6 +884,7 @@ export const Candidates = () => {
                                     : 0}
                                   %
                                 </span>
+                                <span className="hidden sm:flex"></span>
                               </div>
                               <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
                                 {job.preferredSkills.map((skill) => {
@@ -921,89 +930,85 @@ export const Candidates = () => {
                         <div className="mt-4 space-y-4 border-t pt-4">
                           <div className="flex flex-col lg:flex-row gap-4">
                             <div className="flex-1 space-y-3">
-                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                Programming Languages
-                              </h4>
-                              <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.languages.length > 0 ? (
-                                  candidate.skills.languages.map((lang) => (
-                                    <Badge
-                                      key={lang}
-                                      variant="default"
-                                      className="text-xs sm:text-sm"
-                                    >
-                                      {lang}
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span className="text-xs text-gray-500">
-                                    No languages listed
-                                  </span>
-                                )}
-                              </div>
-                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                Frameworks & Libraries
-                              </h4>
-                              <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.frameworks.length > 0 ? (
-                                  candidate.skills.frameworks.map(
-                                    (framework) => (
+                              {candidate.skills.languages.length > 0 && (
+                                <>
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Programming Languages
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                    {candidate.skills.languages.map((lang) => (
                                       <Badge
-                                        key={framework}
+                                        key={lang}
                                         variant="default"
                                         className="text-xs sm:text-sm"
                                       >
-                                        {framework}
+                                        {lang}
                                       </Badge>
-                                    )
-                                  )
-                                ) : (
-                                  <span className="text-xs text-gray-500">
-                                    No frameworks listed
-                                  </span>
-                                )}
-                              </div>
-                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                Databases
-                              </h4>
-                              <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.databases.length > 0 ? (
-                                  candidate.skills.databases.map((db) => (
-                                    <Badge
-                                      key={db}
-                                      variant="default"
-                                      className="text-xs sm:text-sm"
-                                    >
-                                      {db}
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span className="text-xs text-gray-500">
-                                    No databases listed
-                                  </span>
-                                )}
-                              </div>
-                              <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                Tools & Technologies
-                              </h4>
-                              <div className="flex flex-wrap gap-1 sm:gap-2">
-                                {candidate.skills.tools.length > 0 ? (
-                                  candidate.skills.tools.map((tool) => (
-                                    <Badge
-                                      key={tool}
-                                      variant="default"
-                                      className="text-xs sm:text-sm"
-                                    >
-                                      {tool}
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span className="text-xs text-gray-500">
-                                    No tools listed
-                                  </span>
-                                )}
-                              </div>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+
+                              {candidate.skills.frameworks.length > 0 && (
+                                <>
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Frameworks & Libraries
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                    {candidate.skills.frameworks.map(
+                                      (framework) => (
+                                        <Badge
+                                          key={framework}
+                                          variant="default"
+                                          className="text-xs sm:text-sm"
+                                        >
+                                          {framework}
+                                        </Badge>
+                                      )
+                                    )}
+                                  </div>
+                                </>
+                              )}
+
+                              {candidate.skills.databases.length > 0 && (
+                                <>
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Databases
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                    {candidate.skills.databases.map((db) => (
+                                      <Badge
+                                        key={db}
+                                        variant="default"
+                                        className="text-xs sm:text-sm"
+                                      >
+                                        {db}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+
+                              {candidate.skills.tools.length > 0 && (
+                                <>
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Tools & Technologies
+                                  </h4>
+                                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                                    {candidate.skills.tools.map((tool) => (
+                                      <Badge
+                                        key={tool}
+                                        variant="default"
+                                        className="text-xs sm:text-sm"
+                                      >
+                                        {tool}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
                             </div>
+
                             <div className="lg:w-60 space-y-3">
                               <div className="rounded-lg bg-gray-50 p-3">
                                 <h4 className="font-medium text-gray-900 text-sm sm:text-base">
@@ -1048,7 +1053,7 @@ export const Candidates = () => {
                                           <a
                                             href={
                                               candidate.assignmentStatus
-                                                .githubRepo
+                                                .githubRepo as string
                                             }
                                             target="_blank"
                                             rel="noopener noreferrer"
@@ -1114,7 +1119,6 @@ export const Candidates = () => {
                               </div>
                             </div>
                           </div>
-
                           <div className="space-y-3">
                             <h4 className="text-base sm:text-lg font-medium text-gray-900">
                               Projects
@@ -1156,13 +1160,13 @@ export const Candidates = () => {
                                           )}
                                         </div>
                                       </div>
-                                      <p className="text-xs sm:text-sm text-gray-600">
+                                      {/* <p className="text-xs sm:text-sm text-gray-600">
                                         {project.description ||
                                           "No description provided"}
-                                      </p>
+                                      </p> */}
                                       <div className="space-y-1">
                                         <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                          Key Highlights:
+                                          Project Summary:
                                         </h6>
                                         <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
                                           {project.highlights.length > 0 ? (
@@ -1177,8 +1181,18 @@ export const Candidates = () => {
                                         </ul>
                                       </div>
                                       <div className="flex flex-wrap gap-1 sm:gap-2">
-                                        {project.technologies.length > 0 ? (
-                                          project.technologies.map((tech) => (
+                                        {project.technologies.length > 0 ||
+                                        project.tags.length > 0 ? (
+                                          [
+                                            ...new Set(
+                                              [
+                                                ...project.tags,
+                                                ...project.technologies,
+                                              ].map((tech) =>
+                                                tech.toLowerCase()
+                                              )
+                                            ),
+                                          ].map((tech) => (
                                             <Badge
                                               key={tech}
                                               variant="secondary"
@@ -1193,6 +1207,28 @@ export const Candidates = () => {
                                           </span>
                                         )}
                                       </div>
+                                      <div className="relative flex items-center justify-end">
+                                        <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
+                                          <span className="group relative">
+                                            <Info
+                                              className="h-4 w-4 text-blue-700 cursor-help"
+                                              aria-label="Code Quality score details"
+                                            />
+                                            <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-16 right-0 z-10 text-left">
+                                              <p className="font-semibold">
+                                                Code Quality Score
+                                              </p>
+                                              <ul className="list-disc list-inside mt-1">
+                                                <li>Code Readability: 40%</li>
+                                                <li>Test Coverage: 30%</li>
+                                                <li>Complexity: 20%</li>
+                                                <li>Documentation: 10%</li>
+                                              </ul>
+                                            </div>
+                                          </span>
+                                          Code Quality: {project.score}
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 ))
@@ -1203,11 +1239,11 @@ export const Candidates = () => {
                               )}
                             </div>
                           </div>
-
+                          {/* // */}
                           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                             <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-xs font-medium text-gray-500">
+                                <div className="text-sm sm:text-base font-medium text-gray-500">
                                   Commits
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
@@ -1217,7 +1253,7 @@ export const Candidates = () => {
                             </div>
                             <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-xs font-medium text-gray-500">
+                                <div className="text-sm sm:text-base font-medium text-gray-500">
                                   Contributions
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
@@ -1227,7 +1263,7 @@ export const Candidates = () => {
                             </div>
                             <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-xs font-medium text-gray-500">
+                                <div className="text-sm sm:text-base font-medium text-gray-500">
                                   Code Quality
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
@@ -1238,29 +1274,45 @@ export const Candidates = () => {
                                         candidate.githubStats.codeQuality
                                       )
                                     : 0}
-                                  %
                                 </div>
                               </div>
                             </div>
                             <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-xs font-medium text-gray-500">
+                                <div className="text-sm sm:text-base font-medium text-gray-500 flex">
+                                  <span className="group relative">
+                                    <Info
+                                      className="h-4 w-4 text-blue-600 cursor-help"
+                                      aria-label="Overall Score details"
+                                    />
+                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
+                                      <p className="font-semibold">
+                                        Overall Score
+                                      </p>
+                                      <ul className="list-disc list-inside mt-1">
+                                        <li>Readability: 20%</li>
+                                        <li>Consistency: 15%</li>
+                                        <li>Indentation and Formattin: 15%</li>
+                                        <li>Code Smells: 20%</li>
+                                        <li>
+                                          Naming and Declaration Practices: 10%
+                                        </li>
+                                        <li>Use of Language Features: 5%</li>
+                                      </ul>
+                                    </div>
+                                  </span>{" "}
                                   Overall Score
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {Number.isFinite(
-                                    candidate.githubStats.overall_score
-                                  )
+                                  {Number.isFinite(candidate.overall_score)
                                     ? Math.round(
                                         candidate.githubStats.overall_score
                                       )
                                     : 0}
-                                  %
                                 </div>
                               </div>
                             </div>
                           </div>
-
                           <div className="flex justify-end">
                             <Button
                               variant="outline"

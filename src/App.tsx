@@ -41,7 +41,7 @@ function App() {
             Authorization: idToken,
           },
         });
-        console.log(response.data.id);
+        // console.log(response.data.id);
         setIsPostJobEnabled(true);
       } catch (error) {
         setIsPostJobEnabled(false);
@@ -52,9 +52,9 @@ function App() {
     checkCompanyAccess();
   }, []);
 
-  useEffect(() => {
-    console.log("Enable", isPostJobEnabled);
-  }, [isPostJobEnabled]);
+  // useEffect(() => {
+  //   console.log("Enable", isPostJobEnabled);
+  // }, [isPostJobEnabled]);
   return (
     <Router>
       <Routes>
