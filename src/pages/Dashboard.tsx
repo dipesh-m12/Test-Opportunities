@@ -24,7 +24,7 @@ import React from "react";
 import moment from "moment";
 import avatar from "../assets/default_avatar.png";
 
-export const Dashboard = ({ isPostJobEnabled }: any) => {
+export const Dashboard = ({ isPostJobEnabled, setIsPostJobEnabled }: any) => {
   const navigate = useNavigate();
   // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,12 +77,14 @@ export const Dashboard = ({ isPostJobEnabled }: any) => {
         });
         if (response.status === 200) {
           // setIsPostJobEnabled(true);
+          setIsPostJobEnabled(true);
           setCompanyId(response.data.id);
           console.log(response.data.id);
         }
       } catch (error) {
         // setIsPostJobEnabled(false);
         console.log(error);
+        setIsPostJobEnabled(false);
       }
     };
 

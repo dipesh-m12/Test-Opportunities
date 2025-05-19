@@ -23,7 +23,7 @@ import { host } from "./utils/routes";
 
 function App() {
   const [isPostJobEnabled, setIsPostJobEnabled] = useState(false);
-  React.useEffect(() => {
+  useEffect(() => {
     const checkCompanyAccess = async () => {
       const idToken = localStorage.getItem(token);
       if (!idToken) {
@@ -61,7 +61,12 @@ function App() {
         <Route element={<Layout isPostJobEnabled={isPostJobEnabled} />}>
           <Route
             path="/dashboard"
-            element={<Dashboard isPostJobEnabled={isPostJobEnabled} />}
+            element={
+              <Dashboard
+                isPostJobEnabled={isPostJobEnabled}
+                setIsPostJobEnabled={setIsPostJobEnabled}
+              />
+            }
           />
           <Route path="/post-job" element={<PostJob />} />
           <Route

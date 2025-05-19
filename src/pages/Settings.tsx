@@ -345,6 +345,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
       }
     } catch (error: any) {
       console.error("Error updating settings:", error);
+      setIsPostJobEnabled(false);
       if (error.response) {
         switch (error.response.status) {
           case 400:
