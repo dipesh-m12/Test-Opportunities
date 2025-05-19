@@ -54,7 +54,7 @@ export const SignUp = () => {
       //   uid: uid, // Log the UID
       //   idToken: idToken,
       // });
-      console.log(idToken);
+      // console.log(idToken);
 
       const response = await axios.post(
         `${host}/users`,
@@ -71,7 +71,7 @@ export const SignUp = () => {
       );
 
       localStorage.setItem(token, idToken); // Assuming token is "authToken" or similar
-      console.log("API Response:", response.data);
+      // console.log("API Response:", response.data);
 
       toast.success(
         "Account created successfully! Redirecting to dashboard..."

@@ -14,7 +14,7 @@ import { Settings } from "./pages/Settings";
 import { SignUp } from "./pages/SignUp";
 import { SignIn } from "./pages/SignIn";
 import Landing from "./pages/Landing";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import React from "react";
 import toast from "react-hot-toast";
@@ -41,10 +41,8 @@ function App() {
             Authorization: idToken,
           },
         });
-        if (response.status === 200) {
-          setIsPostJobEnabled(true);
-          console.log(response.data.id);
-        }
+        console.log(response.data.id);
+        setIsPostJobEnabled(true);
       } catch (error) {
         setIsPostJobEnabled(false);
         console.log(error);
@@ -53,6 +51,10 @@ function App() {
 
     checkCompanyAccess();
   }, []);
+
+  useEffect(() => {
+    console.log("Enable", isPostJobEnabled);
+  }, [isPostJobEnabled]);
   return (
     <Router>
       <Routes>

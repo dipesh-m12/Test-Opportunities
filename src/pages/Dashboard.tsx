@@ -179,9 +179,9 @@ export const Dashboard = ({ isPostJobEnabled }: any) => {
     }
   }, [companyId]);
 
-  useEffect(() => {
-    console.log(loading);
-  }, [loading]);
+  // useEffect(() => {
+  //   console.log(loading);
+  // }, [loading]);
 
   return (
     <div className="space-y-6">
