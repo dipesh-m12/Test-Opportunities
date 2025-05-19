@@ -275,6 +275,20 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
       }
       if (fetchedData?.companyName) {
         await axios.put(
+          `${host}/users`,
+          {
+            email: data.email,
+            first_name: data.contactName,
+            last_name: data.contactName,
+          },
+          {
+            headers: {
+              Authorization: idToken,
+            },
+          }
+        );
+
+        await axios.put(
           `${host}/company/${companyId}`,
           {
             name: data.companyName,
@@ -289,19 +303,6 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
           }
         );
 
-        await axios.put(
-          `${host}/users`,
-          {
-            email: data.email,
-            first_name: data.contactName,
-            last_name: data.contactName,
-          },
-          {
-            headers: {
-              Authorization: idToken,
-            },
-          }
-        );
         toast.success("Company settings updated successfully!");
       } else {
         const response = await axios.post(
