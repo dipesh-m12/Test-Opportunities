@@ -727,7 +727,12 @@ export const Candidates = () => {
                               {candidate.name}
                             </h3>
                             <p className="text-xs text-blue-500 underline hover:no-underline">
-                              {candidate.phoneNumber || "N/A"}
+                              {candidate.phoneNumber
+                                ? `${candidate.phoneNumber.slice(
+                                    0,
+                                    3
+                                  )} ${candidate.phoneNumber.slice(3)}`
+                                : "N/A"}
                             </p>
                             <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1 my-1">
                               Applying for: {candidate.applyingFor}
@@ -845,11 +850,11 @@ export const Candidates = () => {
                                   {Number.isFinite(requiredMatch.percentage)
                                     ? Math.round(requiredMatch.percentage)
                                     : 0}
-                                  %
+                                  % skill match
                                 </span>
                                 <span className="hidden sm:flex"></span>
                               </div>
-                              <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
+                              <div className=" my-3 flex flex-wrap gap-1 sm:gap-2">
                                 {job.requiredSkills.map((skill) => {
                                   const isMatched =
                                     requiredMatch.matched.includes(skill);
@@ -882,11 +887,11 @@ export const Candidates = () => {
                                   {Number.isFinite(preferredMatch.percentage)
                                     ? Math.round(preferredMatch.percentage)
                                     : 0}
-                                  %
+                                  % skill match
                                 </span>
                                 <span className="hidden sm:flex"></span>
                               </div>
-                              <div className="mt-1 flex flex-wrap gap-1 sm:gap-2">
+                              <div className="my-3 flex flex-wrap gap-1 sm:gap-2">
                                 {job.preferredSkills.map((skill) => {
                                   const isMatched =
                                     preferredMatch.matched.includes(skill);
@@ -1214,15 +1219,26 @@ export const Candidates = () => {
                                               className="h-4 w-4 text-blue-700 cursor-help"
                                               aria-label="Code Quality score details"
                                             />
-                                            <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-64 -top-16 right-0 z-10 text-left">
+                                            <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-16 right-0 z-10 text-left">
                                               <p className="font-semibold">
                                                 Code Quality Score
                                               </p>
                                               <ul className="list-disc list-inside mt-1">
-                                                <li>Code Readability: 40%</li>
-                                                <li>Test Coverage: 30%</li>
-                                                <li>Complexity: 20%</li>
-                                                <li>Documentation: 10%</li>
+                                                <li>Readability: 20%</li>
+                                                <li>Consistency: 15%</li>
+                                                <li>Use of Comments: 15%</li>
+                                                <li>
+                                                  Indentation and Formatting:
+                                                  15%
+                                                </li>
+                                                <li>Code Smells: 20%</li>
+                                                <li>
+                                                  Naming and Declaration
+                                                  Practices: 10%
+                                                </li>
+                                                <li>
+                                                  Use of Language Features: 5%
+                                                </li>
                                               </ul>
                                             </div>
                                           </span>
@@ -1280,9 +1296,9 @@ export const Candidates = () => {
                             <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
                               <div className="text-center">
                                 <div className="text-sm sm:text-base font-medium text-gray-500 flex">
-                                  <span className="group relative">
+                                  <span className="group relative self-center ">
                                     <Info
-                                      className="h-4 w-4 text-blue-600 cursor-help"
+                                      className="h-4 w-4 text-blue-600 cursor-help mr-1"
                                       aria-label="Overall Score details"
                                     />
                                     <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
@@ -1290,14 +1306,14 @@ export const Candidates = () => {
                                         Overall Score
                                       </p>
                                       <ul className="list-disc list-inside mt-1">
-                                        <li>Readability: 20%</li>
-                                        <li>Consistency: 15%</li>
-                                        <li>Indentation and Formattin: 15%</li>
+                                        <li>Code Quality: 60%</li>
+                                        <li>Skills matching to job: 40%</li>
+                                        {/* <li>Indentation and Formattin: 15%</li>
                                         <li>Code Smells: 20%</li>
                                         <li>
                                           Naming and Declaration Practices: 10%
                                         </li>
-                                        <li>Use of Language Features: 5%</li>
+                                        <li>Use of Language Features: 5%</li> */}
                                       </ul>
                                     </div>
                                   </span>{" "}
