@@ -523,7 +523,7 @@ export const Candidates = () => {
     date.setDate(date.getDate() + 1);
     date.setHours(10, 0, 0, 0);
 
-    const meetingTitle = `${user.name} <${candidate.name}>`;
+    const meetingTitle = `${user.name} <> ${candidate.name}`;
     const meetingDuration = 60; // in minutes
     const endDate = new Date(date.getTime() + meetingDuration * 60000);
 
@@ -697,10 +697,13 @@ export const Candidates = () => {
                 <Card
                   key={candidate.id}
                   id={candidate.id}
-                  className={`w-full max-w-full mx-auto sm:mx-0 ${
-                    candidate.id === scrollToCandidate &&
-                    "shadow-blue-700 shadow-2xl border-blue-200 border-solid border-2"
-                  }`}
+                  className={`w-full max-w-full mx-auto sm:mx-0
+                
+                `}
+                  //    ${
+                  //   candidate.id === scrollToCandidate &&
+                  //   "shadow-blue-700 shadow-2xl border-blue-200 border-solid border-2"
+                  // }`
                 >
                   <CardContent className="p-3 sm:p-4">
                     <div className="space-y-4">
