@@ -384,7 +384,7 @@ export const Candidates = () => {
                       : e.application.applicant.projects.length)
                   : 0,
               overall_score:
-                0.6 *
+                (0.6 *
                   (e.application.applicant.projects?.length > 0
                     ? (e.application.applicant.projects || []).reduce(
                         (sum: number, project: any) =>
@@ -424,7 +424,8 @@ export const Candidates = () => {
                             jobData.job_skills.filter(
                               (s: any) => s.type === "preferred"
                             ).length
-                          : 0)) || 0,
+                          : 0))) /
+                  10 || 0,
             },
             projects: (e.application.applicant.projects || [])
               .map((project: any) => ({
