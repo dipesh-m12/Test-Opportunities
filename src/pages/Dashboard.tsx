@@ -291,11 +291,44 @@ export const Dashboard = ({ isPostJobEnabled, setIsPostJobEnabled }: any) => {
                   <div className="flex items-center justify-between sm:justify-end space-x-4">
                     <Badge
                       variant={
-                        application.status === "new" ? "default" : "success"
+                        application.status === "new"
+                          ? "default"
+                          : application.status === "shortlisted"
+                          ? "success"
+                          : application.status === "interviewing"
+                          ? "primary"
+                          : application.status === "offered"
+                          ? "success"
+                          : application.status === "rejected"
+                          ? "destructive"
+                          : "default"
                       }
+                      className={`text-xs sm:text-sm ${
+                        application.status === "new"
+                          ? "bg-gray-100 text-gray-800"
+                          : application.status === "shortlisted"
+                          ? "bg-green-100 text-green-800"
+                          : application.status === "interviewing"
+                          ? "bg-blue-100 text-blue-800"
+                          : application.status === "offered"
+                          ? "bg-green-100 text-green-800"
+                          : application.status === "rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
                     >
-                      {application.status === "new" ? "New" : "Shortlisted"}
-                    </Badge>
+                      {application.status === "new"
+                        ? "New"
+                        : application.status === "shortlisted"
+                        ? "Shortlisted"
+                        : application.status === "interviewing"
+                        ? "Interviewing"
+                        : application.status === "offered"
+                        ? "Offered"
+                        : application.status === "rejected"
+                        ? "Rejected"
+                        : "Unknown"}
+                    </Badge>{" "}
                     <div className="text-sm text-gray-500">
                       {formatDate(application.appliedDate)}
                     </div>
