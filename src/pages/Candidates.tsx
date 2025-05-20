@@ -383,7 +383,48 @@ export const Candidates = () => {
                       ? 1
                       : e.application.applicant.projects.length)
                   : 0,
-              overall_score: e.application.overall_score || 0,
+              overall_score:
+                0.6 *
+                  (e.application.applicant.projects?.length > 0
+                    ? (e.application.applicant.projects || []).reduce(
+                        (sum: number, project: any) =>
+                          sum +
+                          (project && typeof project === "object"
+                            ? project.score || 0
+                            : 0),
+                        0
+                      ) /
+                      (e.application.applicant.projects.length == 0
+                        ? 1
+                        : e.application.applicant.projects.length)
+                    : 0) +
+                  0.4 *
+                    (0.7 *
+                      (jobData.job_skills.filter(
+                        (s: any) => s.type === "required"
+                      ).length > 0
+                        ? (
+                            skillsRes.data.application.enhanced_skills || []
+                          ).filter(
+                            (e: any) => e.type === "required" && e.is_matched
+                          ).length /
+                          jobData.job_skills.filter(
+                            (s: any) => s.type === "required"
+                          ).length
+                        : 0) +
+                      0.3 *
+                        (jobData.job_skills.filter(
+                          (s: any) => s.type === "preferred"
+                        ).length > 0
+                          ? (
+                              skillsRes.data.application.enhanced_skills || []
+                            ).filter(
+                              (e: any) => e.type === "preferred" && e.is_matched
+                            ).length /
+                            jobData.job_skills.filter(
+                              (s: any) => s.type === "preferred"
+                            ).length
+                          : 0)) || 0,
             },
             projects: (e.application.applicant.projects || [])
               .map((project: any) => ({
@@ -825,7 +866,7 @@ export const Candidates = () => {
                           </h4>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
                             {topSkills.length > 0 ? (
-                              topSkills.map((skill) => (
+                              [...new Set(topSkills)].map((skill) => (
                                 <Badge
                                   key={skill}
                                   variant="default"
@@ -941,7 +982,9 @@ export const Candidates = () => {
                                     Programming Languages
                                   </h4>
                                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {candidate.skills.languages.map((lang) => (
+                                    {[
+                                      ...new Set(candidate.skills.languages),
+                                    ].map((lang) => (
                                       <Badge
                                         key={lang}
                                         variant="default"
@@ -960,17 +1003,17 @@ export const Candidates = () => {
                                     Frameworks & Libraries
                                   </h4>
                                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {candidate.skills.frameworks.map(
-                                      (framework) => (
-                                        <Badge
-                                          key={framework}
-                                          variant="default"
-                                          className="text-xs sm:text-sm"
-                                        >
-                                          {framework}
-                                        </Badge>
-                                      )
-                                    )}
+                                    {[
+                                      ...new Set(candidate.skills.frameworks),
+                                    ].map((framework) => (
+                                      <Badge
+                                        key={framework}
+                                        variant="default"
+                                        className="text-xs sm:text-sm"
+                                      >
+                                        {framework}
+                                      </Badge>
+                                    ))}
                                   </div>
                                 </>
                               )}
@@ -981,7 +1024,9 @@ export const Candidates = () => {
                                     Databases
                                   </h4>
                                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {candidate.skills.databases.map((db) => (
+                                    {[
+                                      ...new Set(candidate.skills.databases),
+                                    ].map((db) => (
                                       <Badge
                                         key={db}
                                         variant="default"
@@ -1000,15 +1045,17 @@ export const Candidates = () => {
                                     Tools & Technologies
                                   </h4>
                                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {candidate.skills.tools.map((tool) => (
-                                      <Badge
-                                        key={tool}
-                                        variant="default"
-                                        className="text-xs sm:text-sm"
-                                      >
-                                        {tool}
-                                      </Badge>
-                                    ))}
+                                    {[...new Set(candidate.skills.tools)].map(
+                                      (tool) => (
+                                        <Badge
+                                          key={tool}
+                                          variant="default"
+                                          className="text-xs sm:text-sm"
+                                        >
+                                          {tool}
+                                        </Badge>
+                                      )
+                                    )}
                                   </div>
                                 </>
                               )}
