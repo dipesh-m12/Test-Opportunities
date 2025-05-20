@@ -1369,9 +1369,10 @@ export const Candidates = () => {
                                 </div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900">
                                   {Number.isFinite(candidate.overall_score)
-                                    ? Math.round(
-                                        candidate.githubStats.overall_score
-                                      )
+                                    ? // ? Math.round(
+                                      //     candidate.githubStats.overall_score
+                                      //   )
+                                      candidate.githubStats.overall_score
                                     : 0}
                                 </div>
                               </div>
