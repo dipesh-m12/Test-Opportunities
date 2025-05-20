@@ -1372,7 +1372,9 @@ export const Candidates = () => {
                                     ? // ? Math.round(
                                       //     candidate.githubStats.overall_score
                                       //   )
-                                      candidate.githubStats.overall_score
+                                      Number(
+                                        candidate.githubStats.overall_score
+                                      ).toFixed(1)
                                     : 0}
                                 </div>
                               </div>
