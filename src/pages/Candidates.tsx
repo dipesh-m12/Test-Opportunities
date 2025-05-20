@@ -582,13 +582,13 @@ export const Candidates = () => {
 
     const attendees = [candidate.email, user.email].filter(Boolean);
     const location = "Virtual (Google Meet)";
-    const additionalNotes = `Preparation: Review candidate's GitHub profile at https://github.com/${candidate.githubUsername}\nAgenda: Technical assessment, behavioral questions`;
+    // const additionalNotes = `Preparation: Review candidate's GitHub profile at https://github.com/${candidate.githubUsername}\nAgenda: Technical assessment, behavioral questions`;
     const reminders = "15";
 
     const params = new URLSearchParams({
       text: meetingTitle,
       dates: `${start}/${end}`,
-      details: `Interview for ${job?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`,
+      // details: `Interview for ${job?.title}\nCandidate: ${candidate.name}\n${additionalNotes}`,
       location: location,
       recur: "RRULE:FREQ=DAILY;COUNT=1",
       sf: "true",
