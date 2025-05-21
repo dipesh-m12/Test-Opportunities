@@ -431,10 +431,10 @@ export const Candidates = () => {
               .map((project: any) => ({
                 name: project.title || "",
                 description: project.description || "",
-                repoUrl: project.github_repo_name
-                  ? `https://github.com/${e.application.applicant.github_username}/${project.github_repo_name}`
+                repoUrl: project?.social_project?.github_repo_name
+                  ? `https://github.com/${e.application.applicant.github_username}/${project?.social_project?.github_repo_name}`
                   : "",
-                liveUrl: project?.live_link_url || "",
+                liveUrl: project?.social_project?.link || "",
                 technologies: [
                   ...(project.Programming_languages || []),
                   ...(project.framework || []),
