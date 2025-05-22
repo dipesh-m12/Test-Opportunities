@@ -431,7 +431,7 @@ export const Candidates = () => {
               .map((project: any) => ({
                 name: project.title || "",
                 description: project.description || "",
-                repoUrl: project?.social_project?.github_repo_name
+                repoUrl: project?.social_project?.github_repo_url
                   ? `https://github.com/${e.application.applicant.github_username}/${project?.social_project?.github_repo_name}`
                   : "",
                 liveUrl: project?.social_project?.link || "",
