@@ -432,7 +432,7 @@ export const Candidates = () => {
                 name: project.title || "",
                 description: project.description || "",
                 repoUrl: project?.social_project?.github_repo_url
-                  ? `https://github.com/${e.application.applicant.github_username}/${project?.social_project?.github_repo_name}`
+                  ? project.social_project.github_repo_url
                   : "",
                 liveUrl: project?.social_project?.link || "",
                 technologies: [
