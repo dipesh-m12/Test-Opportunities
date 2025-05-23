@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -24,7 +25,11 @@ import React from "react";
 import moment from "moment";
 import avatar from "../assets/default_avatar.png";
 
-export const Dashboard = ({ isPostJobEnabled, setIsPostJobEnabled }: any) => {
+export const Dashboard = ({
+  isPostJobEnabled,
+  setIsPostJobEnabled,
+  isPhoneNumber,
+}: any) => {
   const navigate = useNavigate();
   // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
   const [loading, setLoading] = useState(false);
@@ -191,7 +196,8 @@ export const Dashboard = ({ isPostJobEnabled, setIsPostJobEnabled }: any) => {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <Button
           onClick={() => {
-            if (!isPostJobEnabled) {
+            console.log("here", !isPostJobEnabled || !isPhoneNumber);
+            if (!isPostJobEnabled || !isPhoneNumber) {
               toast.error(
                 "Fill in Company details in the Settings page to post a job"
               );
@@ -200,7 +206,7 @@ export const Dashboard = ({ isPostJobEnabled, setIsPostJobEnabled }: any) => {
             }
           }}
           className={`${
-            !isPostJobEnabled
+            !isPostJobEnabled || !isPhoneNumber
               ? "cursor-not-allowed opacity-50 bg-gray-300 "
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}

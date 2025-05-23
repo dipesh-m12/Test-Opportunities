@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
@@ -12,6 +13,7 @@ import { token } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { phoneCollection } from "@/utils/firebaseConfig";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 interface SettingsFormData {
   companyName: string;
@@ -22,7 +24,7 @@ interface SettingsFormData {
   assignmentNotifications: boolean;
 }
 
-export const Settings = ({ setIsPostJobEnabled }: any) => {
+export const Settings = ({ setIsPostJobEnabled, setIsPhoneNumber }: any) => {
   const {
     register,
     handleSubmit,
@@ -44,6 +46,8 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
   const [otpLoading, setOtpLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [phoneQueryLoading, setPhoneQueryLoading] = useState(false);
+  const [isPhoneRegistered, setIsPhoneRegistered] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   // Timer effect for 30 seconds after OTP is sent
   useEffect(() => {
@@ -157,6 +161,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
             // Remove +91 prefix if present
             const number = data.phoneNumber.replace(/^\+91/, "");
             setPhoneNumber(number);
+            setIsPhoneRegistered(true);
           }
         }
       } catch (error: any) {
@@ -245,9 +250,11 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
         });
 
         toast.success("Phone number verified and saved!");
+        setIsPhoneNumber(true);
         setOtpSent(false);
         setOtp("");
         setGeneratedOtp(null);
+        setIsPhoneRegistered(true);
       } else {
         toast.error("Invalid OTP. Please try again.");
       }
@@ -256,6 +263,33 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
       toast.error("Failed to verify OTP: " + error.message);
     } finally {
       setOtpLoading(false);
+    }
+  };
+
+  // Handle disconnect phone number
+  const handleDisconnect = async () => {
+    if (otpLoading) return;
+    setOtpLoading(true);
+    try {
+      const q = query(phoneCollection, where("companyId", "==", companyId));
+      const querySnapshot = await getDocs(q);
+      const deletePromises = querySnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(deletePromises);
+      console.log(
+        `Deleted ${querySnapshot.size} documents for companyId: ${companyId}`
+      );
+      setPhoneNumber("");
+      setIsPhoneRegistered(false);
+      setIsPhoneNumber(false);
+      toast.success("Phone number disconnected successfully!");
+    } catch (error: any) {
+      console.error("Error disconnecting phone number:", error);
+      toast.error("Failed to disconnect phone number.");
+    } finally {
+      setOtpLoading(false);
+      setShowDisconnectModal(false);
     }
   };
 
@@ -384,16 +418,16 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
               <CardTitle>Phone Number Verification</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!otpSent ? (
+              {!otpSent && !isPhoneRegistered ? (
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-1">
-                      <label
-                        htmlFor="phoneNumber"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Phone Number
-                      </label>
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone Number
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
+                    <div className="flex-1 relative">
                       <Input
                         id="phoneNumber"
                         type="tel"
@@ -401,6 +435,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                        className="w-full"
                       />
                       {phoneQueryLoading && (
                         <p className="mt-1 text-sm text-gray-600">
@@ -408,36 +443,35 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                         </p>
                       )}
                     </div>
-                    <div className="mt-6">
-                      <Button
-                        type="button"
-                        onClick={handleSendOtp}
-                        disabled={otpLoading || timer > 0 || phoneQueryLoading}
-                      >
-                        {otpLoading ? (
-                          <Spinner />
-                        ) : timer > 0 ? (
-                          `Resend OTP (${timer}s)`
-                        ) : (
-                          "Send OTP"
-                        )}
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+                    >
+                      {otpLoading ? (
+                        <Spinner />
+                      ) : timer > 0 ? (
+                        `Resend OTP (${timer}s)`
+                      ) : (
+                        "Send OTP"
+                      )}
+                    </Button>
                   </div>
                   <p className="text-sm text-gray-600">
                     OTP will be sent to your phone number via WhatsApp.
                   </p>
                 </div>
-              ) : (
+              ) : otpSent ? (
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
+                  <label
+                    htmlFor="otp"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    OTP
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
                     <div className="flex-1">
-                      <label
-                        htmlFor="otp"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        OTP
-                      </label>
                       <Input
                         id="otp"
                         type="text"
@@ -445,25 +479,91 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         disabled={otpLoading}
+                        className="w-full"
                       />
                     </div>
-                    <div className="mt-6">
-                      <Button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={otpLoading}
-                      >
-                        {otpLoading ? <Spinner /> : "Verify OTP"}
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={otpLoading}
+                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+                    >
+                      {otpLoading ? <Spinner /> : "Verify OTP"}
+                    </Button>
                   </div>
                   <p className="text-sm text-gray-600">
                     OTP was sent to your phone number via WhatsApp.
                   </p>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone Number
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
+                    <div className="flex-1 relative">
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        value={phoneNumber}
+                        disabled={true}
+                        className="w-full pr-10"
+                      />
+                      <CheckCircleIcon
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => setShowDisconnectModal(true)}
+                      className="px-4 py-2 bg-gray-200 text-red-700 hover:bg-gray-300 rounded-md"
+                      disabled={otpLoading}
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Modal for Disconnect Confirmation */}
+          {showDisconnectModal && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Confirm Disconnect
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to disconnect the phone number{" "}
+                  <span className="font-medium">{phoneNumber}</span>? This
+                  action cannot be undone.
+                </p>
+                <div className="mt-6 flex justify-end space-x-3">
+                  <Button
+                    type="button"
+                    className="px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md transition-colors"
+                    onClick={() => setShowDisconnectModal(false)}
+                    disabled={otpLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+                    onClick={handleDisconnect}
+                    disabled={otpLoading}
+                  >
+                    {otpLoading ? <Spinner /> : "Disconnect"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Card>
             <CardHeader>
@@ -483,6 +583,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                   {...register("companyName", {
                     required: "Company name is required",
                   })}
+                  className="w-full"
                 />
                 {errors.companyName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -509,6 +610,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                       message: "Please enter a valid URL",
                     },
                   })}
+                  className="w-full"
                 />
                 {errors.website && (
                   <p className="mt-1 text-sm text-red-600">
@@ -535,6 +637,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                       message: "Please enter a valid LinkedIn URL",
                     },
                   })}
+                  className="w-full"
                 />
                 {errors.linkedin && (
                   <p className="mt-1 text-sm text-red-600">
@@ -563,6 +666,7 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                   {...register("contactName", {
                     required: "Contact name is required",
                   })}
+                  className="w-full"
                 />
                 {errors.contactName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -585,9 +689,10 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
                     required: "Email is required",
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Please enter a valid email气的地址",
+                      message: "Please enter a valid email address",
                     },
                   })}
+                  className="w-full"
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">
@@ -622,7 +727,11 @@ export const Settings = ({ setIsPostJobEnabled }: any) => {
           </Card>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={loading || isSubmitting}>
+            <Button
+              type="submit"
+              disabled={loading || isSubmitting}
+              className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+            >
               {loading || isSubmitting ? <Spinner /> : "Save Changes"}
             </Button>
           </div>

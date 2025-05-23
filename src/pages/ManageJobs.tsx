@@ -13,7 +13,7 @@ import { token } from "@/utils";
 import { host } from "@/utils/routes";
 import axios from "axios";
 
-const ManageJobs = ({ isPostJobEnabled }: any) => {
+const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -272,7 +272,7 @@ const ManageJobs = ({ isPostJobEnabled }: any) => {
         </div>
         <Button
           onClick={() => {
-            if (!isPostJobEnabled) {
+            if (!isPostJobEnabled || !isPhoneNumber) {
               toast.error(
                 "Fill in Company details in the Settings page to post a job"
               );
@@ -281,7 +281,7 @@ const ManageJobs = ({ isPostJobEnabled }: any) => {
             }
           }}
           className={`${
-            !isPostJobEnabled
+            !isPostJobEnabled || !isPhoneNumber
               ? "cursor-not-allowed opacity-50 bg-gray-300 "
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
@@ -314,7 +314,7 @@ const ManageJobs = ({ isPostJobEnabled }: any) => {
               <div className="text-center">
                 <p className="text-gray-500">No job listings found</p>
                 <Button
-                  disabled={!isPostJobEnabled}
+                  disabled={!isPostJobEnabled || !isPhoneNumber}
                   className="mt-4"
                   onClick={() => navigate("/post-job")}
                 >

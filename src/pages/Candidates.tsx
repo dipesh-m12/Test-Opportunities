@@ -129,30 +129,30 @@ const calculateSkillMatch = (skills: Skill[], jobSkills: string[]) => {
   return { matched: matchedSkills, percentage };
 };
 
-const getRecommendation = (requiredMatch: number, preferredMatch: number) => {
-  if (requiredMatch >= 85 && preferredMatch >= 50) {
-    return {
-      type: "great",
-      label: "Great Fit",
-      color: "bg-green-100 text-green-800",
-      description: "Candidate matches most required and preferred skills",
-    };
-  } else if (requiredMatch >= 70) {
-    return {
-      type: "good",
-      label: "Good Fit",
-      color: "bg-blue-100 text-blue-800",
-      description: "Candidate matches essential required skills",
-    };
-  } else {
-    return {
-      type: "not",
-      label: "Not a Fit",
-      color: "bg-red-100 text-red-800",
-      description: "Candidate lacks several required skills",
-    };
-  }
-};
+// const getRecommendation = (requiredMatch: number, preferredMatch: number) => {
+//   if (requiredMatch >= 85 && preferredMatch >= 50) {
+//     return {
+//       type: "great",
+//       label: "Great Fit",
+//       color: "bg-green-100 text-green-800",
+//       description: "Candidate matches most required and preferred skills",
+//     };
+//   } else if (requiredMatch >= 70) {
+//     return {
+//       type: "good",
+//       label: "Good Fit",
+//       color: "bg-blue-100 text-blue-800",
+//       description: "Candidate matches essential required skills",
+//     };
+//   } else {
+//     return {
+//       type: "not",
+//       label: "Not a Fit",
+//       color: "bg-red-100 text-red-800",
+//       description: "Candidate lacks several required skills",
+//     };
+//   }
+// };
 
 const getTopSkills = (skills: SkillSet) => {
   const allSkills = [
@@ -597,7 +597,7 @@ export const Candidates = () => {
     });
 
     // Add guests
-    attendees.forEach((email) => params.append("add", email));
+    attendees.forEach((email) => params.append("add", email as string));
 
     // Final URL
     const googleMeetUrl = `https://calendar.google.com/calendar/u/0/r/eventedit?${params.toString()}`;

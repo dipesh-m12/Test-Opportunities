@@ -12,9 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { token } from "@/utils";
-import axios from "axios";
 import toast from "react-hot-toast";
-import { host } from "@/utils/routes";
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -24,7 +22,7 @@ const navItems = [
   { icon: LogOut, label: "Logout", path: "/sign-in" },
 ];
 
-export const Sidebar = ({ isPostJobEnabled }: any) => {
+export const Sidebar = ({ isPostJobEnabled, isPhoneNumber }: any) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -68,7 +66,7 @@ export const Sidebar = ({ isPostJobEnabled }: any) => {
   };
 
   const handlePostJobClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!isPostJobEnabled) {
+    if (!isPostJobEnabled || !isPhoneNumber) {
       e.preventDefault(); // Prevent navigation when disabled
       toast.error("Fill in Company details in the Settings page to post a job");
     }
@@ -124,7 +122,7 @@ export const Sidebar = ({ isPostJobEnabled }: any) => {
                 }
                 className={cn(
                   "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                  isPostJob && !isPostJobEnabled
+                  isPostJob && (!isPostJobEnabled || !isPhoneNumber)
                     ? "cursor-not-allowed bg-gray-100 text-gray-400"
                     : isLogout
                     ? isActive
