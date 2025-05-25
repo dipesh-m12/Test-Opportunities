@@ -21,6 +21,7 @@ import {
   Files,
   ExternalLink,
   Info,
+  IndianRupee,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import Spinner from "@/components/Spinner";
@@ -279,18 +280,15 @@ export const Candidates = () => {
             `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
             { headers: { Authorization: idToken } }
           );
-          console.log(
-            (skillsRes.data.application.enhanced_skills || []).filter(
-              (e: any) => e.type === "preferred"
-            )
-          );
 
           const projects = e.application.applicant.projects || [];
 
           const codeQuality =
             projects.length > 0
-              ? projects.reduce((sum, p) => sum + (p?.score || 0), 0) /
-                projects.length
+              ? projects.reduce(
+                  (sum: any, p: any) => sum + (p?.score || 0),
+                  0
+                ) / projects.length
               : 0;
 
           const jobRequiredSkills = jobData.job_skills.filter(
@@ -321,7 +319,6 @@ export const Candidates = () => {
           const matchedPreferredRatio = jobPreferredSkills.length
             ? matchedPreferred / jobPreferredSkills.length
             : 0;
-          console.log(matchedPreferred, matchedPreferred);
           const overallGithubScore =
             (0.6 * codeQuality +
               0.4 *
@@ -508,13 +505,11 @@ export const Candidates = () => {
       setLoading(true);
       try {
         let candidateData = await fetchCandidates();
-        console.log(candidateData);
         if (scrollToCandidate) {
           candidateData = candidateData.filter(
             (e) => e.id == scrollToCandidate
           );
         }
-        console.log(candidateData);
         setCandidates(candidateData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -692,9 +687,11 @@ export const Candidates = () => {
                 Candidates for {job.title}
               </h1>
               <p className="text-xs sm:text-sm text-gray-500">
-                {job.type} · {job.location} · INR{" "}
-                {job.salary.min.toLocaleString()} -{" "}
-                {job.salary.max.toLocaleString()}
+                {job.type} · {job.location} ·{" "}
+                <IndianRupee className="inline size-4" />{" "}
+                {job.salary.min.toLocaleString("en-IN")} -{" "}
+                <IndianRupee className="inline size-4" />{" "}
+                {job.salary.max.toLocaleString("en-IN")}
               </p>
               <p className="mt-1 text-xs sm:text-sm text-gray-500">
                 {filteredCandidates.length} candidate

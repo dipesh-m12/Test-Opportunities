@@ -7,7 +7,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Eye, Edit, Trash2, Clock, Users, PlusCircle } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Clock,
+  Users,
+  PlusCircle,
+  IndianRupee,
+} from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { token } from "@/utils";
@@ -355,12 +363,14 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                           <span>
                             {job.type == "Internship" ? (
                               <span className="font-medium">
-                                INR {job.salary_min.toLocaleString()}
+                                <IndianRupee className="inline size-4" />{" "}
+                                {job.salary_min.toLocaleString("en-IN")}
                               </span>
                             ) : (
                               <span className="font-medium">
-                                INR {job.salary_min.toLocaleString()} -{" "}
-                                {job.salary_max.toLocaleString()}
+                                <IndianRupee className="inline size-4" />{" "}
+                                {job.salary_min.toLocaleString()} -{" "}
+                                {job.salary_max.toLocaleString("en-IN")}
                               </span>
                             )}
                           </span>
