@@ -284,6 +284,50 @@ export const Candidates = () => {
               (e: any) => e.type === "preferred"
             )
           );
+
+          const projects = e.application.applicant.projects || [];
+
+          const codeQuality =
+            projects.length > 0
+              ? projects.reduce((sum, p) => sum + (p?.score || 0), 0) /
+                projects.length
+              : 0;
+
+          const jobRequiredSkills = jobData.job_skills.filter(
+            (s: any) => s.type === "required"
+          );
+          const jobPreferredSkills = jobData.job_skills.filter(
+            (s: any) => s.type === "preferred"
+          );
+
+          const matchedRequired = (
+            skillsRes.data.application.enhanced_skills || []
+          ).filter(
+            (s: any) =>
+              s.type === "required" && (s.is_matched || s.github_project_skill)
+          ).length;
+
+          const matchedPreferred = (
+            skillsRes.data.application.enhanced_skills || []
+          ).filter(
+            (s: any) =>
+              s.type === "preferred" && (s.is_matched || s.github_project_skill)
+          ).length;
+
+          const matchedRequiredRatio = jobRequiredSkills.length
+            ? matchedRequired / jobRequiredSkills.length
+            : 0;
+
+          const matchedPreferredRatio = jobPreferredSkills.length
+            ? matchedPreferred / jobPreferredSkills.length
+            : 0;
+          console.log(matchedPreferred, matchedPreferred);
+          const overallGithubScore =
+            (0.6 * codeQuality +
+              0.4 *
+                (0.7 * matchedRequiredRatio * 100 +
+                  0.3 * matchedPreferredRatio * 100)) /
+            10;
           return {
             id: e.application.id,
             name: `${e.user.first_name || "Unknown"} ${
@@ -393,49 +437,7 @@ export const Candidates = () => {
                       ? 1
                       : e.application.applicant.projects.length)
                   : 0,
-              overall_score:
-                (0.6 *
-                  (e.application.applicant.projects?.length > 0
-                    ? (e.application.applicant.projects || []).reduce(
-                        (sum: number, project: any) =>
-                          sum +
-                          (project && typeof project === "object"
-                            ? project.score || 0
-                            : 0),
-                        0
-                      ) /
-                      (e.application.applicant.projects.length == 0
-                        ? 1
-                        : e.application.applicant.projects.length)
-                    : 0) +
-                  0.4 *
-                    (0.7 *
-                      (jobData.job_skills.filter(
-                        (s: any) => s.type === "required"
-                      ).length > 0
-                        ? (
-                            skillsRes.data.application.enhanced_skills || []
-                          ).filter(
-                            (e: any) => e.type === "required" && e.is_matched
-                          ).length /
-                          jobData.job_skills.filter(
-                            (s: any) => s.type === "required"
-                          ).length
-                        : 0) +
-                      0.3 *
-                        (jobData.job_skills.filter(
-                          (s: any) => s.type === "preferred"
-                        ).length > 0
-                          ? (
-                              skillsRes.data.application.enhanced_skills || []
-                            ).filter(
-                              (e: any) => e.type === "preferred" && e.is_matched
-                            ).length /
-                            jobData.job_skills.filter(
-                              (s: any) => s.type === "preferred"
-                            ).length
-                          : 0))) /
-                  10 || 0,
+              overall_score: overallGithubScore,
             },
             projects: (e.application.applicant.projects || [])
               .map((project: any) => ({
