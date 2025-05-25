@@ -251,7 +251,7 @@ export const Candidates = () => {
         `${host}/company/${companyRes.data.id}/job/${jobId}/application`,
         { headers: { Authorization: idToken } }
       );
-      console.log(response.data);
+      // console.log(response.data);
       const jobData = response.data[0]?.application.job;
       if (jobData) {
         setJob({
@@ -279,7 +279,11 @@ export const Candidates = () => {
             `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
             { headers: { Authorization: idToken } }
           );
-
+          console.log(
+            (skillsRes.data.application.enhanced_skills || []).filter(
+              (e: any) => e.type === "preferred"
+            )
+          );
           return {
             id: e.application.id,
             name: `${e.user.first_name || "Unknown"} ${
@@ -311,10 +315,16 @@ export const Candidates = () => {
             skills: {
               preferred: (skillsRes.data.application.enhanced_skills || [])
                 .filter((e: any) => e.type === "preferred")
-                .map((e: any) => ({ skill: e.skill, matched: e.is_matched })),
+                .map((e: any) => ({
+                  skill: e.skill,
+                  matched: e.is_matched || e.github_project_skill,
+                })),
               required: (skillsRes.data.application.enhanced_skills || [])
                 .filter((e: any) => e.type === "required")
-                .map((e: any) => ({ skill: e.skill, matched: e.is_matched })),
+                .map((e: any) => ({
+                  skill: e.skill,
+                  matched: e.is_matched || e.github_project_skill,
+                })),
               languages: (e.application.applicant.projects || []).reduce(
                 (acc: string[], project: any) =>
                   acc.concat(
@@ -496,6 +506,7 @@ export const Candidates = () => {
       setLoading(true);
       try {
         let candidateData = await fetchCandidates();
+        console.log(candidateData);
         if (scrollToCandidate) {
           candidateData = candidateData.filter(
             (e) => e.id == scrollToCandidate
