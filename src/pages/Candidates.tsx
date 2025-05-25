@@ -473,21 +473,21 @@ export const Candidates = () => {
         type: "great",
         label: "Great Fit",
         color: "bg-green-100 text-green-800",
-        description: "Candidate has an overall score of 8 or higher",
+        description: `Candidate has got an overall score of ${overallScore}`,
       };
     } else if (overallScore >= 6.5) {
       return {
         type: "good",
         label: "Good Fit",
         color: "bg-blue-100 text-blue-800",
-        description: "Candidate has an overall score between 6.5 and 8",
+        description: `Candidate has got an overall score of ${overallScore}`,
       };
     } else {
       return {
         type: "average",
         label: "Average Fit",
         color: "bg-red-100 text-red-800",
-        description: "Candidate has an overall score below 6.5",
+        description: `Candidate has got an overall score of ${overallScore}`,
       };
     }
   };
