@@ -473,21 +473,27 @@ export const Candidates = () => {
         type: "great",
         label: "Great Fit",
         color: "bg-green-100 text-green-800",
-        description: `Candidate has got an overall score of ${overallScore}`,
+        description: `Candidate has got an overall score of ${Number(
+          overallScore
+        ).toFixed(1)}`,
       };
     } else if (overallScore >= 6.5) {
       return {
         type: "good",
         label: "Good Fit",
         color: "bg-blue-100 text-blue-800",
-        description: `Candidate has got an overall score of ${overallScore}`,
+        description: `Candidate has got an overall score of ${Number(
+          overallScore
+        ).toFixed(1)}`,
       };
     } else {
       return {
         type: "average",
         label: "Average Fit",
         color: "bg-red-100 text-red-800",
-        description: `Candidate has got an overall score of ${overallScore}`,
+        description: `Candidate has got an overall score of ${Number(
+          overallScore
+        ).toFixed(1)}`,
       };
     }
   };
