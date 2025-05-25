@@ -160,6 +160,7 @@ export const Settings = ({ setIsPostJobEnabled, setIsPhoneNumber }: any) => {
           if (data.phoneNumber) {
             // Remove +91 prefix if present
             const number = data.phoneNumber.replace(/^\+91/, "");
+            setIsPhoneNumber(true);
             setPhoneNumber(number);
             setIsPhoneRegistered(true);
           }
