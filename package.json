@@ -15,7 +15,7 @@
     "axios": "^1.8.4",
     "clsx": "^2.0.0",
     "date-fns": "^3.3.1",
-    "firebase": "^11.6.0",
+    "firebase": "^11.8.1",
     "framer-motion": "^12.6.5",
     "lucide-react": "^0.344.0",
     "moment": "^2.30.1",
