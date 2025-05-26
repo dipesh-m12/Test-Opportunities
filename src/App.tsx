@@ -50,6 +50,7 @@ function App() {
   const checkPhoneNumber = async (companyId: string) => {
     try {
       if (!companyId) return;
+      console.log("PhoneNum");
       const q = query(phoneCollection, where("companyId", "==", companyId));
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty && querySnapshot.docs[0].data().phoneNumber) {
@@ -68,7 +69,7 @@ function App() {
     checkPhoneNumber(companyId);
   }, [companyId]);
 
-  useEffect(() => console.log("req", isPhoneNumber), [isPhoneNumber]);
+  // useEffect(() => console.log("req", isPhoneNumber), [isPhoneNumber]);
   // useEffect(() => {
   //   console.log("Enable", isPostJobEnabled);
   // }, [isPostJobEnabled]);
@@ -87,6 +88,7 @@ function App() {
             path="/dashboard"
             element={
               <Dashboard
+                checkPhoneNumber={checkPhoneNumber}
                 isPhoneNumber={isPhoneNumber}
                 isPostJobEnabled={isPostJobEnabled}
                 setIsPostJobEnabled={setIsPostJobEnabled}
@@ -109,6 +111,7 @@ function App() {
             path="/settings"
             element={
               <Settings
+                checkPhoneNumber={checkPhoneNumber}
                 setIsPostJobEnabled={setIsPostJobEnabled}
                 isPhoneNumber={isPhoneNumber}
                 setIsPhoneNumber={setIsPhoneNumber}

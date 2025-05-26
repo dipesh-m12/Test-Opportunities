@@ -26,6 +26,7 @@ import moment from "moment";
 import avatar from "../assets/default_avatar.png";
 
 export const Dashboard = ({
+  checkPhoneNumber,
   isPostJobEnabled,
   setIsPostJobEnabled,
   isPhoneNumber,
@@ -83,6 +84,7 @@ export const Dashboard = ({
         if (response.status === 200) {
           // setIsPostJobEnabled(true);
           setIsPostJobEnabled(true);
+          checkPhoneNumber(response.data.id);
           setCompanyId(response.data.id);
           console.log(response.data.id);
         }

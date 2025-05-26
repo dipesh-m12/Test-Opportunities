@@ -24,7 +24,11 @@ interface SettingsFormData {
   assignmentNotifications: boolean;
 }
 
-export const Settings = ({ setIsPostJobEnabled, setIsPhoneNumber }: any) => {
+export const Settings = ({
+  checkPhoneNumber,
+  setIsPostJobEnabled,
+  setIsPhoneNumber,
+}: any) => {
   const {
     register,
     handleSubmit,
@@ -100,7 +104,7 @@ export const Settings = ({ setIsPostJobEnabled, setIsPhoneNumber }: any) => {
         });
 
         setCompanyId(response.data.id);
-
+        checkPhoneNumber(response.data.id);
         setFetchedData({
           companyName: response.data.name || "",
           website: response.data.website || "",
