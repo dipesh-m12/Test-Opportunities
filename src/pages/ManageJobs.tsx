@@ -419,6 +419,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                       {/* {job.status} */}
                     </Badge>
                     <Badge variant="secondary">
+                      Application Deadline{" "}
                       {moment(job.deadline).format("Do MMM")}
                     </Badge>
                   </div>
