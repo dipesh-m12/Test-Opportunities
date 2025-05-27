@@ -172,7 +172,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
           Authorization: idToken,
         },
       });
-
+      console.log(response.data);
       let data: any[] = [];
       if (response.data.length !== 0) {
         data = response.data.map((e: any) => ({
@@ -190,7 +190,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
           currency: "INR",
           salary_min: e.min_salary,
           salary_max: e.max_salary,
-          deadline: "2025-05-13T00:00:00.000Z",
+          deadline: e.deadline,
           city: e.city,
         }));
         // data = [];
