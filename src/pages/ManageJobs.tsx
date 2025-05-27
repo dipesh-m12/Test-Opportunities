@@ -356,10 +356,10 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                           <Clock className="h-4 w-4" />
                           <span>Posted {formatDate(job.created_at)}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        {/* <div className="flex items-center space-x-1">
                           <Users className="h-4 w-4" />
                           <span>View Applicants</span>
-                        </div>
+                        </div> */}
                         <div className="flex items-center space-x-1">
                           <span>
                             {job.type == "Internship" ? (
