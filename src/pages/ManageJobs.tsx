@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import { token } from "@/utils";
 import { host } from "@/utils/routes";
 import axios from "axios";
+import moment from "moment";
 
 const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
   const navigate = useNavigate();
@@ -369,7 +370,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                             ) : (
                               <span className="font-medium">
                                 <IndianRupee className="inline size-4" />{" "}
-                                {job.salary_min.toLocaleString()} -{" "}
+                                {job.salary_min.toLocaleString("en-IN")} -{" "}
                                 {job.salary_max.toLocaleString("en-IN")}
                               </span>
                             )}
@@ -416,6 +417,9 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                     >
                       {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                       {/* {job.status} */}
+                    </Badge>
+                    <Badge variant="secondary">
+                      {moment(job.deadline).format("Do MMM")}
                     </Badge>
                   </div>
                 </div>

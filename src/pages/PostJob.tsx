@@ -130,7 +130,7 @@ const submissionPreferencesOptions = [
   { value: "documentation", label: "Documentation" },
 ];
 
-export const PostJob = () => {
+export const PostJob = ({ isPhoneNumber }: any) => {
   const {
     register,
     watch,
@@ -187,6 +187,10 @@ export const PostJob = () => {
       assignBlob: {},
     }
   );
+
+  useEffect(() => {
+    if (!isPhoneNumber) navigate("/settings");
+  }, [isPhoneNumber]);
 
   const [searchParams] = useSearchParams();
   const edit = searchParams.get("edit");

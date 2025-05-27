@@ -95,7 +95,7 @@ function App() {
               />
             }
           />
-          <Route path="/post-job" element={<PostJob />} />
+          <Route path="/post-job" element={<PostJob isPhoneNumber={isPhoneNumber}/>} />
           <Route
             path="/manage-jobs"
             element={
