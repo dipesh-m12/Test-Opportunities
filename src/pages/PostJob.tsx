@@ -433,7 +433,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
 
   const handleDescriptionChange = (value: string) => {
     const plainText = value.replace(/<[^>]*>/g, "");
-    if (plainText.length <= 1000) {
+    if (plainText.length <= 5000) {
       setValue("description", value, { shouldValidate: true });
     }
   };
@@ -996,6 +996,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       setPreferredSkills([]);
       setRequiredSkills([]);
       setFileError(undefined); // Clear any file error
+      navigate("/manage-jobs");
       toast.success("Job added successfully!");
     } catch (e) {
       toast.error("Something went wrong");
@@ -1529,8 +1530,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     {errors.description.message}
                   </p>
                 )}
-                <p className="text-sm text-gray-500 mt-1">
-                  {description?.replace(/<[^>]*>/g, "").length || 0}/1000
+                <p className="text-sm text-gray-700 text-gray-500 mt-1">
+                  {description?.replace(/<[^>]*>/g, "").length || 0}/5000
                   characters
                 </p>
                 <input
@@ -1542,8 +1543,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                         value.replace(/<[^>]*>/g, "").length >= 50 ||
                         "Description must be at least 50 characters",
                       maxLength: (value) =>
-                        value.replace(/<[^>]*>/g, "").length <= 1000 ||
-                        "Description must not exceed 1000 characters",
+                        value.replace(/<[^>]*>/g, "").length <= 5000 ||
+                        "Description must not exceed 5000 characters",
                     },
                   })}
                 />
