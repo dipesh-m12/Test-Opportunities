@@ -762,7 +762,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       }
 
       setFetchedJobDetails(temp);
-
+      navigate("/manage-jobs");
       toast.success("Job updated successfully!");
     } catch (e) {
       toast.error("Something went wrong");
@@ -1745,7 +1745,18 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   type="date"
                   {...register("applicationDeadline", {
                     required: "Application deadline is required",
-                    validate: validateDeadline,
+                    validate: {
+                      notInPast: validateDeadline,
+                      afterAssignment: (value) => {
+                        const assignmentDeadline = watch("assignment.deadline");
+                        if (!assignmentDeadline) return true;
+                        const appDate = new Date(value);
+                        const assignDate = new Date(assignmentDeadline);
+                        return appDate > assignDate
+                          ? true
+                          : "Application deadline must be after assignment deadline";
+                      },
+                    },
                   })}
                   error={errors.applicationDeadline?.message}
                 />

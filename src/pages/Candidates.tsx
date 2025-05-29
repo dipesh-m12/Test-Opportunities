@@ -846,7 +846,7 @@ export const Candidates = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full sm:w-20 sm:mt-5 text-xs sm:text-sm hover:text-white"
+                            className="w-full sm:w-20 hover:bg-white sm:mt-5 text-xs sm:text-sm "
                             onClick={() =>
                               setSelectedCandidate(
                                 selectedCandidate === candidate.id

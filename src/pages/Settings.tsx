@@ -197,6 +197,9 @@ export const Settings = ({
     setOtpLoading(true);
     try {
       const newOtp = generateOtp();
+      if (!companyId) {
+        return toast.error("Fill the company details first");
+      }
       const formattedPhone = `${phoneNumber}`;
       const response = await axios.post(
         "https://inovact-twilio-service.vercel.app/inovactservice/send-sms",
@@ -358,7 +361,6 @@ export const Settings = ({
             },
           }
         );
-
         await axios.put(
           `${host}/users`,
           {
@@ -429,7 +431,7 @@ export const Settings = ({
                     htmlFor="phoneNumber"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center justify-start space-x-4">
                     <div className="flex-1 relative">
@@ -506,7 +508,7 @@ export const Settings = ({
                     htmlFor="phoneNumber"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center justify-start space-x-4">
                     <div className="flex-1 relative">
@@ -523,9 +525,10 @@ export const Settings = ({
                       />
                     </div>
                     <Button
+                      variant="danger"
                       type="button"
                       onClick={() => setShowDisconnectModal(true)}
-                      className="px-4 py-2 bg-gray-200 text-red-700 hover:bg-gray-300 rounded-md"
+                      className="px-4 py-2  text-red-700 hover:bg-gray-400 rounded-md"
                       disabled={otpLoading}
                     >
                       Disconnect
@@ -551,6 +554,7 @@ export const Settings = ({
                 <div className="mt-6 flex justify-end space-x-3">
                   <Button
                     type="button"
+                    variant="none"
                     className="px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md transition-colors"
                     onClick={() => setShowDisconnectModal(false)}
                     disabled={otpLoading}
@@ -559,6 +563,7 @@ export const Settings = ({
                   </Button>
                   <Button
                     type="button"
+                    variant="danger"
                     className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
                     onClick={handleDisconnect}
                     disabled={otpLoading}
@@ -580,7 +585,7 @@ export const Settings = ({
                   htmlFor="companyName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Company Name
+                  Company Name <span className="text-red-500">*</span>
                 </label>
                 <Input
                   disabled={loading}
@@ -601,7 +606,7 @@ export const Settings = ({
                   htmlFor="website"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Website
+                  Website <span className="text-red-500">*</span>
                 </label>
                 <Input
                   disabled={loading}
@@ -628,7 +633,7 @@ export const Settings = ({
                   htmlFor="linkedin"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  LinkedIn
+                  LinkedIn <span className="text-red-500">*</span>
                 </label>
                 <Input
                   disabled={loading}
@@ -663,7 +668,7 @@ export const Settings = ({
                   htmlFor="contactName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Contact Person Name
+                  Contact Person Name <span className="text-red-500">*</span>
                 </label>
                 <Input
                   disabled={loading}
@@ -684,7 +689,7 @@ export const Settings = ({
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <Input
                   disabled={loading}
