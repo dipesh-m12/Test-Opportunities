@@ -75,6 +75,7 @@ interface GithubStats {
 interface CandidateStatus {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 type CandidateStatusValue =
@@ -533,7 +534,7 @@ export const Candidates = () => {
   );
 
   const statusOptions: CandidateStatus[] = [
-    { value: "assign_status", label: "Assign status" },
+    { value: "assign_status", label: "Assign status", disabled: true },
     { value: "new", label: "New" },
     { value: "shortlisted", label: "Shortlisted" },
     { value: "interviewing", label: "Interviewing" },
@@ -705,7 +706,7 @@ export const Candidates = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap justify-center sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
+          <div className="flex flex-wrap justify-start sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
             {skillFilters.map((filter) => (
               <Button
                 key={filter.value}
