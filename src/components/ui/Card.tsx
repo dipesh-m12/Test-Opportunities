@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -8,10 +8,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Card({ className, children, ...props }: CardProps) {
   return (
     <div
-      className={cn(
-        "rounded-lg border bg-white p-6 shadow-sm",
-        className
-      )}
+      className={cn("rounded-lg border bg-white p-6  shadow-sm", className)}
       {...props}
     >
       {children}
@@ -25,10 +22,7 @@ interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardHeader({ className, children, ...props }: CardHeaderProps) {
   return (
-    <div
-      className={cn("space-y-1.5", className)}
-      {...props}
-    >
+    <div className={cn("space-y-1.5", className)} {...props}>
       {children}
     </div>
   );
@@ -41,10 +35,7 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
 export function CardTitle({ className, children, ...props }: CardTitleProps) {
   return (
     <h3
-      className={cn(
-        "font-semibold leading-none tracking-tight",
-        className
-      )}
+      className={cn("font-semibold leading-none tracking-tight", className)}
       {...props}
     >
       {children}
@@ -52,16 +43,18 @@ export function CardTitle({ className, children, ...props }: CardTitleProps) {
   );
 }
 
-interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+interface CardDescriptionProps
+  extends React.HTMLAttributes<HTMLParagraphElement> {
   children: React.ReactNode;
 }
 
-export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
+export function CardDescription({
+  className,
+  children,
+  ...props
+}: CardDescriptionProps) {
   return (
-    <p
-      className={cn("text-sm text-gray-500", className)}
-      {...props}
-    >
+    <p className={cn("text-sm text-gray-500", className)} {...props}>
       {children}
     </p>
   );
@@ -71,7 +64,11 @@ interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
-export function CardContent({ className, children, ...props }: CardContentProps) {
+export function CardContent({
+  className,
+  children,
+  ...props
+}: CardContentProps) {
   return (
     <div className={cn("pt-6", className)} {...props}>
       {children}
@@ -85,10 +82,7 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardFooter({ className, children, ...props }: CardFooterProps) {
   return (
-    <div
-      className={cn("flex items-center pt-6", className)}
-      {...props}
-    >
+    <div className={cn("flex items-center pt-6", className)} {...props}>
       {children}
     </div>
   );

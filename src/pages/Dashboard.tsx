@@ -258,7 +258,7 @@ export const Dashboard = ({
         })}
       </div>
 
-      <Card>
+      <Card className="px-3 sm:px-6">
         <CardHeader>
           <CardTitle>Recent Applications</CardTitle>
         </CardHeader>
@@ -274,7 +274,7 @@ export const Dashboard = ({
           </CardContent>
         ) : (
           <CardContent>
-            <div className="space-y-4 flex flex-col items-start">
+            <div className=" space-y-4 flex flex-col items-start">
               {recentApplications.map((application: any) => (
                 <div
                   key={application.id}

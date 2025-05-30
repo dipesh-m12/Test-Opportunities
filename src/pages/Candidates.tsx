@@ -688,8 +688,8 @@ export const Candidates = () => {
       <div className="space-y-4 mt-4 px-2 sm:px-4 lg:px-6 max-w-full overflow-x-auto">
         <div className="space-y-3">
           <div className="flex flex-col gap-3">
-            <div className="space-y-1 text-center sm:text-left">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <div className="space-y-1 text-start sm:text-left">
+              <h1 className="text-lg sm:text-xl text-start lg:text-2xl font-bold text-gray-900">
                 Candidates for {job.title}
               </h1>
               <p className="text-xs sm:text-sm text-gray-500">
