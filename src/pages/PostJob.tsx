@@ -395,25 +395,25 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const handleSkillAdd = (
     type: "required" | "preferred",
     skill: string,
-    e: React.KeyboardEvent<HTMLInputElement>
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | { currentTarget: HTMLInputElement; preventDefault: () => void }
   ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (skill.trim()) {
-        const skillsArray =
-          type === "required" ? requiredSkills : preferredSkills;
-        if (skillsArray.length < 5 && !skillsArray.includes(skill.trim())) {
-          const newSkills = [...skillsArray, skill.trim()];
-          if (type === "required") {
-            setRequiredSkills(newSkills);
-            setValue("requiredSkills", newSkills, { shouldValidate: true });
-          } else {
-            setPreferredSkills(newSkills);
-            setValue("preferredSkills", newSkills, { shouldValidate: true });
-          }
+    e.preventDefault(); // CHANGE: Prevent default behavior to avoid form submission
+    if (skill.trim()) {
+      const skillsArray =
+        type === "required" ? requiredSkills : preferredSkills;
+      if (skillsArray.length < 5 && !skillsArray.includes(skill.trim())) {
+        const newSkills = [...skillsArray, skill.trim()];
+        if (type === "required") {
+          setRequiredSkills(newSkills);
+          setValue("requiredSkills", newSkills, { shouldValidate: true });
+        } else {
+          setPreferredSkills(newSkills);
+          setValue("preferredSkills", newSkills, { shouldValidate: true });
         }
-        e.currentTarget.value = "";
       }
+      e.currentTarget.value = ""; // CHANGE: Clear input after adding skill
     }
   };
 
@@ -1530,7 +1530,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     {errors.description.message}
                   </p>
                 )}
-                <p className="text-sm text-gray-700 text-gray-500 mt-1">
+                <p className="text-sm  text-gray-500 mt-1">
                   {description?.replace(/<[^>]*>/g, "").length || 0}/5000
                   characters
                 </p>

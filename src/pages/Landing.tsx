@@ -818,7 +818,7 @@ export default function Home() {
               }
               className="cursor-pointer hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
-              Join waitlist
+              SignIn / Signup
             </span>
             {/* Mobile version (hidden on desktop) */}
             <span
@@ -891,9 +891,10 @@ export default function Home() {
               </span>
               .
               <br />
-              Start hiring based on{" "}
+              {/* Start hiring based on{" "} */}
+              Start hiring interns and fresher talents{" "}
               <span className="text-blue-600 underline decoration-2">
-                proof
+                based on proof
               </span>
               .
             </h1>
@@ -906,12 +907,15 @@ export default function Home() {
             </p>
             <div className="flex flex-col justify-center sm:flex-row gap-4 mb-12">
               <span
-                onClick={() =>
-                  secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                onClick={
+                  () => navigate("/sign-in")
+                  // secRef?.current?.scrollIntoView({ behavior: "smooth" })
                 }
                 className="bg-blue-600 cursor-pointer text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center"
               >
-                Join waitlist <ArrowRight className="ml-2 h-4 w-4" />
+                {/* Join waitlist <ArrowRight className="ml-2 h-4 w-4" /> */}
+                Start hiring now
+                <ArrowRight className="ml-2 h-4 w-4" />
               </span>
             </div>
           </div>
@@ -1326,12 +1330,13 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <span
-                onClick={() =>
-                  secRef?.current?.scrollIntoView({ behavior: "smooth" })
+                onClick={
+                  () => navigate("/sign-in")
+                  // secRef?.current?.scrollIntoView({ behavior: "smooth" })
                 }
                 className="cursor-pointer bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Join waitlist
+                Start hiring now
               </span>
               {/* <Link
         to="#demo"
@@ -1344,8 +1349,11 @@ export default function Home() {
         </section>
 
         {/* Waitlist Form Section */}
-        <section ref={secRef} className="py-20 px-6 bg-gray-50">
-          <div className="container mx-auto max-w-4xl">
+        <section
+          ref={secRef}
+          className="py-10 px-6 bg-gray-50 bg-gradient-to-b from-[#3a5efb] to-[#114bfb]"
+        >
+          {/* <div className="container mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Join Our Waitlist</h2>
               <p className="text-sm sm:text-base text-gray-600 max-w-4xl mx-auto text-left sm:text-center">
@@ -1519,34 +1527,8 @@ export default function Home() {
                   </button>
                 </form>
               )}
-              {/* <div className="mt-6">
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Phone Number
-                </label>
-                <div className="flex gap-4">
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setphoneNumber(e.target.value)}
-                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    placeholder="Enter your phone number"
-                  />
-                  <button
-                    type="button"
-                    onClick={handlePhoneVerify}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
-                  >
-                    Verify
-                  </button>
-                </div>
-              </div> */}
             </div>
-          </div>
+          </div> */}
         </section>
       </main>
 
