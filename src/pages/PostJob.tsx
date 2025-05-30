@@ -1270,7 +1270,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Post a New Job</h1>
       </div>
-      <Card>
+      <Card className="px-4 sm:px-6">
         <CardHeader>
           <CardTitle>Job Details</CardTitle>
         </CardHeader>

@@ -763,7 +763,7 @@ export const Candidates = () => {
                   key={candidate.id}
                   id={candidate.id}
                   className={`w-full max-w-full mx-auto sm:mx-0
-                
+             px-4 sm:px-6
                 `}
                   //    ${
                   //   candidate.id === scrollToCandidate &&

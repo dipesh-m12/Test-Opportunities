@@ -423,7 +423,7 @@ export const Settings = ({
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto">
         <div className="space-y-6">
-          <Card>
+          <Card className="px-4 sm:px-6">
             <CardHeader>
               <CardTitle>Company Profile</CardTitle>
             </CardHeader>
@@ -506,7 +506,7 @@ export const Settings = ({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="px-4 sm:px-6">
             <CardHeader>
               <CardTitle>Contact Information</CardTitle>
             </CardHeader>
@@ -561,7 +561,7 @@ export const Settings = ({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="px-4 sm:px-6">
             <CardHeader>
               <CardTitle>Phone Number Verification</CardTitle>
             </CardHeader>
@@ -715,7 +715,7 @@ export const Settings = ({
             </div>
           )}
 
-          <Card>
+          <Card className="px-4 sm:px-6">
             <CardHeader>
               <CardTitle>Notifications</CardTitle>
             </CardHeader>

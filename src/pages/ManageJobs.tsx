@@ -301,7 +301,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
           Post a Job
         </Button>
       </div>
-      <Card>
+      <Card className="px-4 sm:px-6">
         <CardHeader>
           <CardTitle>
             {loading
