@@ -347,6 +347,19 @@ export const Settings = ({
 
         toast.success("Company settings updated successfully!");
       } else {
+        await axios.put(
+          `${host}/users`,
+          {
+            email: data.email,
+            first_name: data.contactName,
+            last_name: data.contactName,
+          },
+          {
+            headers: {
+              Authorization: idToken,
+            },
+          }
+        );
         const response = await axios.post(
           `${host}/company`,
           {
@@ -361,19 +374,7 @@ export const Settings = ({
             },
           }
         );
-        await axios.put(
-          `${host}/users`,
-          {
-            email: data.email,
-            first_name: data.contactName,
-            last_name: data.contactName,
-          },
-          {
-            headers: {
-              Authorization: idToken,
-            },
-          }
-        );
+
         setCompanyId(response.data.id);
         setFetchedData({
           companyName: data.companyName,
@@ -685,13 +686,13 @@ export const Settings = ({
                 )}
               </div>
               <div>
-                <label
+                {/* <label
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Email <span className="text-red-500">*</span>
-                </label>
-                <Input
+                </label> */}
+                {/* <Input
                   disabled={loading}
                   id="email"
                   type="email"
@@ -708,7 +709,7 @@ export const Settings = ({
                   <p className="mt-1 text-sm text-red-600">
                     {errors.email.message}
                   </p>
-                )}
+                )} */}
               </div>
             </CardContent>
           </Card>
