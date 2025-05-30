@@ -198,7 +198,9 @@ export const Settings = ({
     try {
       const newOtp = generateOtp();
       if (!companyId) {
-        return toast.error("Fill the company details first");
+        return toast.error(
+          "Start the onboarding with providing company details"
+        );
       }
       const formattedPhone = `${phoneNumber}`;
       const response = await axios.post(
@@ -421,125 +423,6 @@ export const Settings = ({
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto">
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Phone Number Verification</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {!otpSent && !isPhoneRegistered ? (
-                <div className="space-y-4">
-                  <label
-                    htmlFor="phoneNumber"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex items-center justify-start space-x-4">
-                    <div className="flex-1 relative">
-                      <Input
-                        id="phoneNumber"
-                        type="tel"
-                        placeholder="1234567890"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        disabled={otpLoading || timer > 0 || phoneQueryLoading}
-                        className="w-full"
-                      />
-                      {phoneQueryLoading && (
-                        <p className="mt-1 text-sm text-gray-600">
-                          Loading phone number...
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handleSendOtp}
-                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
-                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
-                    >
-                      {otpLoading ? (
-                        <Spinner />
-                      ) : timer > 0 ? (
-                        `Resend OTP (${timer}s)`
-                      ) : (
-                        "Send OTP"
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    OTP will be sent to your phone number via WhatsApp.
-                  </p>
-                </div>
-              ) : otpSent ? (
-                <div className="space-y-4">
-                  <label
-                    htmlFor="otp"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    OTP
-                  </label>
-                  <div className="flex items-center justify-start space-x-4">
-                    <div className="flex-1">
-                      <Input
-                        id="otp"
-                        type="text"
-                        placeholder="Enter 6-digit OTP"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        disabled={otpLoading}
-                        className="w-full"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      disabled={otpLoading}
-                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
-                    >
-                      {otpLoading ? <Spinner /> : "Verify OTP"}
-                    </Button>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    OTP was sent to your phone number via WhatsApp.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <label
-                    htmlFor="phoneNumber"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex items-center justify-start space-x-4">
-                    <div className="flex-1 relative">
-                      <Input
-                        id="phoneNumber"
-                        type="tel"
-                        value={phoneNumber}
-                        disabled={true}
-                        className="w-full pr-10"
-                      />
-                      <CheckCircleIcon
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <Button
-                      variant="danger"
-                      type="button"
-                      onClick={() => setShowDisconnectModal(true)}
-                      className="px-4 py-2  text-red-700 hover:bg-gray-400 rounded-md"
-                      disabled={otpLoading}
-                    >
-                      Disconnect
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Modal for Disconnect Confirmation */}
           {showDisconnectModal && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
@@ -711,6 +594,125 @@ export const Settings = ({
                   </p>
                 )} */}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Phone Number Verification</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!otpSent && !isPhoneRegistered ? (
+                <div className="space-y-4">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
+                    <div className="flex-1 relative">
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="1234567890"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                        className="w-full"
+                      />
+                      {phoneQueryLoading && (
+                        <p className="mt-1 text-sm text-gray-600">
+                          Loading phone number...
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={otpLoading || timer > 0 || phoneQueryLoading}
+                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+                    >
+                      {otpLoading ? (
+                        <Spinner />
+                      ) : timer > 0 ? (
+                        `Resend OTP (${timer}s)`
+                      ) : (
+                        "Send OTP"
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    OTP will be sent to your phone number via WhatsApp.
+                  </p>
+                </div>
+              ) : otpSent ? (
+                <div className="space-y-4">
+                  <label
+                    htmlFor="otp"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    OTP
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
+                    <div className="flex-1">
+                      <Input
+                        id="otp"
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        disabled={otpLoading}
+                        className="w-full"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={otpLoading}
+                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+                    >
+                      {otpLoading ? <Spinner /> : "Verify OTP"}
+                    </Button>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    OTP was sent to your phone number via WhatsApp.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center justify-start space-x-4">
+                    <div className="flex-1 relative">
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        value={phoneNumber}
+                        disabled={true}
+                        className="w-full pr-10"
+                      />
+                      <CheckCircleIcon
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <Button
+                      variant="danger"
+                      type="button"
+                      onClick={() => setShowDisconnectModal(true)}
+                      className="px-4 py-2  text-red-700 hover:bg-gray-400 rounded-md"
+                      disabled={otpLoading}
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

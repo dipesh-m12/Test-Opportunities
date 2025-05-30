@@ -796,12 +796,6 @@ export default function Home() {
     );
   };
 
-  const handlePhoneVerify = async () => {
-    toast.success(
-      "Sms will be sent to you. This feature will be available soon"
-    );
-  };
-
   return (
     <div className="flex flex-col min-h-screen font-poppins">
       <header className="sticky top-0 z-50 bg-white border-b">

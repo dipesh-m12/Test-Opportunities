@@ -173,7 +173,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const [fileError, setFileError] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const [link, setlink] = useState("");
-
+  const [requiredInput, setRequiredInput] = useState("");
+  const [preferredInput, setPreferredInput] = useState("");
   const [fetchedJobDetails, setFetchedJobDetails] = useState<FetchedJobDetails>(
     {
       job: {},
@@ -399,29 +400,36 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       | React.KeyboardEvent<HTMLInputElement>
       | { currentTarget: HTMLInputElement; preventDefault: () => void }
   ) => {
-    e.preventDefault(); // CHANGE: Prevent default behavior to avoid form submission
-    if (skill.trim()) {
-      const skillsArray =
-        type === "required" ? requiredSkills : preferredSkills;
-      if (skillsArray.length < 5 && !skillsArray.includes(skill.trim())) {
-        const newSkills = [...skillsArray, skill.trim()];
-        if (type === "required") {
-          setRequiredSkills(newSkills);
-          setValue("requiredSkills", newSkills, { shouldValidate: true });
-        } else {
-          setPreferredSkills(newSkills);
-          setValue("preferredSkills", newSkills, { shouldValidate: true });
-        }
-      }
-      e.currentTarget.value = ""; // CHANGE: Clear input after adding skill
+    e.preventDefault();
+
+    const trimmedSkill = skill.trim();
+    if (!trimmedSkill) return;
+
+    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
+
+    if (skillsArray.length >= 5) return; // max 5 skills
+    if (skillsArray.includes(trimmedSkill)) return; // no duplicates
+
+    const newSkills = [...skillsArray, trimmedSkill];
+
+    if (type === "required") {
+      setRequiredSkills(newSkills);
+      setValue("requiredSkills", newSkills, { shouldValidate: true });
+      setRequiredInput(""); // clear input state
+    } else {
+      setPreferredSkills(newSkills);
+      setValue("preferredSkills", newSkills, { shouldValidate: true });
+      setPreferredInput("");
     }
+
+    // Clear actual input element's value
+    e.currentTarget.value = "";
   };
 
   const removeSkill = (type: "required" | "preferred", skill: string) => {
-    const newSkills =
-      type === "required"
-        ? requiredSkills.filter((s) => s !== skill)
-        : preferredSkills.filter((s) => s !== skill);
+    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
+    const newSkills = skillsArray.filter((s) => s !== skill);
+
     if (type === "required") {
       setRequiredSkills(newSkills);
       setValue("requiredSkills", newSkills, { shouldValidate: true });
@@ -1550,17 +1558,42 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 />
               </div>
 
+              {/* Required Skills */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Required Skills (max 5, at least 1)
                 </label>
-                <Input
-                  placeholder="Type a skill and press Enter"
-                  onKeyDown={(e) =>
-                    handleSkillAdd("required", e.currentTarget.value, e)
-                  }
-                  error={errors.requiredSkills?.message}
-                />
+
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Type a skill and press Enter"
+                    value={requiredInput}
+                    onChange={(e) => setRequiredInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSkillAdd("required", requiredInput, e);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="block sm:hidden w-full bg-blue-600 text-white px-3 py-2 rounded text-sm"
+                    onClick={(e) => {
+                      // create a mock event with currentTarget.value for handleSkillAdd
+                      handleSkillAdd("required", requiredInput, {
+                        preventDefault: () => {},
+                        currentTarget: {
+                          value: requiredInput,
+                        } as HTMLInputElement,
+                      });
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+
                 <div className="mt-2 flex flex-wrap gap-2">
                   {requiredSkills.map((skill) => (
                     <span
@@ -1578,6 +1611,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     </span>
                   ))}
                 </div>
+
                 <input
                   type="hidden"
                   {...register("requiredSkills", {
@@ -1591,19 +1625,48 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     },
                   })}
                 />
+                {errors.requiredSkills && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.requiredSkills.message}
+                  </p>
+                )}
               </div>
 
-              <div>
+              {/* Preferred Skills */}
+              <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Preferred Skills (max 5, at least 1)
                 </label>
-                <Input
-                  placeholder="Type a skill and press Enter"
-                  onKeyDown={(e) =>
-                    handleSkillAdd("preferred", e.currentTarget.value, e)
-                  }
-                  error={errors.preferredSkills?.message}
-                />
+
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Type a skill and press Enter"
+                    value={preferredInput}
+                    onChange={(e) => setPreferredInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSkillAdd("preferred", preferredInput, e);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="block sm:hidden w-full bg-blue-600 text-white px-3 py-2 rounded text-sm"
+                    onClick={(e) => {
+                      handleSkillAdd("preferred", preferredInput, {
+                        preventDefault: () => {},
+                        currentTarget: {
+                          value: preferredInput,
+                        } as HTMLInputElement,
+                      });
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+
                 <div className="mt-2 flex flex-wrap gap-2">
                   {preferredSkills.map((skill) => (
                     <span
@@ -1621,6 +1684,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     </span>
                   ))}
                 </div>
+
                 <input
                   type="hidden"
                   {...register("preferredSkills", {
@@ -1634,6 +1698,11 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     },
                   })}
                 />
+                {errors.preferredSkills && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.preferredSkills.message}
+                  </p>
+                )}
               </div>
 
               <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
@@ -1754,7 +1823,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                         const assignDate = new Date(assignmentDeadline);
                         return appDate > assignDate
                           ? true
-                          : "Application deadline must be after assignment deadline";
+                          : "Application deadline must be greater than assignment deadline";
                       },
                     },
                   })}
