@@ -199,7 +199,7 @@ export const Settings = ({
       const newOtp = generateOtp();
       if (!companyId) {
         return toast.error(
-          "Start the onboarding with providing company details"
+          "Please fill the company details and contact information to verify your number"
         );
       }
       const formattedPhone = `${phoneNumber}`;
@@ -423,42 +423,6 @@ export const Settings = ({
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto">
         <div className="space-y-6">
-          {/* Modal for Disconnect Confirmation */}
-          {showDisconnectModal && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Confirm Disconnect
-                </h2>
-                <p className="mt-2 text-sm text-gray-600">
-                  Are you sure you want to disconnect the phone number{" "}
-                  <span className="font-medium">{phoneNumber}</span>? This
-                  action cannot be undone.
-                </p>
-                <div className="mt-6 flex justify-end space-x-3">
-                  <Button
-                    type="button"
-                    variant="none"
-                    className="px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md transition-colors"
-                    onClick={() => setShowDisconnectModal(false)}
-                    disabled={otpLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
-                    onClick={handleDisconnect}
-                    disabled={otpLoading}
-                  >
-                    {otpLoading ? <Spinner /> : "Disconnect"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <Card>
             <CardHeader>
               <CardTitle>Company Profile</CardTitle>
@@ -715,6 +679,41 @@ export const Settings = ({
               )}
             </CardContent>
           </Card>
+          {/* Modal for Disconnect Confirmation */}
+          {showDisconnectModal && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
+              <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Confirm Disconnect
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to disconnect the phone number{" "}
+                  <span className="font-medium">{phoneNumber}</span>? This
+                  action cannot be undone.
+                </p>
+                <div className="mt-6 flex justify-end space-x-3">
+                  <Button
+                    type="button"
+                    variant="none"
+                    className="px-4 py-2 bg-gray-200 text-gray-900 hover:bg-gray-300 rounded-md transition-colors"
+                    onClick={() => setShowDisconnectModal(false)}
+                    disabled={otpLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors"
+                    onClick={handleDisconnect}
+                    disabled={otpLoading}
+                  >
+                    {otpLoading ? <Spinner /> : "Disconnect"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Card>
             <CardHeader>

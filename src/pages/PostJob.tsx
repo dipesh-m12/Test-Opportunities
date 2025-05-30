@@ -1246,6 +1246,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         setPreferredSkills([]);
         setRequiredSkills([]);
         setFileError(undefined); // Clear any file error
+        navigate("/manage-jobs");
         toast.success("Job drafted successfully!");
       } catch (e) {
         toast.error("Something went wrong");
