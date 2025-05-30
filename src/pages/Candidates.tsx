@@ -252,7 +252,7 @@ export const Candidates = () => {
         `${host}/company/${companyRes.data.id}/job/${jobId}/application`,
         { headers: { Authorization: idToken } }
       );
-      // console.log(response.data);
+      console.log(response.data);
       const jobData = response.data[0]?.application.job;
       if (jobData) {
         setJob({
@@ -280,7 +280,7 @@ export const Candidates = () => {
             `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
             { headers: { Authorization: idToken } }
           );
-
+          console.log(skillsRes.data);
           const projects = e.application.applicant.projects || [];
 
           const codeQuality =
@@ -694,9 +694,9 @@ export const Candidates = () => {
               </h1>
               <p className="text-xs sm:text-sm text-gray-500">
                 {job.type} · {job.location} ·{" "}
-                <IndianRupee className="inline size-4" />{" "}
+                <IndianRupee className="inline size-3" />{" "}
                 {job.salary.min.toLocaleString("en-IN")} -{" "}
-                <IndianRupee className="inline size-4" />{" "}
+                <IndianRupee className="inline size-3" />{" "}
                 {job.salary.max.toLocaleString("en-IN")}
               </p>
               <p className="mt-1 text-xs sm:text-sm text-gray-500">

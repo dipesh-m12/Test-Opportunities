@@ -364,12 +364,12 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                           <span>
                             {job.type == "Internship" ? (
                               <span className="font-medium">
-                                <IndianRupee className="inline size-4" />{" "}
+                                <IndianRupee className="inline size-3" />{" "}
                                 {job.salary_min.toLocaleString("en-IN")}
                               </span>
                             ) : (
                               <span className="font-medium">
-                                <IndianRupee className="inline size-4" />{" "}
+                                <IndianRupee className="inline size-3" />{" "}
                                 {job.salary_min.toLocaleString("en-IN")} -{" "}
                                 {job.salary_max.toLocaleString("en-IN")}
                               </span>
