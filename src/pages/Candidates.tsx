@@ -640,7 +640,7 @@ export const Candidates = () => {
       await axios.put(
         `${host}/company/${companyRes.data.id}/job/${jobId}/application/${candidateId}`,
         {
-          status: newStatus === "new" ? "New" : newStatus,
+          status: newStatus === "new" ? "new" : newStatus,
         },
         { headers: { Authorization: idToken } }
       );
