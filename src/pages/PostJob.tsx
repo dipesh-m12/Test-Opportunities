@@ -690,7 +690,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       //create assignment
       const formData = new FormData();
       formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", "project");
+      formData.append("submissionType", "file");
       formData.append(
         "deadline",
         moment(submissionData.assignment.deadline, "YYYY-MM-DD")
@@ -936,7 +936,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       //create assignment
       const formData = new FormData();
       formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", "project");
+      formData.append("submissionType", "file");
       formData.append(
         "deadline",
         moment(submissionData.assignment.deadline, "YYYY-MM-DD")
@@ -1176,7 +1176,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         //create assignment
         const formData = new FormData();
         formData.append("description", submissionData.assignment.description);
-        formData.append("submissionType", "project");
+        formData.append("submissionType", "file");
         formData.append(
           "deadline",
           moment(submissionData.assignment.deadline, "YYYY-MM-DD")
