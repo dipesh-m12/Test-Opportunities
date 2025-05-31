@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useMemo } from "react";
@@ -176,7 +177,7 @@ export const Candidates = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const location = useLocation();
@@ -282,7 +283,11 @@ export const Candidates = () => {
             { headers: { Authorization: idToken } }
           );
           console.log(skillsRes.data);
-          const projects = e.application.applicant.projects || [];
+          const projects = (e.application.applicant.projects || []).filter(
+            (project: any) =>
+              (project.highlights || []).length != 0 &&
+              (project.tags || []).length != 0
+          );
 
           const codeQuality =
             projects.length > 0
@@ -421,23 +426,28 @@ export const Candidates = () => {
                     : 0),
                 0
               ),
-              codeQuality:
-                e.application.applicant.projects?.length > 0
-                  ? (e.application.applicant.projects || []).reduce(
-                      (sum: number, project: any) =>
-                        sum +
-                        (project && typeof project === "object"
-                          ? project.score || 0
-                          : 0),
-                      0
-                    ) /
-                    (e.application.applicant.projects.length == 0
-                      ? 1
-                      : e.application.applicant.projects.length)
-                  : 0,
+              codeQuality: codeQuality,
+              // e.application.applicant.projects?.length > 0
+              //   ? (e.application.applicant.projects || []).reduce(
+              //       (sum: number, project: any) =>
+              //         sum +
+              //         (project && typeof project === "object"
+              //           ? project.score || 0
+              //           : 0),
+              //       0
+              //     ) /
+              //     (e.application.applicant.projects.length == 0
+              //       ? 1
+              //       : e.application.applicant.projects.length)
+              //   : 0,
               overall_score: overallGithubScore,
             },
             projects: (e.application.applicant.projects || [])
+              .filter(
+                (project: any) =>
+                  (project.highlights || []).length != 0 &&
+                  (project.tags || []).length != 0
+              )
               .map((project: any) => ({
                 name: project.title || "",
                 description: project.description || "",
@@ -1195,124 +1205,126 @@ export const Candidates = () => {
                             </h4>
                             <div className="grid gap-3">
                               {candidate.projects.length > 0 ? (
-                                candidate.projects.map((project, index) => (
-                                  <div
-                                    key={index}
-                                    className="rounded-lg border p-3"
-                                  >
-                                    <div className="space-y-2">
-                                      <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                                        <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                                          {project.name}
-                                        </h5>
-                                        <div className="flex space-x-2">
-                                          {project.repoUrl && (
-                                            <a
-                                              href={project.repoUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-gray-500 hover:text-gray-700"
-                                              aria-label={`View ${project.name} GitHub repository`}
-                                            >
-                                              <Github className="h-4 w-4 sm:h-5 sm:w-5" />
-                                            </a>
-                                          )}
-                                          {project.liveUrl && (
-                                            <a
-                                              href={project.liveUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-gray-500 hover:text-gray-700"
-                                              aria-label={`View ${project.name} live demo`}
-                                            >
-                                              <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                            </a>
-                                          )}
+                                candidate.projects
+                                  // .filter((e) => e.highlights.length !== 0)
+                                  .map((project, index) => (
+                                    <div
+                                      key={index}
+                                      className="rounded-lg border p-3"
+                                    >
+                                      <div className="space-y-2">
+                                        <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                          <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                            {project.name}
+                                          </h5>
+                                          <div className="flex space-x-2">
+                                            {project.repoUrl && (
+                                              <a
+                                                href={project.repoUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-gray-500 hover:text-gray-700"
+                                                aria-label={`View ${project.name} GitHub repository`}
+                                              >
+                                                <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                                              </a>
+                                            )}
+                                            {project.liveUrl && (
+                                              <a
+                                                href={project.liveUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-gray-500 hover:text-gray-700"
+                                                aria-label={`View ${project.name} live demo`}
+                                              >
+                                                <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                              </a>
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                      {/* <p className="text-xs sm:text-sm text-gray-600">
+                                        {/* <p className="text-xs sm:text-sm text-gray-600">
                                         {project.description ||
                                           "No description provided"}
                                       </p> */}
-                                      <div className="space-y-1">
-                                        <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                          Project Summary:
-                                        </h6>
-                                        <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                                          {project.highlights.length > 0 ? (
-                                            project.highlights.map(
-                                              (highlight, i) => (
-                                                <li key={i}>{highlight}</li>
+                                        <div className="space-y-1">
+                                          <h6 className="text-xs sm:text-sm font-medium text-gray-700">
+                                            Project Summary:
+                                          </h6>
+                                          <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
+                                            {project.highlights.length > 0 ? (
+                                              project.highlights.map(
+                                                (highlight, i) => (
+                                                  <li key={i}>{highlight}</li>
+                                                )
                                               )
-                                            )
+                                            ) : (
+                                              <li>No highlights provided</li>
+                                            )}
+                                          </ul>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1 sm:gap-2">
+                                          {project.technologies.length > 0 ||
+                                          project.tags.length > 0 ? (
+                                            [
+                                              ...new Set(
+                                                [
+                                                  ...project.tags,
+                                                  ...project.technologies,
+                                                ].map((tech) =>
+                                                  tech.toLowerCase()
+                                                )
+                                              ),
+                                            ].map((tech) => (
+                                              <Badge
+                                                key={tech}
+                                                variant="secondary"
+                                                className="text-xs"
+                                              >
+                                                {tech}
+                                              </Badge>
+                                            ))
                                           ) : (
-                                            <li>No highlights provided</li>
+                                            <span className="text-xs text-gray-500">
+                                              No technologies listed
+                                            </span>
                                           )}
-                                        </ul>
-                                      </div>
-                                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                                        {project.technologies.length > 0 ||
-                                        project.tags.length > 0 ? (
-                                          [
-                                            ...new Set(
-                                              [
-                                                ...project.tags,
-                                                ...project.technologies,
-                                              ].map((tech) =>
-                                                tech.toLowerCase()
-                                              )
-                                            ),
-                                          ].map((tech) => (
-                                            <Badge
-                                              key={tech}
-                                              variant="secondary"
-                                              className="text-xs"
-                                            >
-                                              {tech}
-                                            </Badge>
-                                          ))
-                                        ) : (
-                                          <span className="text-xs text-gray-500">
-                                            No technologies listed
-                                          </span>
-                                        )}
-                                      </div>
-                                      <div className="relative flex items-center justify-end">
-                                        <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
-                                          <span className="group relative">
-                                            <Info
-                                              className="h-4 w-4 text-blue-700 cursor-help"
-                                              aria-label="Code Quality score details"
-                                            />
-                                            <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-16 right-0 z-10 text-left">
-                                              <p className="font-semibold">
-                                                Code Quality Score
-                                              </p>
-                                              <ul className="list-disc list-inside mt-1">
-                                                <li>Readability: 20%</li>
-                                                <li>Consistency: 15%</li>
-                                                <li>Use of Comments: 15%</li>
-                                                <li>
-                                                  Indentation and Formatting:
-                                                  15%
-                                                </li>
-                                                <li>Code Smells: 20%</li>
-                                                <li>
-                                                  Naming and Declaration
-                                                  Practices: 10%
-                                                </li>
-                                                <li>
-                                                  Use of Language Features: 5%
-                                                </li>
-                                              </ul>
-                                            </div>
-                                          </span>
-                                          Code Quality: {project.score}
+                                        </div>
+                                        <div className="relative flex items-center justify-end">
+                                          <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
+                                            <span className="group relative">
+                                              <Info
+                                                className="h-4 w-4 text-blue-700 cursor-help"
+                                                aria-label="Code Quality score details"
+                                              />
+                                              <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-16 right-0 z-10 text-left">
+                                                <p className="font-semibold">
+                                                  Code Quality Score
+                                                </p>
+                                                <ul className="list-disc list-inside mt-1">
+                                                  <li>Readability: 20%</li>
+                                                  <li>Consistency: 15%</li>
+                                                  <li>Use of Comments: 15%</li>
+                                                  <li>
+                                                    Indentation and Formatting:
+                                                    15%
+                                                  </li>
+                                                  <li>Code Smells: 20%</li>
+                                                  <li>
+                                                    Naming and Declaration
+                                                    Practices: 10%
+                                                  </li>
+                                                  <li>
+                                                    Use of Language Features: 5%
+                                                  </li>
+                                                </ul>
+                                              </div>
+                                            </span>
+                                            Code Quality: {project.score}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))
+                                  ))
                               ) : (
                                 <p className="text-xs sm:text-sm text-gray-500">
                                   No projects listed
