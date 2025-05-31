@@ -130,7 +130,7 @@ export const Dashboard = ({
             },
           }
         );
-        console.log(candidate);
+        console.log(candidate.data);
         const cdata = candidate.data || [];
         const recentApplications = [...cdata]
           .sort((a, b) => {
