@@ -245,11 +245,8 @@ export const Dashboard = ({
                       from={0}
                       to={stat.value}
                       separator=","
-                      direction="up"
-                      duration={0}
+                      duration={0} // disables animation
                       className="count-up-text"
-                      onStart={undefined}
-                      onEnd={undefined}
                     />
                   </p>
                 </div>

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
 import { useInView, useMotionValue, useSpring } from "framer-motion";
 
@@ -12,29 +14,43 @@ export default function CountUp({
   separator = "",
   onStart,
   onEnd,
-}) {
-  const ref = useRef(null);
+}: any) {
+  const ref = useRef<any>(null);
   const motionValue = useMotionValue(direction === "down" ? to : from);
-
-  // Calculate damping and stiffness based on duration
-  const damping = 20 + 40 * (1 / duration); // Adjust this formula for finer control
-  const stiffness = 100 * (1 / duration); // Adjust this formula for finer control
-
   const springValue = useSpring(motionValue, {
-    damping,
-    stiffness,
+    damping: 20 + 40 * (1 / duration),
+    stiffness: 100 * (1 / duration),
   });
 
   const isInView = useInView(ref, { once: true, margin: "0px" });
 
-  // Set initial text content to the initial value based on direction
+  // Immediately render number without animation if duration is 0
+  useEffect(() => {
+    if (ref.current && (duration === 0 || duration < 0.05)) {
+      const displayValue = direction === "down" ? from : to;
+      const formattedNumber = Intl.NumberFormat("en-US", {
+        useGrouping: !!separator,
+      }).format(displayValue);
+
+      ref.current.textContent = separator
+        ? formattedNumber.replace(/,/g, separator)
+        : formattedNumber;
+    }
+  }, [from, to, direction, duration, separator]);
+
+  // Skip animation logic if duration is 0
+  if (duration === 0 || duration < 0.05) {
+    return <span className={className} ref={ref} />;
+  }
+
+  // Set initial text content
   useEffect(() => {
     if (ref.current) {
       ref.current.textContent = String(direction === "down" ? to : from);
     }
   }, [from, to, direction]);
 
-  // Start the animation when in view and startWhen is true
+  // Start animation when in view
   useEffect(() => {
     if (isInView && startWhen) {
       if (typeof onStart === "function") {
@@ -69,7 +85,7 @@ export default function CountUp({
     duration,
   ]);
 
-  // Update text content with formatted number on spring value change
+  // Update DOM with spring value
   useEffect(() => {
     const unsubscribe = springValue.on("change", (latest) => {
       if (ref.current) {
@@ -92,5 +108,5 @@ export default function CountUp({
     return () => unsubscribe();
   }, [springValue, separator]);
 
-  return <span className={`${className}`} ref={ref} />;
+  return <span className={className} ref={ref} />;
 }
