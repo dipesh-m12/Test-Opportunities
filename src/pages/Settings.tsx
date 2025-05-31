@@ -459,6 +459,7 @@ export const Settings = ({
                 <Input
                   disabled={loading}
                   id="website"
+                  placeholder="https://"
                   type="url"
                   {...register("website", {
                     required: "Website URL is required",
