@@ -28,7 +28,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
   // const [isPostJobEnabled, setIsPostJobEnabled] = React.useState(false);
   const [companyId, setcompanyId] = useState("");
@@ -51,7 +51,6 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
       }
 
       try {
-        console.log("here");
         const response = await axios.get(`${host}/company`, {
           headers: {
             Authorization: idToken,
@@ -172,7 +171,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
           Authorization: idToken,
         },
       });
-      console.log(response.data);
+      // console.log(response.data);
       let data: any[] = [];
       if (response.data.length !== 0) {
         data = response.data.map((e: any) => ({
@@ -196,7 +195,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
         // data = [];
       }
       setJobs(data);
-      console.log("API Response:", response.data);
+      // console.log("API Response:", response.data);
     } catch (error) {
       console.error("Error loading jobs:", error);
       toast.error("somwthing went wrong...");
@@ -230,7 +229,7 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
           },
         }
       );
-      console.log("delete job", response.data);
+      // console.log("delete job", response.data);
       setJobs(jobs.filter((job) => job.id !== jobId));
       toast.success("The job was removed successfully");
       setIsModalOpen(false);
@@ -270,6 +269,10 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
       ? navigate(`/candidates/${jobId}`, { state: location.state })
       : navigate(`/candidates/${jobId}`);
   };
+
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
 
   return (
     <div className="space-y-6">
