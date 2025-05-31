@@ -121,7 +121,7 @@ export const Dashboard = ({
             Authorization: idToken,
           },
         });
-
+        console.log(response.data);
         const candidate = await axios.get(
           `${host}/application/company/${companyId}`,
           {
@@ -130,8 +130,9 @@ export const Dashboard = ({
             },
           }
         );
-        console.log(candidate.data);
-        const recentApplications = [...candidate.data]
+        console.log(candidate);
+        const cdata = candidate.data || [];
+        const recentApplications = [...cdata]
           .sort((a, b) => {
             const dateA = new Date(a?.application?.updated_at || 0).getTime();
             const dateB = new Date(b?.application?.updated_at || 0).getTime();
@@ -166,10 +167,10 @@ export const Dashboard = ({
           e.label === "Active Jobs"
             ? { ...e, value: activeJobs.length }
             : e.label === "Total Candidates"
-            ? { ...e, value: candidate.data.length }
+            ? { ...e, value: cdata.length }
             : {
                 ...e,
-                value: candidate.data.filter(
+                value: cdata.filter(
                   (e: any) => e.application.status === "shortlisted"
                 ).length,
               }
