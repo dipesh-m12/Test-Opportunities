@@ -174,28 +174,34 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
       // console.log(response.data);
       let data: any[] = [];
       if (response.data.length !== 0) {
-        data = response.data.map((e: any) => ({
-          id: e.id,
-          title: e.title,
-          type: e.type == "full-time" ? "Full-time" : "Internship",
-          location: e.work_mode,
-          salary: {
-            min: e.min_salary,
-            max: e.max_salary,
+        data = response.data
+          .map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            type: e.type == "full-time" ? "Full-time" : "Internship",
+            location: e.work_mode,
+            salary: {
+              min: e.min_salary,
+              max: e.max_salary,
+              currency: "INR",
+            },
+            created_at: e.created_at, // Approximate ISO timestamp
+            status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
             currency: "INR",
-          },
-          created_at: e.created_at, // Approximate ISO timestamp
-          status: e.status.charAt(0).toUpperCase() + e.status.slice(1),
-          currency: "INR",
-          salary_min: e.min_salary,
-          salary_max: e.max_salary,
-          deadline: e.deadline,
-          city: e.city,
-        }));
+            salary_min: e.min_salary,
+            salary_max: e.max_salary,
+            deadline: e.deadline,
+            city: e.city,
+          }))
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA; // Newest first
+          });
         // data = [];
       }
       setJobs(data);
-      // console.log("API Response:", response.data);
+      console.log("API Response:", response.data);
     } catch (error) {
       console.error("Error loading jobs:", error);
       toast.error("somwthing went wrong...");
