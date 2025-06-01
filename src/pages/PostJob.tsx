@@ -687,10 +687,15 @@ export const PostJob = ({ isPhoneNumber }: any) => {
 
       // setFetchedJobDetails(temp);
 
+      const fileType = submissionData.assignment.submissionPreferences.includes(
+        "documentation"
+      )
+        ? "file"
+        : "project";
       //create assignment
       const formData = new FormData();
       formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", "file");
+      formData.append("submissionType", fileType);
       formData.append(
         "deadline",
         moment(submissionData.assignment.deadline, "YYYY-MM-DD")
@@ -932,11 +937,15 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         "Skills Added:",
         skillResponses.map((res) => res.data)
       );
-
+      const fileType = submissionData.assignment.submissionPreferences.includes(
+        "documentation"
+      )
+        ? "file"
+        : "project";
       //create assignment
       const formData = new FormData();
       formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", "file");
+      formData.append("submissionType", fileType);
       formData.append(
         "deadline",
         moment(submissionData.assignment.deadline, "YYYY-MM-DD")
@@ -1172,11 +1181,16 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           "Skills Added:",
           skillResponses.map((res) => res.data)
         );
-
+        const fileType =
+          submissionData.assignment.submissionPreferences.includes(
+            "documentation"
+          )
+            ? "file"
+            : "project";
         //create assignment
         const formData = new FormData();
         formData.append("description", submissionData.assignment.description);
-        formData.append("submissionType", "file");
+        formData.append("submissionType", fileType);
         formData.append(
           "deadline",
           moment(submissionData.assignment.deadline, "YYYY-MM-DD")
