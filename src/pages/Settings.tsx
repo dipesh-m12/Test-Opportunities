@@ -177,6 +177,7 @@ export const Settings = ({
       }
     }
     getNumber();
+    checkPhoneNumber(companyId);
   }, [companyId]);
 
   // Generate a 6-digit OTP
