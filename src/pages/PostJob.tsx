@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
@@ -130,6 +131,137 @@ const submissionPreferencesOptions = [
   { value: "documentation", label: "Documentation" },
 ];
 
+const SKILLS_LIST = [
+  // Programming Languages
+  "python",
+  "java",
+  "javascript",
+  "dart",
+  "go",
+  "c#",
+  "ruby",
+  "rust",
+  "php",
+  "swift",
+  "kotlin",
+  "typescript",
+  "R",
+  "Julia",
+  "c",
+  // Markup Languages
+  "html",
+  "xml",
+  // Stylesheet Languages
+  "css",
+  "tailwind css",
+  "Bootstrap",
+  // Frameworks/Major UI Libraries
+  "flutter",
+  "react",
+  "angular",
+  "vue",
+  "django",
+  "node.js/express",
+  "springboot",
+  ".net",
+  "next",
+  "rubyonrails",
+  "laravel",
+  "svelte",
+  "kotlinmultiplatform",
+  "swiftui",
+  "androidjetpackcompose",
+  "scikit-learn",
+  "XGBoost",
+  "LightGBM",
+  "CatBoost",
+  "TensorFlow",
+  "Keras",
+  "PyTorch",
+  "statsmodels",
+  "Pandas",
+  "NumPy",
+  "Matplotlib",
+  "Seaborn",
+  "HuggingFaceTransformers",
+  "LangChain",
+  "LlamaIndex",
+  "OpenCV",
+  "spaCy",
+  "nltk",
+  "SentenceTransformers",
+  "gradio",
+  "streamlit",
+  "fastAPI",
+  "flask",
+  // State Management Solutions
+  "bloc",
+  "provider",
+  "redux",
+  "mobx",
+  "vuex",
+  "recoil",
+  "zustand",
+  "pinia",
+  "ngrx",
+  "rxjava",
+  "riverpod",
+  // Database
+  "postgresql",
+  "mongodb",
+  "mysql",
+  "firebase",
+  "sqlite",
+  "realm",
+  "cassandra",
+  "redis",
+  "sqlserver",
+  "snowflake",
+  // Cloud Services
+  "aws ec2",
+  "aws lambda",
+  "aws rds",
+  "google cloud firebase",
+  "googlecloudappengine",
+  "googlecloudcomputeengine",
+  "azurefunctions",
+  "azurecosmosdb",
+  "azureblobstorage",
+  "vercel",
+  "netlify",
+  "heroku",
+  "azure",
+  "gcp",
+  // AI Techniques
+  "rag",
+  "nlp",
+  "genai",
+  "llm",
+  "TesseractOCR",
+  "EasyOCR",
+  "PaddleOCR",
+  "OCRopus",
+  "KrakenOCR",
+  "GoogleCloudVisionOCR",
+  "AWSTextract",
+  "MicrosoftAzureOCR",
+  "OCR.spaceAPI",
+  "ABBYYFineReaderSDK",
+  "ScanbotSDK",
+  "DynamsoftOCRSDK",
+  "Keras-OCR",
+  "LayoutLM",
+  "LayoutXLM",
+  // Version Control
+  "Git",
+  // DevOps
+  "docker",
+  "kubernetes",
+  "jenkins",
+  "ansible",
+  "terraform",
+];
+
 export const PostJob = ({ isPhoneNumber }: any) => {
   const {
     register,
@@ -175,6 +307,13 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const [link, setlink] = useState("");
   const [requiredInput, setRequiredInput] = useState("");
   const [preferredInput, setPreferredInput] = useState("");
+  const [requiredSuggestions, setRequiredSuggestions] = useState<string[]>([]);
+  const [preferredSuggestions, setPreferredSuggestions] = useState<string[]>(
+    []
+  );
+  const [showRequiredSuggestions, setShowRequiredSuggestions] = useState(false);
+  const [showPreferredSuggestions, setShowPreferredSuggestions] =
+    useState(false);
   const [fetchedJobDetails, setFetchedJobDetails] = useState<FetchedJobDetails>(
     {
       job: {},
@@ -195,6 +334,93 @@ export const PostJob = ({ isPhoneNumber }: any) => {
 
   const [searchParams] = useSearchParams();
   const edit = searchParams.get("edit");
+
+  // Handle skill suggestions
+  const filterSuggestions = (input: string, type: "required" | "preferred") => {
+    if (!input) return [];
+    const lowerInput = input.toLowerCase();
+    const otherSkills = type === "required" ? preferredSkills : requiredSkills;
+    return SKILLS_LIST.filter(
+      (skill) =>
+        skill.toLowerCase().includes(lowerInput) &&
+        !requiredSkills.includes(skill) &&
+        !preferredSkills.includes(skill)
+    ).slice(0, 5); // Limit to 5 suggestions
+  };
+
+  // Update suggestions based on input
+  useEffect(() => {
+    setRequiredSuggestions(filterSuggestions(requiredInput, "required"));
+    setShowRequiredSuggestions(
+      requiredInput.length > 0 && requiredSkills.length < 5
+    );
+  }, [requiredInput, requiredSkills, preferredSkills]);
+
+  useEffect(() => {
+    setPreferredSuggestions(filterSuggestions(preferredInput, "preferred"));
+    setShowPreferredSuggestions(
+      preferredInput.length > 0 && preferredSkills.length < 5
+    );
+  }, [preferredInput, preferredSkills, requiredSkills]);
+
+  const handleSkillAdd = (
+    type: "required" | "preferred",
+    skill: string,
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | { currentTarget: HTMLInputElement; preventDefault: () => void }
+  ) => {
+    e.preventDefault();
+
+    const trimmedSkill = skill.trim();
+    if (!trimmedSkill) return;
+
+    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
+    const otherSkills = type === "required" ? preferredSkills : requiredSkills;
+
+    if (skillsArray.length >= 5) return; // max 5 skills
+    if (
+      skillsArray.includes(trimmedSkill) ||
+      otherSkills.includes(trimmedSkill)
+    )
+      return; // no duplicates or cross-category skills
+
+    const newSkills = [...skillsArray, trimmedSkill];
+
+    if (type === "required") {
+      setRequiredSkills(newSkills);
+      setValue("requiredSkills", newSkills, { shouldValidate: true });
+      setRequiredInput("");
+      setShowRequiredSuggestions(false);
+    } else {
+      setPreferredSkills(newSkills);
+      setValue("preferredSkills", newSkills, { shouldValidate: true });
+      setPreferredInput("");
+      setShowPreferredSuggestions(false);
+    }
+
+    e.currentTarget.value = "";
+  };
+
+  const removeSkill = (type: "required" | "preferred", skill: string) => {
+    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
+    const newSkills = skillsArray.filter((s) => s !== skill);
+
+    if (type === "required") {
+      setRequiredSkills(newSkills);
+      setValue("requiredSkills", newSkills, { shouldValidate: true });
+    } else {
+      setPreferredSkills(newSkills);
+      setValue("preferredSkills", newSkills, { shouldValidate: true });
+    }
+  };
+
+  const selectSuggestion = (type: "required" | "preferred", skill: string) => {
+    handleSkillAdd(type, skill, {
+      preventDefault: () => {},
+      currentTarget: { value: skill } as HTMLInputElement,
+    });
+  };
 
   useEffect(() => {
     if (data && data.isEditing) {
@@ -391,52 +617,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const handleCitySelect = (suggestion: string) => {
     setValue("city", suggestion, { shouldValidate: true });
     setShowCitySuggestions(false);
-  };
-
-  const handleSkillAdd = (
-    type: "required" | "preferred",
-    skill: string,
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | { currentTarget: HTMLInputElement; preventDefault: () => void }
-  ) => {
-    e.preventDefault();
-
-    const trimmedSkill = skill.trim();
-    if (!trimmedSkill) return;
-
-    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
-
-    if (skillsArray.length >= 5) return; // max 5 skills
-    if (skillsArray.includes(trimmedSkill)) return; // no duplicates
-
-    const newSkills = [...skillsArray, trimmedSkill];
-
-    if (type === "required") {
-      setRequiredSkills(newSkills);
-      setValue("requiredSkills", newSkills, { shouldValidate: true });
-      setRequiredInput(""); // clear input state
-    } else {
-      setPreferredSkills(newSkills);
-      setValue("preferredSkills", newSkills, { shouldValidate: true });
-      setPreferredInput("");
-    }
-
-    // Clear actual input element's value
-    e.currentTarget.value = "";
-  };
-
-  const removeSkill = (type: "required" | "preferred", skill: string) => {
-    const skillsArray = type === "required" ? requiredSkills : preferredSkills;
-    const newSkills = skillsArray.filter((s) => s !== skill);
-
-    if (type === "required") {
-      setRequiredSkills(newSkills);
-      setValue("requiredSkills", newSkills, { shouldValidate: true });
-    } else {
-      setPreferredSkills(newSkills);
-      setValue("preferredSkills", newSkills, { shouldValidate: true });
-    }
   };
 
   const handleDescriptionChange = (value: string) => {
@@ -1579,24 +1759,50 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   Required Skills (max 5, at least 1)
                 </label>
 
-                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Type a skill and press Enter"
-                    value={requiredInput}
-                    onChange={(e) => setRequiredInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSkillAdd("required", requiredInput, e);
-                      }
-                    }}
-                  />
+                <div className="relative flex flex-col sm:flex-row gap-2 w-full">
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Type a skill and press Enter"
+                      value={requiredInput}
+                      onChange={(e) => setRequiredInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSkillAdd("required", requiredInput, e);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (requiredInput) setShowRequiredSuggestions(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(
+                          () => setShowRequiredSuggestions(false),
+                          200
+                        );
+                      }}
+                    />
+                    {showRequiredSuggestions &&
+                      requiredSuggestions.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto shadow-lg">
+                          {requiredSuggestions.map((suggestion) => (
+                            <li
+                              key={suggestion}
+                              className="px-3 py-2 hover:bg-blue-100 cursor-pointer text-sm"
+                              onMouseDown={() =>
+                                selectSuggestion("required", suggestion)
+                              }
+                            >
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
                   <button
                     type="button"
                     className="block sm:hidden w-full bg-blue-600 text-white px-3 py-2 rounded text-sm"
                     onClick={(e) => {
-                      // create a mock event with currentTarget.value for handleSkillAdd
                       handleSkillAdd("required", requiredInput, {
                         preventDefault: () => {},
                         currentTarget: {
@@ -1653,19 +1859,46 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   Preferred Skills (max 5, at least 1)
                 </label>
 
-                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Type a skill and press Enter"
-                    value={preferredInput}
-                    onChange={(e) => setPreferredInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSkillAdd("preferred", preferredInput, e);
-                      }
-                    }}
-                  />
+                <div className="relative flex flex-col sm:flex-row gap-2 w-full">
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Type a skill and press Enter"
+                      value={preferredInput}
+                      onChange={(e) => setPreferredInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSkillAdd("preferred", preferredInput, e);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (preferredInput) setShowPreferredSuggestions(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(
+                          () => setShowPreferredSuggestions(false),
+                          200
+                        );
+                      }}
+                    />
+                    {showPreferredSuggestions &&
+                      preferredSuggestions.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto shadow-lg">
+                          {preferredSuggestions.map((suggestion) => (
+                            <li
+                              key={suggestion}
+                              className="px-3 py-2 hover:bg-green-100 cursor-pointer text-sm"
+                              onMouseDown={() =>
+                                selectSuggestion("preferred", suggestion)
+                              }
+                            >
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
                   <button
                     type="button"
                     className="block sm:hidden w-full bg-blue-600 text-white px-3 py-2 rounded text-sm"
