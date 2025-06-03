@@ -159,12 +159,12 @@ const SKILLS_LIST = [
   "flutter",
   "react",
   "angular",
-  "vue",
+  "vue.js",
   "django",
   "node.js/express",
   "springboot",
   ".net",
-  "next",
+  "next.js",
   "rubyonrails",
   "laravel",
   "svelte",
@@ -314,6 +314,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const [showRequiredSuggestions, setShowRequiredSuggestions] = useState(false);
   const [showPreferredSuggestions, setShowPreferredSuggestions] =
     useState(false);
+  const [selectedRequiredIndex, setSelectedRequiredIndex] = useState(-1); // Track selected suggestion for required skills
+  const [selectedPreferredIndex, setSelectedPreferredIndex] = useState(-1); // Track selected suggestion for preferred skills
   const [fetchedJobDetails, setFetchedJobDetails] = useState<FetchedJobDetails>(
     {
       job: {},
@@ -354,6 +356,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     setShowRequiredSuggestions(
       requiredInput.length > 0 && requiredSkills.length < 5
     );
+    setSelectedRequiredIndex(-1); // Reset selection when suggestions change
   }, [requiredInput, requiredSkills, preferredSkills]);
 
   useEffect(() => {
@@ -361,6 +364,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     setShowPreferredSuggestions(
       preferredInput.length > 0 && preferredSkills.length < 5
     );
+    setSelectedPreferredIndex(-1); // Reset selection when suggestions change
   }, [preferredInput, preferredSkills, requiredSkills]);
 
   const handleSkillAdd = (
@@ -392,11 +396,13 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       setValue("requiredSkills", newSkills, { shouldValidate: true });
       setRequiredInput("");
       setShowRequiredSuggestions(false);
+      setSelectedRequiredIndex(-1); // Reset selection
     } else {
       setPreferredSkills(newSkills);
       setValue("preferredSkills", newSkills, { shouldValidate: true });
       setPreferredInput("");
       setShowPreferredSuggestions(false);
+      setSelectedPreferredIndex(-1); // Reset selection
     }
 
     e.currentTarget.value = "";
@@ -420,6 +426,49 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       preventDefault: () => {},
       currentTarget: { value: skill } as HTMLInputElement,
     });
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    type: "required" | "preferred"
+  ) => {
+    const suggestions =
+      type === "required" ? requiredSuggestions : preferredSuggestions;
+    const selectedIndex =
+      type === "required" ? selectedRequiredIndex : selectedPreferredIndex;
+    const setSelectedIndex =
+      type === "required"
+        ? setSelectedRequiredIndex
+        : setSelectedPreferredIndex;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (
+        selectedIndex >= 0 &&
+        selectedIndex < suggestions.length &&
+        suggestions[selectedIndex]
+      ) {
+        // If a suggestion is highlighted, select it
+        selectSuggestion(type, suggestions[selectedIndex]);
+      } else {
+        // Otherwise, add the input value as a skill
+        handleSkillAdd(type, e.currentTarget.value, e);
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault(); // Prevent page scrolling
+      if (suggestions.length > 0) {
+        setSelectedIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault(); // Prevent page scrolling
+      if (suggestions.length > 0) {
+        setSelectedIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+      }
+    }
   };
 
   useEffect(() => {
@@ -1767,28 +1816,28 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                       placeholder="Type a skill and press Enter"
                       value={requiredInput}
                       onChange={(e) => setRequiredInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleSkillAdd("required", requiredInput, e);
-                        }
-                      }}
+                      onKeyDown={(e) => handleKeyDown(e, "required")}
                       onFocus={() => {
                         if (requiredInput) setShowRequiredSuggestions(true);
                       }}
                       onBlur={() => {
-                        setTimeout(
-                          () => setShowRequiredSuggestions(false),
-                          200
-                        );
+                        setTimeout(() => {
+                          setShowRequiredSuggestions(false);
+                          setSelectedRequiredIndex(-1); // Reset selection on blur
+                        }, 200);
                       }}
                     />
                     {showRequiredSuggestions &&
                       requiredSuggestions.length > 0 && (
                         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto shadow-lg">
-                          {requiredSuggestions.map((suggestion) => (
+                          {requiredSuggestions.map((suggestion, index) => (
                             <li
                               key={suggestion}
-                              className="px-3 py-2 hover:bg-blue-100 cursor-pointer text-sm"
+                              className={`px-3 py-2 hover:bg-blue-100 cursor-pointer text-sm ${
+                                index === selectedRequiredIndex
+                                  ? "bg-blue-200"
+                                  : ""
+                              }`}
                               onMouseDown={() =>
                                 selectSuggestion("required", suggestion)
                               }
@@ -1867,28 +1916,28 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                       placeholder="Type a skill and press Enter"
                       value={preferredInput}
                       onChange={(e) => setPreferredInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleSkillAdd("preferred", preferredInput, e);
-                        }
-                      }}
+                      onKeyDown={(e) => handleKeyDown(e, "preferred")}
                       onFocus={() => {
                         if (preferredInput) setShowPreferredSuggestions(true);
                       }}
                       onBlur={() => {
-                        setTimeout(
-                          () => setShowPreferredSuggestions(false),
-                          200
-                        );
+                        setTimeout(() => {
+                          setShowPreferredSuggestions(false);
+                          setSelectedPreferredIndex(-1); // Reset selection on blur
+                        }, 200);
                       }}
                     />
                     {showPreferredSuggestions &&
                       preferredSuggestions.length > 0 && (
                         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto shadow-lg">
-                          {preferredSuggestions.map((suggestion) => (
+                          {preferredSuggestions.map((suggestion, index) => (
                             <li
                               key={suggestion}
-                              className="px-3 py-2 hover:bg-green-100 cursor-pointer text-sm"
+                              className={`px-3 py-2 hover:bg-green-100 cursor-pointer text-sm ${
+                                index === selectedPreferredIndex
+                                  ? "bg-green-200"
+                                  : ""
+                              }`}
                               onMouseDown={() =>
                                 selectSuggestion("preferred", suggestion)
                               }
