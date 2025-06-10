@@ -102,6 +102,8 @@ interface Candidate {
   skills: SkillSet;
   githubStats: GithubStats;
   projects: Project[];
+  graduation_year: string | number;
+  degree: string;
 }
 
 interface Salary {
@@ -276,7 +278,7 @@ export const Candidates = () => {
         });
       }
 
-      const candidatesData = await Promise.all(
+      const candidateResults = await Promise.allSettled(
         response.data.map(async (e: any) => {
           const skillsRes = await axios.get(
             `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
@@ -344,6 +346,8 @@ export const Candidates = () => {
             applyingFor: jobData.title,
             overall_score: e.application.overall_score || 0,
             status: e.application.status.toLowerCase() as CandidateStatusValue,
+            graduation_year: e.user.graduation_year,
+            degree: e.user.degree,
             assignmentStatus: {
               submitted:
                 !!e.application.assignment_file?.github_repo_url ||
@@ -469,7 +473,13 @@ export const Candidates = () => {
           } as Candidate;
         })
       );
-
+      // Filter only successful fetches with valid data
+      const candidatesData = candidateResults
+        .filter(
+          (result): result is PromiseFulfilledResult<Candidate> =>
+            result.status === "fulfilled" && result.value !== null
+        )
+        .map((result) => result.value);
       return candidatesData;
     } catch (error) {
       console.error("Error fetching candidates:", error);
@@ -686,6 +696,68 @@ export const Candidates = () => {
     );
   }
 
+  // Function to get color classes based on plagiarism score
+  const getPlagiarismColor = (score: number) => {
+    if (score <= 20) return "bg-green-100 text-green-700";
+    if (score <= 50) return "bg-blue-100 text-blue-700";
+    if (score <= 80) return "bg-yellow-100 text-yellow-700";
+    return "bg-red-100 text-red-700";
+  };
+
+  // Function to get icon color based on plagiarism score
+  const getPlagiarismIconColor = (score: number) => {
+    if (score <= 20) return "text-green-700";
+    if (score <= 50) return "text-blue-700";
+    if (score <= 80) return "text-yellow-700";
+    return "text-red-700";
+  };
+
+  // Function to get plagiarism description for tooltip
+  const getPlagiarismDescription = (score: number) => {
+    if (score <= 20) {
+      return {
+        title: "Low Plagiarism (0-20)",
+        points: [
+          "Strong originality",
+          "Unique problem-solving approach",
+          "Clear signs of human iteration",
+          "Evidence of thought process",
+        ],
+      };
+    }
+    if (score <= 50) {
+      return {
+        title: "Moderate Plagiarism/AI Assistance (21-50)",
+        points: [
+          "Some sections resemble generic solutions",
+          "Signs of minor AI assistance (boilerplate generation)",
+          "Core logic is clearly human-driven",
+          "Unique aspects are preserved",
+        ],
+      };
+    }
+    if (score <= 80) {
+      return {
+        title: "High Plagiarism/Heavy AI Reliance (51-80)",
+        points: [
+          "Strong AI-generated characteristics",
+          "Predictable patterns and generic naming",
+          "Lack of unique approaches",
+          "Minimal customization or understanding",
+        ],
+      };
+    }
+    return {
+      title: "Very High Plagiarism/Blind AI Usage (81-100)",
+      points: [
+        "Vast majority appears AI-generated",
+        "Direct copying without modification",
+        "No discernible human intervention",
+        "Lack of understanding evident",
+      ],
+    };
+  };
+
   return (
     <>
       <Button
@@ -755,678 +827,721 @@ export const Candidates = () => {
           <Spinner />
         ) : (
           <div className="grid gap-4">
-            {filteredCandidates.map((candidate) => {
-              const requiredMatch = calculateSkillMatch(
-                candidate.skills.required,
-                job.requiredSkills
-              );
-              const preferredMatch = calculateSkillMatch(
-                candidate.skills.preferred,
-                job.preferredSkills
-              );
-              const scoreBasedFit = getScoreBasedFit(
-                candidate.githubStats.overall_score
-              );
-              const topSkills = getTopSkills(candidate.skills);
+            {filteredCandidates
+              .filter((e) => e.projects.length !== 0)
+              .map((candidate) => {
+                const requiredMatch = calculateSkillMatch(
+                  candidate.skills.required,
+                  job.requiredSkills
+                );
+                const preferredMatch = calculateSkillMatch(
+                  candidate.skills.preferred,
+                  job.preferredSkills
+                );
+                const scoreBasedFit = getScoreBasedFit(
+                  candidate.githubStats.overall_score
+                );
+                const topSkills = getTopSkills(candidate.skills);
 
-              return (
-                <Card
-                  key={candidate.id}
-                  id={candidate.id}
-                  className={`w-full max-w-full mx-auto sm:mx-0
+                return (
+                  <Card
+                    key={candidate.id}
+                    id={candidate.id}
+                    className={`w-full max-w-full mx-auto sm:mx-0
              px-4 sm:px-6
                 `}
-                  //    ${
-                  //   candidate.id === scrollToCandidate &&
-                  //   "shadow-blue-700 shadow-2xl border-blue-200 border-solid border-2"
-                  // }`
-                >
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                        <div className="flex items-start space-x-3 w-full">
-                          <Avatar
-                            src={candidate.avatar}
-                            alt={candidate.name}
-                            fallback={candidate.name}
-                            size="md"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
-                              {candidate.name}
-                            </h3>
-                            <p className="text-xs text-blue-500 underline hover:no-underline">
-                              {candidate.phoneNumber
-                                ? `${candidate.phoneNumber.slice(
-                                    0,
-                                    3
-                                  )} ${candidate.phoneNumber.slice(3)}`
-                                : "N/A"}
-                            </p>
-                            <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1 my-1">
-                              Applying for: {candidate.applyingFor}
-                            </div>
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                              <a
-                                href={`https://github.com/${candidate.githubUsername}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-1 hover:text-gray-700"
-                                aria-label={`View ${candidate.name}'s GitHub profile`}
-                              >
-                                <Github className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="truncate">
-                                  {candidate.githubUsername}
-                                </span>
-                              </a>
-                              {candidate.portfolioUrl && (
+                    //    ${
+                    //   candidate.id === scrollToCandidate &&
+                    //   "shadow-blue-700 shadow-2xl border-blue-200 border-solid border-2"
+                    // }`
+                  >
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                          <div className="flex items-start space-x-3 w-full">
+                            <Avatar
+                              src={candidate.avatar}
+                              alt={candidate.name}
+                              fallback={candidate.name}
+                              size="md"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
+                                {candidate.name}
+                              </h3>
+                              <p className="text-xs text-blue-500 underline hover:no-underline">
+                                {candidate.phoneNumber
+                                  ? `${candidate.phoneNumber.slice(
+                                      0,
+                                      3
+                                    )} ${candidate.phoneNumber.slice(3)}`
+                                  : "N/A"}
+                              </p>
+                              <div className="text-xs sm:text-sm text-blue-600 font-medium truncate mb-1 my-1">
+                                Applying for: {candidate.applyingFor}
+                              </div>
+                              <div className="flex flex-wrap gap-2 text-xs text-gray-500">
                                 <a
-                                  href={candidate.portfolioUrl}
+                                  href={`https://github.com/${candidate.githubUsername}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center space-x-1 hover:text-gray-700"
-                                  aria-label={`View ${candidate.name}'s portfolio`}
+                                  aria-label={`View ${candidate.name}'s GitHub profile`}
                                 >
-                                  <Files className="h-3 w-3 sm:h-4 sm:w-4" />
-                                  <span>Portfolio</span>
+                                  <Github className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  <span className="truncate">
+                                    {candidate.githubUsername}
+                                  </span>
                                 </a>
-                              )}
+                                {candidate.portfolioUrl && (
+                                  <a
+                                    href={candidate.portfolioUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center space-x-1 hover:text-gray-700"
+                                    aria-label={`View ${candidate.name}'s portfolio`}
+                                  >
+                                    <Files className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    <span>Portfolio</span>
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                          <div className="w-full sm:w-32">
-                            <span className="text-center hidden sm:block text-xs text-gray-700 mb-1 font-bold">
-                              Assign Status
-                            </span>
-                            <Select
-                              options={statusOptions}
-                              disabled={statusLoading.includes(candidate.id)}
-                              defaultValue={candidate.status}
-                              onChange={(
-                                e: React.ChangeEvent<HTMLSelectElement>
-                              ) => {
-                                updateCandidateStatus(
-                                  candidate.id,
-                                  e.target.value as CandidateStatusValue
-                                );
-                              }}
-                              aria-label={`Change status for ${candidate.name}`}
-                            />
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full sm:w-20  sm:mt-5 text-xs sm:text-sm "
-                            onClick={() =>
-                              setSelectedCandidate(
-                                selectedCandidate === candidate.id
-                                  ? null
-                                  : candidate.id
-                              )
-                            }
-                            aria-label={
-                              selectedCandidate === candidate.id
-                                ? `Hide details for ${candidate.name}`
-                                : `View details for ${candidate.name}`
-                            }
-                          >
-                            {selectedCandidate === candidate.id
-                              ? "Hide"
-                              : "View"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="w-full sm:w-28 sm:mt-5 text-xs sm:text-sm"
-                            onClick={() => scheduleInterview(candidate.id)}
-                            aria-label={`Schedule interview with ${candidate.name}`}
-                          >
-                            <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                            Schedule
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="border-t pt-3 flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 space-y-3">
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                            Top Skills
-                          </h4>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {topSkills.length > 0 ? (
-                              [...new Set(topSkills)].map((skill) => (
-                                <Badge
-                                  key={skill}
-                                  variant="default"
-                                  className="text-xs sm:text-sm font-medium"
-                                >
-                                  {skill}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-xs text-gray-500">
-                                No skills listed
+                          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                            <div className="w-full sm:w-32">
+                              <span className="text-center hidden sm:block text-xs text-gray-700 mb-1 font-bold">
+                                Assign Status
                               </span>
-                            )}
-                          </div>
-                          <div className="space-y-2">
-                            <div>
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                  Required Skills Match
-                                </h4>
-                                <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                  {Number.isFinite(requiredMatch.percentage)
-                                    ? Math.round(requiredMatch.percentage)
-                                    : 0}
-                                  % skill match
-                                </span>
-                                <span className="hidden sm:flex"></span>
-                              </div>
-                              <div className=" my-3 flex flex-wrap gap-1 sm:gap-2">
-                                {job.requiredSkills.map((skill) => {
-                                  const isMatched =
-                                    requiredMatch.matched.includes(skill);
-                                  return (
-                                    <div
-                                      key={skill}
-                                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                                        isMatched
-                                          ? "bg-green-100 text-green-800"
-                                          : "bg-gray-100 text-gray-800"
-                                      }`}
-                                    >
-                                      {isMatched ? (
-                                        <CheckCircle2 className="h-3 w-3" />
-                                      ) : (
-                                        <XCircle className="h-3 w-3" />
-                                      )}
-                                      {skill}
-                                    </div>
+                              <Select
+                                options={statusOptions}
+                                disabled={statusLoading.includes(candidate.id)}
+                                defaultValue={candidate.status}
+                                onChange={(
+                                  e: React.ChangeEvent<HTMLSelectElement>
+                                ) => {
+                                  updateCandidateStatus(
+                                    candidate.id,
+                                    e.target.value as CandidateStatusValue
                                   );
-                                })}
-                              </div>
+                                }}
+                                aria-label={`Change status for ${candidate.name}`}
+                              />
                             </div>
-                            <div>
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                  Preferred Skills Match
-                                </h4>
-                                <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                  {Number.isFinite(preferredMatch.percentage)
-                                    ? Math.round(preferredMatch.percentage)
-                                    : 0}
-                                  % skill match
-                                </span>
-                                <span className="hidden sm:flex"></span>
-                              </div>
-                              <div className="my-3 flex flex-wrap gap-1 sm:gap-2">
-                                {job.preferredSkills.map((skill) => {
-                                  const isMatched =
-                                    preferredMatch.matched.includes(skill);
-                                  return (
-                                    <div
-                                      key={skill}
-                                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                                        isMatched
-                                          ? "bg-green-100 text-green-800"
-                                          : "bg-gray-100 text-gray-800"
-                                      }`}
-                                    >
-                                      {isMatched ? (
-                                        <CheckCircle2 className="h-3 w-3" />
-                                      ) : (
-                                        <XCircle className="h-3 w-3" />
-                                      )}
-                                      {skill}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full sm:w-20  sm:mt-5 text-xs sm:text-sm "
+                              onClick={() =>
+                                setSelectedCandidate(
+                                  selectedCandidate === candidate.id
+                                    ? null
+                                    : candidate.id
+                                )
+                              }
+                              aria-label={
+                                selectedCandidate === candidate.id
+                                  ? `Hide details for ${candidate.name}`
+                                  : `View details for ${candidate.name}`
+                              }
+                            >
+                              {selectedCandidate === candidate.id
+                                ? "Hide"
+                                : "View"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="w-full sm:w-28 sm:mt-5 text-xs sm:text-sm"
+                              onClick={() => scheduleInterview(candidate.id)}
+                              aria-label={`Schedule interview with ${candidate.name}`}
+                            >
+                              <Video className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                              Schedule
+                            </Button>
                           </div>
                         </div>
-                        <div className="lg:w-60">
-                          <div
-                            className={`rounded-lg p-3 ${scoreBasedFit.color}`}
-                          >
-                            <h4 className="font-medium text-sm sm:text-base">
-                              {scoreBasedFit.label}
+
+                        <div className="border-t pt-3 flex flex-col lg:flex-row gap-4">
+                          <div className="flex-1 space-y-3">
+                            <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                              Top Skills
                             </h4>
-                            <p className="mt-1 text-xs sm:text-sm">
-                              {scoreBasedFit.description}
-                            </p>
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
+                              {topSkills.length > 0 ? (
+                                [...new Set(topSkills)].map((skill) => (
+                                  <Badge
+                                    key={skill}
+                                    variant="default"
+                                    className="text-xs sm:text-sm font-medium"
+                                  >
+                                    {skill}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-500">
+                                  No skills listed
+                                </span>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Required Skills Match
+                                  </h4>
+                                  <span className="text-xs sm:text-sm font-medium text-gray-900">
+                                    {Number.isFinite(requiredMatch.percentage)
+                                      ? Math.round(requiredMatch.percentage)
+                                      : 0}
+                                    % skill match
+                                  </span>
+                                  <span className="hidden sm:flex"></span>
+                                </div>
+                                <div className=" my-3 flex flex-wrap gap-1 sm:gap-2">
+                                  {job.requiredSkills.map((skill) => {
+                                    const isMatched =
+                                      requiredMatch.matched.includes(skill);
+                                    return (
+                                      <div
+                                        key={skill}
+                                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                          isMatched
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-gray-100 text-gray-800"
+                                        }`}
+                                      >
+                                        {isMatched ? (
+                                          <CheckCircle2 className="h-3 w-3" />
+                                        ) : (
+                                          <XCircle className="h-3 w-3" />
+                                        )}
+                                        {skill}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Preferred Skills Match
+                                  </h4>
+                                  <span className="text-xs sm:text-sm font-medium text-gray-900">
+                                    {Number.isFinite(preferredMatch.percentage)
+                                      ? Math.round(preferredMatch.percentage)
+                                      : 0}
+                                    % skill match
+                                  </span>
+                                  <span className="hidden sm:flex"></span>
+                                </div>
+                                <div className="my-3 flex flex-wrap gap-1 sm:gap-2">
+                                  {job.preferredSkills.map((skill) => {
+                                    const isMatched =
+                                      preferredMatch.matched.includes(skill);
+                                    return (
+                                      <div
+                                        key={skill}
+                                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                          isMatched
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-gray-100 text-gray-800"
+                                        }`}
+                                      >
+                                        {isMatched ? (
+                                          <CheckCircle2 className="h-3 w-3" />
+                                        ) : (
+                                          <XCircle className="h-3 w-3" />
+                                        )}
+                                        {skill}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="lg:w-60">
+                            <div
+                              className={`rounded-lg p-3 ${scoreBasedFit.color}`}
+                            >
+                              <h4 className="font-medium text-sm sm:text-base">
+                                {scoreBasedFit.label}
+                              </h4>
+                              <p className="mt-1 text-xs sm:text-sm">
+                                {scoreBasedFit.description}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {selectedCandidate === candidate.id && (
-                        <div className="mt-4 space-y-4 border-t pt-4">
-                          <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 space-y-3">
-                              {candidate.skills.languages.length > 0 && (
-                                <>
-                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                    Programming Languages
-                                  </h4>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {[
-                                      ...new Set(candidate.skills.languages),
-                                    ].map((lang) => (
-                                      <Badge
-                                        key={lang}
-                                        variant="default"
-                                        className="text-xs sm:text-sm"
-                                      >
-                                        {lang}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-
-                              {candidate.skills.frameworks.length > 0 && (
-                                <>
-                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                    Frameworks & Libraries
-                                  </h4>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {[
-                                      ...new Set(candidate.skills.frameworks),
-                                    ].map((framework) => (
-                                      <Badge
-                                        key={framework}
-                                        variant="default"
-                                        className="text-xs sm:text-sm"
-                                      >
-                                        {framework}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-
-                              {candidate.skills.databases.length > 0 && (
-                                <>
-                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                    Databases
-                                  </h4>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {[
-                                      ...new Set(candidate.skills.databases),
-                                    ].map((db) => (
-                                      <Badge
-                                        key={db}
-                                        variant="default"
-                                        className="text-xs sm:text-sm"
-                                      >
-                                        {db}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-
-                              {candidate.skills.tools.length > 0 && (
-                                <>
-                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                    Tools & Technologies
-                                  </h4>
-                                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                                    {[...new Set(candidate.skills.tools)].map(
-                                      (tool) => (
+                        {selectedCandidate === candidate.id && (
+                          <div className="mt-4 space-y-4 border-t pt-4">
+                            <div className="flex flex-col lg:flex-row gap-4">
+                              <div className="flex-1 space-y-3">
+                                {candidate.skills.languages.length > 0 && (
+                                  <>
+                                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      Programming Languages
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                      {[
+                                        ...new Set(candidate.skills.languages),
+                                      ].map((lang) => (
                                         <Badge
-                                          key={tool}
+                                          key={lang}
                                           variant="default"
                                           className="text-xs sm:text-sm"
                                         >
-                                          {tool}
+                                          {lang}
                                         </Badge>
-                                      )
-                                    )}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-
-                            <div className="lg:w-60 space-y-3">
-                              <div className="rounded-lg bg-gray-50 p-3">
-                                <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                  Assignment Status
-                                </h4>
-                                <div className="mt-2 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Status
-                                    </span>
-                                    <Badge
-                                      variant={
-                                        candidate.assignmentStatus.submitted
-                                          ? "success"
-                                          : "warning"
-                                      }
-                                      className="text-xs"
-                                    >
-                                      {candidate.assignmentStatus.submitted
-                                        ? "Submitted"
-                                        : "Pending"}
-                                    </Badge>
-                                  </div>
-                                  {candidate.assignmentStatus.submitted && (
-                                    <>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">
-                                          Submitted
-                                        </span>
-                                        <span className="text-xs font-medium">
-                                          {new Date(
-                                            candidate.assignmentStatus.submittedAt
-                                          ).toLocaleDateString()}
-                                        </span>
-                                      </div>
-                                      {candidate.assignmentStatus
-                                        .githubRepo && (
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs text-gray-600">
-                                            GitHub
-                                          </span>
-                                          <a
-                                            href={
-                                              candidate.assignmentStatus
-                                                .githubRepo as string
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:underline"
-                                            aria-label="View assignment GitHub repository"
-                                          >
-                                            View
-                                          </a>
-                                        </div>
-                                      )}
-                                      {candidate.assignmentStatus.liveLink && (
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs text-gray-600">
-                                            Live
-                                          </span>
-                                          <a
-                                            href={
-                                              candidate.assignmentStatus
-                                                .liveLink
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:underline"
-                                            aria-label="View assignment live demo"
-                                          >
-                                            View
-                                          </a>
-                                        </div>
-                                      )}
-                                      {candidate.assignmentStatus
-                                        .documentation && (
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs text-gray-600">
-                                            Documentation
-                                          </span>
-                                          <a
-                                            href={
-                                              candidate.assignmentStatus
-                                                .documentation
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:underline"
-                                            aria-label="View assignment documentation"
-                                          >
-                                            View
-                                          </a>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-600">
-                                      Deadline
-                                    </span>
-                                    <span className="text-xs font-medium">
-                                      {new Date(
-                                        candidate.assignmentStatus.deadline
-                                      ).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <h4 className="text-base sm:text-lg font-medium text-gray-900">
-                              Projects
-                            </h4>
-                            <div className="grid gap-3">
-                              {candidate.projects.length > 0 ? (
-                                candidate.projects
-                                  // .filter((e) => e.highlights.length !== 0)
-                                  .map((project, index) => (
-                                    <div
-                                      key={index}
-                                      className="rounded-lg border p-3"
-                                    >
-                                      <div className="space-y-2">
-                                        <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                                          <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                                            {project.name}
-                                          </h5>
-                                          <div className="flex space-x-2">
-                                            {project.repoUrl && (
-                                              <a
-                                                href={project.repoUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-gray-500 hover:text-gray-700"
-                                                aria-label={`View ${project.name} GitHub repository`}
-                                              >
-                                                <Github className="h-4 w-4 sm:h-5 sm:w-5" />
-                                              </a>
-                                            )}
-                                            {project.liveUrl && (
-                                              <a
-                                                href={project.liveUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-gray-500 hover:text-gray-700"
-                                                aria-label={`View ${project.name} live demo`}
-                                              >
-                                                <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
-                                              </a>
-                                            )}
-                                          </div>
-                                        </div>
-                                        {/* <p className="text-xs sm:text-sm text-gray-600">
-                                        {project.description ||
-                                          "No description provided"}
-                                      </p> */}
-                                        <div className="space-y-1">
-                                          <h6 className="text-xs sm:text-sm font-medium text-gray-700">
-                                            Project Summary:
-                                          </h6>
-                                          <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                                            {project.highlights.length > 0 ? (
-                                              project.highlights.map(
-                                                (highlight, i) => (
-                                                  <li key={i}>{highlight}</li>
-                                                )
-                                              )
-                                            ) : (
-                                              <li>No highlights provided</li>
-                                            )}
-                                          </ul>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1 sm:gap-2">
-                                          {project.technologies.length > 0 ||
-                                          project.tags.length > 0 ? (
-                                            [
-                                              ...new Set(
-                                                [
-                                                  ...project.tags,
-                                                  ...project.technologies,
-                                                ].map((tech) =>
-                                                  tech.toLowerCase()
-                                                )
-                                              ),
-                                            ].map((tech) => (
-                                              <Badge
-                                                key={tech}
-                                                variant="secondary"
-                                                className="text-xs"
-                                              >
-                                                {tech}
-                                              </Badge>
-                                            ))
-                                          ) : (
-                                            <span className="text-xs text-gray-500">
-                                              No technologies listed
-                                            </span>
-                                          )}
-                                        </div>
-                                        <div className="relative flex items-center justify-end">
-                                          <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
-                                            <span className="group relative">
-                                              <Info
-                                                className="h-4 w-4 text-blue-700 cursor-help"
-                                                aria-label="Code Quality score details"
-                                              />
-                                              <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-16 right-0 z-10 text-left">
-                                                <p className="font-semibold">
-                                                  Code Quality Score
-                                                </p>
-                                                <ul className="list-disc list-inside mt-1">
-                                                  <li>Readability: 20%</li>
-                                                  <li>Consistency: 15%</li>
-                                                  <li>Use of Comments: 15%</li>
-                                                  <li>
-                                                    Indentation and Formatting:
-                                                    15%
-                                                  </li>
-                                                  <li>Code Smells: 20%</li>
-                                                  <li>
-                                                    Naming and Declaration
-                                                    Practices: 10%
-                                                  </li>
-                                                  <li>
-                                                    Use of Language Features: 5%
-                                                  </li>
-                                                </ul>
-                                              </div>
-                                            </span>
-                                            Code Quality: {project.score}
-                                          </div>
-                                        </div>
-                                      </div>
+                                      ))}
                                     </div>
-                                  ))
-                              ) : (
-                                <p className="text-xs sm:text-sm text-gray-500">
-                                  No projects listed
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          {/* // */}
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-sm sm:text-base font-medium text-gray-500">
-                                  Commits
-                                </div>
-                                <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {candidate.githubStats.commits || 0}
+                                  </>
+                                )}
+
+                                {candidate.skills.frameworks.length > 0 && (
+                                  <>
+                                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      Frameworks & Libraries
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                      {[
+                                        ...new Set(candidate.skills.frameworks),
+                                      ].map((framework) => (
+                                        <Badge
+                                          key={framework}
+                                          variant="default"
+                                          className="text-xs sm:text-sm"
+                                        >
+                                          {framework}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+
+                                {candidate.skills.databases.length > 0 && (
+                                  <>
+                                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      Databases
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                      {[
+                                        ...new Set(candidate.skills.databases),
+                                      ].map((db) => (
+                                        <Badge
+                                          key={db}
+                                          variant="default"
+                                          className="text-xs sm:text-sm"
+                                        >
+                                          {db}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+
+                                {candidate.skills.tools.length > 0 && (
+                                  <>
+                                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      Tools & Technologies
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                                      {[...new Set(candidate.skills.tools)].map(
+                                        (tool) => (
+                                          <Badge
+                                            key={tool}
+                                            variant="default"
+                                            className="text-xs sm:text-sm"
+                                          >
+                                            {tool}
+                                          </Badge>
+                                        )
+                                      )}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="lg:w-60 space-y-3">
+                                <div className="rounded-lg bg-gray-50 p-3">
+                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                    Assignment Status
+                                  </h4>
+                                  <div className="mt-2 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        Status
+                                      </span>
+                                      <Badge
+                                        variant={
+                                          candidate.assignmentStatus.submitted
+                                            ? "success"
+                                            : "warning"
+                                        }
+                                        className="text-xs"
+                                      >
+                                        {candidate.assignmentStatus.submitted
+                                          ? "Submitted"
+                                          : "Pending"}
+                                      </Badge>
+                                    </div>
+                                    {candidate.assignmentStatus.submitted && (
+                                      <>
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs text-gray-600">
+                                            Submitted
+                                          </span>
+                                          <span className="text-xs font-medium">
+                                            {new Date(
+                                              candidate.assignmentStatus.submittedAt
+                                            ).toLocaleDateString()}
+                                          </span>
+                                        </div>
+                                        {candidate.assignmentStatus
+                                          .githubRepo && (
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-600">
+                                              GitHub
+                                            </span>
+                                            <a
+                                              href={
+                                                candidate.assignmentStatus
+                                                  .githubRepo as string
+                                              }
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-blue-600 hover:underline"
+                                              aria-label="View assignment GitHub repository"
+                                            >
+                                              View
+                                            </a>
+                                          </div>
+                                        )}
+                                        {candidate.assignmentStatus
+                                          .liveLink && (
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-600">
+                                              Live
+                                            </span>
+                                            <a
+                                              href={
+                                                candidate.assignmentStatus
+                                                  .liveLink
+                                              }
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-blue-600 hover:underline"
+                                              aria-label="View assignment live demo"
+                                            >
+                                              View
+                                            </a>
+                                          </div>
+                                        )}
+                                        {candidate.assignmentStatus
+                                          .documentation && (
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-600">
+                                              Documentation
+                                            </span>
+                                            <a
+                                              href={
+                                                candidate.assignmentStatus
+                                                  .documentation
+                                              }
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-blue-600 hover:underline"
+                                              aria-label="View assignment documentation"
+                                            >
+                                              View
+                                            </a>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-600">
+                                        Deadline
+                                      </span>
+                                      <span className="text-xs font-medium">
+                                        {new Date(
+                                          candidate.assignmentStatus.deadline
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-sm sm:text-base font-medium text-gray-500">
-                                  Contributions
-                                </div>
-                                <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {candidate.githubStats.contributions || 0}
-                                </div>
+                            <div className="space-y-3">
+                              <h4 className="text-base sm:text-lg font-medium text-gray-900">
+                                Projects
+                              </h4>
+                              <div className="grid gap-3">
+                                {candidate.projects.length > 0 ? (
+                                  candidate.projects.map((project, index) => {
+                                    const plagiarismInfo =
+                                      getPlagiarismDescription(project.score);
+
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="rounded-lg border p-3"
+                                      >
+                                        <div className="space-y-2">
+                                          <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                            <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                              {project.name}
+                                            </h5>
+                                            <div className="flex space-x-2">
+                                              {project.repoUrl && (
+                                                <a
+                                                  href={project.repoUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-gray-500 hover:text-gray-700"
+                                                  aria-label={`View ${project.name} GitHub repository`}
+                                                >
+                                                  <Github className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                </a>
+                                              )}
+                                              {project.liveUrl && (
+                                                <a
+                                                  href={project.liveUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-gray-500 hover:text-gray-700"
+                                                  aria-label={`View ${project.name} live demo`}
+                                                >
+                                                  <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                </a>
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          <div className="space-y-1">
+                                            <h6 className="text-xs sm:text-sm font-medium text-gray-700">
+                                              Project Summary:
+                                            </h6>
+                                            <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
+                                              {project.highlights.length > 0 ? (
+                                                project.highlights.map(
+                                                  (highlight, i) => (
+                                                    <li key={i}>{highlight}</li>
+                                                  )
+                                                )
+                                              ) : (
+                                                <li>No highlights provided</li>
+                                              )}
+                                            </ul>
+                                          </div>
+
+                                          <div className="flex flex-wrap gap-1 sm:gap-2">
+                                            {project.technologies.length > 0 ||
+                                            project.tags.length > 0 ? (
+                                              [
+                                                ...new Set(
+                                                  [
+                                                    ...project.tags,
+                                                    ...project.technologies,
+                                                  ].map((tech) =>
+                                                    tech.toLowerCase()
+                                                  )
+                                                ),
+                                              ].map((tech) => (
+                                                <Badge
+                                                  key={tech}
+                                                  variant="secondary"
+                                                  className="text-xs"
+                                                >
+                                                  {tech}
+                                                </Badge>
+                                              ))
+                                            ) : (
+                                              <span className="text-xs text-gray-500">
+                                                No technologies listed
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="relative flex items-center justify-end gap-3">
+                                            {/* AI Plagiarism Score - Left button */}
+                                            {/* <div
+                                              className={`text-xs w-fit font-semibold p-2 rounded-lg flex items-center gap-1 ${getPlagiarismColor(
+                                                project.score
+                                              )}`}
+                                            >
+                                              <span className="group relative">
+                                                <Info
+                                                  className={`h-4 w-4 cursor-help ${getPlagiarismIconColor(
+                                                    project.score
+                                                  )}`}
+                                                  aria-label="AI Plagiarism score details"
+                                                />
+                                                <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-3 w-80 -top-20 right-0 z-10 text-left shadow-lg">
+                                                  <p className="font-semibold mb-2">
+                                                    {plagiarismInfo.title}
+                                                  </p>
+                                                  <ul className="list-disc list-inside space-y-1">
+                                                    {plagiarismInfo.points.map(
+                                                      (point, i) => (
+                                                        <li
+                                                          key={i}
+                                                          className="leading-relaxed"
+                                                        >
+                                                          {point}
+                                                        </li>
+                                                      )
+                                                    )}
+                                                  </ul>
+                                                </div>
+                                              </span>
+                                              AI Plagiarism: {project.score}%
+                                            </div> */}
+
+                                            {/* Code Quality Score - Right button (original) */}
+                                            <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
+                                              <span className="group relative">
+                                                <Info
+                                                  className="h-4 w-4 text-blue-700 cursor-help"
+                                                  aria-label="Code Quality score details"
+                                                />
+                                                <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-16 right-0 z-10 text-left">
+                                                  <p className="font-semibold">
+                                                    Code Quality Score
+                                                  </p>
+                                                  <ul className="list-disc list-inside mt-1">
+                                                    <li>Readability: 20%</li>
+                                                    <li>Consistency: 15%</li>
+                                                    <li>
+                                                      Use of Comments: 15%
+                                                    </li>
+                                                    <li>
+                                                      Indentation and
+                                                      Formatting: 15%
+                                                    </li>
+                                                    <li>Code Smells: 20%</li>
+                                                    <li>
+                                                      Naming and Declaration
+                                                      Practices: 10%
+                                                    </li>
+                                                    <li>
+                                                      Use of Language Features:
+                                                      5%
+                                                    </li>
+                                                  </ul>
+                                                </div>
+                                              </span>
+                                              Code Quality: {project.score}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <p className="text-xs sm:text-sm text-gray-500">
+                                    No projects listed
+                                  </p>
+                                )}
                               </div>
                             </div>
-                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-sm sm:text-base font-medium text-gray-500">
-                                  Code Quality
-                                </div>
-                                <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {Number.isFinite(
-                                    candidate.githubStats.codeQuality
-                                  )
-                                    ? Math.round(
-                                        candidate.githubStats.codeQuality
-                                      )
-                                    : 0}
+                            {/* // */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                              <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="text-sm sm:text-base font-medium text-gray-500">
+                                    Commits
+                                  </div>
+                                  <div className="mt-1 text-sm font-semibold text-gray-900">
+                                    {candidate.githubStats.commits || 0}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-sm sm:text-base font-medium text-gray-500 flex">
-                                  <span className="group relative self-center ">
-                                    <Info
-                                      className="h-4 w-4 text-blue-600 cursor-help mr-1"
-                                      aria-label="Overall Score details"
-                                    />
-                                    <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
-                                      <p className="font-semibold">
-                                        Overall Score
-                                      </p>
-                                      <ul className="list-disc list-inside mt-1">
-                                        <li>Code Quality: 60%</li>
-                                        <li>Skills matching to job: 40%</li>
-                                        {/* <li>Indentation and Formattin: 15%</li>
+                              <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="text-sm sm:text-base font-medium text-gray-500">
+                                    Contributions
+                                  </div>
+                                  <div className="mt-1 text-sm font-semibold text-gray-900">
+                                    {candidate.githubStats.contributions || 0}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="text-sm sm:text-base font-medium text-gray-500">
+                                    Code Quality
+                                  </div>
+                                  <div className="mt-1 text-sm font-semibold text-gray-900">
+                                    {Number.isFinite(
+                                      candidate.githubStats.codeQuality
+                                    )
+                                      ? Math.round(
+                                          candidate.githubStats.codeQuality
+                                        )
+                                      : 0}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="rounded-lg bg-gray-50 p-1 min-h-[6rem] bg-gradient-to-t from-blue-50 to-gray-50 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="text-sm sm:text-base font-medium text-gray-500 flex">
+                                    <span className="group relative self-center ">
+                                      <Info
+                                        className="h-4 w-4 text-blue-600 cursor-help mr-1"
+                                        aria-label="Overall Score details"
+                                      />
+                                      <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 w-72 -top-20 right-0 z-10 text-left">
+                                        <p className="font-semibold">
+                                          Overall Score
+                                        </p>
+                                        <ul className="list-disc list-inside mt-1">
+                                          <li>Code Quality: 60%</li>
+                                          <li>Skills matching to job: 40%</li>
+                                          {/* <li>Indentation and Formattin: 15%</li>
                                         <li>Code Smells: 20%</li>
                                         <li>
                                           Naming and Declaration Practices: 10%
                                         </li>
                                         <li>Use of Language Features: 5%</li> */}
-                                      </ul>
-                                    </div>
-                                  </span>{" "}
-                                  Overall Score
-                                </div>
-                                <div className="mt-1 text-sm font-semibold text-gray-900">
-                                  {Number.isFinite(candidate.overall_score)
-                                    ? // ? Math.round(
-                                      //     candidate.githubStats.overall_score
-                                      //   )
-                                      Number(
-                                        candidate.githubStats.overall_score
-                                      ).toFixed(1)
-                                    : 0}
+                                        </ul>
+                                      </div>
+                                    </span>{" "}
+                                    Overall Score
+                                  </div>
+                                  <div className="mt-1 text-sm font-semibold text-gray-900">
+                                    {Number.isFinite(candidate.overall_score)
+                                      ? // ? Math.round(
+                                        //     candidate.githubStats.overall_score
+                                        //   )
+                                        Number(
+                                          candidate.githubStats.overall_score
+                                        ).toFixed(1)
+                                      : 0}
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                            <div className="flex justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-36 text-xs sm:text-sm"
+                                onClick={() => setSelectedCandidate(null)}
+                                aria-label={`Close details for ${candidate.name}`}
+                              >
+                                Close View
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex justify-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full sm:w-36 text-xs sm:text-sm"
-                              onClick={() => setSelectedCandidate(null)}
-                              aria-label={`Close details for ${candidate.name}`}
-                            >
-                              Close View
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </div>
         )}
       </div>
