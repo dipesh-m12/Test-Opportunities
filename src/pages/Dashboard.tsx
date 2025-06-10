@@ -138,7 +138,9 @@ export const Dashboard = ({
             const dateB = new Date(b?.application?.updated_at || 0).getTime();
             return dateB - dateA;
           })
+          .filter((e) => e.user.first_name)
           .slice(0, 5)
+
           .map((e) => ({
             id: e?.application?.id || null,
             job_id: e.application?.job?.id,
@@ -273,88 +275,90 @@ export const Dashboard = ({
         ) : (
           <CardContent>
             <div className=" space-y-4 flex flex-col items-start">
-              {recentApplications.map((application: any) => (
-                <div
-                  key={application.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0 w-full max-w-md sm:max-w-xl lg:max-w-2xl"
-                >
-                  <div className="flex items-center space-x-4 min-w-0">
-                    <Avatar
-                      src={application.candidate.avatar}
-                      alt={application.candidate.name}
-                      fallback={application.candidate.name}
-                    />
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-900">
-                        {application.candidate.name}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate">
-                        <span className="font-semibold">Applying for:</span>{" "}
-                        {application.position}
-                      </p>
+              {recentApplications
+                .filter((e) => e.candidate.name !== "Unknown")
+                .map((application: any) => (
+                  <div
+                    key={application.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-lg border p-4 space-y-4 sm:space-y-0 w-full max-w-md sm:max-w-xl lg:max-w-2xl"
+                  >
+                    <div className="flex items-center space-x-4 min-w-0">
+                      <Avatar
+                        src={application.candidate.avatar}
+                        alt={application.candidate.name}
+                        fallback={application.candidate.name}
+                      />
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900">
+                          {application.candidate.name}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          <span className="font-semibold">Applying for:</span>{" "}
+                          {application.position}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between sm:justify-end space-x-4">
-                    <Badge
-                      variant={
-                        application.status === "new"
-                          ? "default"
+                    <div className="flex items-center justify-between sm:justify-end space-x-4">
+                      <Badge
+                        variant={
+                          application.status === "new"
+                            ? "default"
+                            : application.status === "shortlisted"
+                            ? "success"
+                            : application.status === "interviewing"
+                            ? "primary"
+                            : application.status === "offered"
+                            ? "success"
+                            : application.status === "rejected"
+                            ? "destructive"
+                            : "default"
+                        }
+                        className={`text-xs sm:text-sm ${
+                          application.status === "new"
+                            ? "bg-gray-100 text-gray-800"
+                            : application.status === "shortlisted"
+                            ? "bg-green-100 text-green-800"
+                            : application.status === "interviewing"
+                            ? "bg-blue-100 text-blue-800"
+                            : application.status === "offered"
+                            ? "bg-green-100 text-green-800"
+                            : application.status === "rejected"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {application.status === "new"
+                          ? "New"
                           : application.status === "shortlisted"
-                          ? "success"
+                          ? "Shortlisted"
                           : application.status === "interviewing"
-                          ? "primary"
+                          ? "Interviewing"
                           : application.status === "offered"
-                          ? "success"
+                          ? "Offered"
                           : application.status === "rejected"
-                          ? "destructive"
-                          : "default"
-                      }
-                      className={`text-xs sm:text-sm ${
-                        application.status === "new"
-                          ? "bg-gray-100 text-gray-800"
-                          : application.status === "shortlisted"
-                          ? "bg-green-100 text-green-800"
-                          : application.status === "interviewing"
-                          ? "bg-blue-100 text-blue-800"
-                          : application.status === "offered"
-                          ? "bg-green-100 text-green-800"
-                          : application.status === "rejected"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {application.status === "new"
-                        ? "New"
-                        : application.status === "shortlisted"
-                        ? "Shortlisted"
-                        : application.status === "interviewing"
-                        ? "Interviewing"
-                        : application.status === "offered"
-                        ? "Offered"
-                        : application.status === "rejected"
-                        ? "Rejected"
-                        : "Unknown"}
-                    </Badge>{" "}
-                    <div className="text-sm text-gray-500">
-                      {formatDate(application.appliedDate)}
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (!application.job_id)
-                          return toast.error(
-                            "Oops issues in our server. Please contact the developers"
+                          ? "Rejected"
+                          : "Unknown"}
+                      </Badge>{" "}
+                      <div className="text-sm text-gray-500">
+                        {formatDate(application.appliedDate)}
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!application.job_id)
+                            return toast.error(
+                              "Oops issues in our server. Please contact the developers"
+                            );
+                          navigate(
+                            `/candidates/${application.job_id}?candidate=${application.id}`
                           );
-                        navigate(
-                          `/candidates/${application.job_id}?candidate=${application.id}`
-                        );
-                      }}
-                      className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-                    </button>
+                        }}
+                        className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         )}
