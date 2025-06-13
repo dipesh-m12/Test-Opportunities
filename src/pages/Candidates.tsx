@@ -54,6 +54,7 @@ interface Project {
   highlights: string[];
   score: number;
   tags: string[];
+  ai_plagiarism_score: number;
 }
 
 interface AssignmentStatus {
@@ -285,12 +286,13 @@ export const Candidates = () => {
             { headers: { Authorization: idToken } }
           );
           console.log(skillsRes.data);
-          const projects = (e.application.applicant.projects || []).filter(
-            (project: any) =>
+          const projects = (
+            (e.application.applicant.projects || []) as Project[]
+          ).filter(
+            (project: Project) =>
               (project.highlights || []).length != 0 &&
               (project.tags || []).length != 0
           );
-
           const codeQuality =
             projects.length > 0
               ? projects.reduce(
@@ -446,9 +448,11 @@ export const Candidates = () => {
               //   : 0,
               overall_score: overallGithubScore,
             },
-            projects: (e.application.applicant.projects || [])
+            projects: (
+              (skillsRes.data.application.applicant.projects as Project[]) || []
+            )
               .filter(
-                (project: any) =>
+                (project: Project) =>
                   (project.highlights || []).length != 0 &&
                   (project.tags || []).length != 0
               )
@@ -468,6 +472,7 @@ export const Candidates = () => {
                 tags: project.tags || [],
                 highlights: project.highlights || [],
                 score: project.score || 0,
+                ai_plagiarism_score: project.ai_plagiarism_score || 0,
               }))
               .filter((project: any) => project.name),
           } as Candidate;
@@ -532,6 +537,7 @@ export const Candidates = () => {
       setLoading(true);
       try {
         let candidateData = await fetchCandidates();
+        console.log("Here", candidateData);
         if (scrollToCandidate) {
           candidateData = candidateData.filter(
             (e) => e.id == scrollToCandidate
@@ -869,6 +875,15 @@ export const Candidates = () => {
                               <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
                                 {candidate.name}
                               </h3>
+                              {candidate.degree &&
+                                candidate.graduation_year && (
+                                  <p className="my-1 text-gray-700 truncate text-xs">
+                                    <i>
+                                      {candidate.degree} '
+                                      <span>{candidate.graduation_year}</span>
+                                    </i>
+                                  </p>
+                                )}
                               <p className="text-xs text-blue-500 underline hover:no-underline">
                                 {candidate.phoneNumber
                                   ? `${candidate.phoneNumber.slice(
@@ -1282,7 +1297,9 @@ export const Candidates = () => {
                                 {candidate.projects.length > 0 ? (
                                   candidate.projects.map((project, index) => {
                                     const plagiarismInfo =
-                                      getPlagiarismDescription(project.score);
+                                      getPlagiarismDescription(
+                                        project.ai_plagiarism_score
+                                      );
 
                                     return (
                                       <div
@@ -1367,15 +1384,15 @@ export const Candidates = () => {
 
                                           <div className="relative flex items-center justify-end gap-3">
                                             {/* AI Plagiarism Score - Left button */}
-                                            {/* <div
+                                            <div
                                               className={`text-xs w-fit font-semibold p-2 rounded-lg flex items-center gap-1 ${getPlagiarismColor(
-                                                project.score
+                                                project.ai_plagiarism_score
                                               )}`}
                                             >
                                               <span className="group relative">
                                                 <Info
                                                   className={`h-4 w-4 cursor-help ${getPlagiarismIconColor(
-                                                    project.score
+                                                    project.ai_plagiarism_score
                                                   )}`}
                                                   aria-label="AI Plagiarism score details"
                                                 />
@@ -1397,8 +1414,9 @@ export const Candidates = () => {
                                                   </ul>
                                                 </div>
                                               </span>
-                                              AI Plagiarism: {project.score}%
-                                            </div> */}
+                                              AI Plagiarism:{" "}
+                                              {project.ai_plagiarism_score}%
+                                            </div>
 
                                             {/* Code Quality Score - Right button (original) */}
                                             <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
