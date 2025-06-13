@@ -55,6 +55,7 @@ interface Project {
   score: number;
   tags: string[];
   ai_plagiarism_score: number;
+  ai_desc: string[];
 }
 
 interface AssignmentStatus {
@@ -473,6 +474,7 @@ export const Candidates = () => {
                 highlights: project.highlights || [],
                 score: project.score || 0,
                 ai_plagiarism_score: project.ai_plagiarism_score || 0,
+                ai_desc: project.ai_desc || ["s", "b", "f"],
               }))
               .filter((project: any) => project.name),
           } as Candidate;
@@ -1396,12 +1398,12 @@ export const Candidates = () => {
                                                   )}`}
                                                   aria-label="AI Plagiarism score details"
                                                 />
-                                                <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-3 w-80 -top-20 right-0 z-10 text-left shadow-lg">
-                                                  <p className="font-semibold mb-2">
+                                                <div className="absolute hidden group-hover:block bg-blue-100 text-gray-900 text-xs rounded-lg p-3 w-80 -top-20 right-0 z-10 text-left shadow-lg border border-blue-500">
+                                                  <p className="font-semibold mb-2 text-gray-800">
                                                     {plagiarismInfo.title}
                                                   </p>
                                                   <ul className="list-disc list-inside space-y-1">
-                                                    {plagiarismInfo.points.map(
+                                                    {project.ai_desc.map(
                                                       (point, i) => (
                                                         <li
                                                           key={i}
