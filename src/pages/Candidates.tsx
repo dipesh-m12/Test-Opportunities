@@ -1386,7 +1386,7 @@ export const Candidates = () => {
 
                                           <div className="relative flex items-center justify-end gap-3">
                                             {/* AI Plagiarism Score - Left button */}
-                                            <div
+                                            {/* <div
                                               className={`text-xs w-fit font-semibold p-2 rounded-lg flex items-center gap-1 ${getPlagiarismColor(
                                                 project.ai_plagiarism_score
                                               )}`}
@@ -1418,7 +1418,7 @@ export const Candidates = () => {
                                               </span>
                                               AI Plagiarism:{" "}
                                               {project.ai_plagiarism_score}%
-                                            </div>
+                                            </div> */}
 
                                             {/* Code Quality Score - Right button (original) */}
                                             <div className="text-xs bg-blue-300/40 text-blue-700 w-fit font-semibold p-2 rounded-lg flex items-center gap-1">
