@@ -1300,7 +1300,7 @@ export const Candidates = () => {
                                   candidate.projects.map((project, index) => {
                                     const plagiarismInfo =
                                       getPlagiarismDescription(
-                                        project.ai_plagiarism_score
+                                        project.ai_plagiarism_score || 0
                                       );
 
                                     return (
