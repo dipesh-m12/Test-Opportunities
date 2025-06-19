@@ -287,6 +287,26 @@ export const Candidates = () => {
             { headers: { Authorization: idToken } }
           );
           console.log(skillsRes.data);
+          // Initialize docFile as empty string
+          let docFile = "";
+          // Only fetch file if assignment_file and its id exist
+          if (e.application.assignment_file?.id) {
+            try {
+              const fileres = await axios.get(
+                `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}/files/${e.application.assignment_file.id}`,
+                { headers: { Authorization: idToken } }
+              );
+              docFile = fileres.data?.download_url || "";
+              console.log("File", docFile);
+            } catch (fileError) {
+              console.error(
+                "Error fetching file for application",
+                e.application.id,
+                fileError
+              );
+              docFile = ""; // Fallback to empty string if file fetch fails
+            }
+          }
           const projects = (
             (e.application.applicant.projects || []) as Project[]
           ).filter(
@@ -355,7 +375,7 @@ export const Candidates = () => {
               submitted:
                 !!e.application.assignment_file?.github_repo_url ||
                 !!e.application.assignment_file?.live_link_url ||
-                !!e.application.assignment_file?.documentation,
+                !!docFile,
               submittedAt:
                 e.application.assignment_file?.created_at ||
                 new Date().toISOString(),
@@ -363,7 +383,7 @@ export const Candidates = () => {
                 jobData.assignments[0]?.deadline || "2025-05-27T18:29:59",
               score: e.application.overall_score || 0,
               liveLink: e.application.assignment_file?.live_link_url,
-              documentation: e.application.assignment_file?.documentation,
+              documentation: docFile,
               githubRepo: e.application.assignment_file?.github_repo_url,
             },
             skills: {
@@ -539,7 +559,7 @@ export const Candidates = () => {
       setLoading(true);
       try {
         let candidateData = await fetchCandidates();
-        console.log("Here", candidateData);
+        // console.log("Here", candidateData);
         if (scrollToCandidate) {
           candidateData = candidateData.filter(
             (e) => e.id == scrollToCandidate
