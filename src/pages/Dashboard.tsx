@@ -139,8 +139,6 @@ export const Dashboard = ({
             return dateB - dateA;
           })
           .filter((e) => e.user.first_name)
-          .slice(0, 5)
-
           .map((e) => ({
             id: e?.application?.id || null,
             job_id: e.application?.job?.id,
@@ -158,7 +156,7 @@ export const Dashboard = ({
             status: e?.application?.status?.toLowerCase() || "unknown",
           }));
 
-        setRecentApplications(recentApplications);
+        setRecentApplications(recentApplications.slice(0, 5));
 
         const jobsData = response.data;
         // setjobs(jobsData);
@@ -169,7 +167,7 @@ export const Dashboard = ({
           e.label === "Active Jobs"
             ? { ...e, value: activeJobs.length }
             : e.label === "Total Candidates"
-            ? { ...e, value: cdata.length }
+            ? { ...e, value: recentApplications.length }
             : {
                 ...e,
                 value: cdata.filter(

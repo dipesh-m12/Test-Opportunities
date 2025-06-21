@@ -2,13 +2,22 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   error?: string;
   options: { value: string; label: string; disabled?: boolean }[];
+  // Added placeholder prop
+  placeholder?: string;
+  // Added value prop
+  value?: string;
+  // Updated onChange to accept a string value directly
+  onChange?: (value: string) => void;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, error, options, ...props }, ref) => {
+  (
+    { className, error, options, placeholder, value, onChange, ...props },
+    ref
+  ) => {
     return (
       <div className="space-y-1">
         <select
@@ -18,8 +27,17 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             className
           )}
           ref={ref}
+          value={value}
+          // Handle onChange to pass the selected value directly
+          onChange={(e) => onChange?.(e.target.value)}
           {...props}
         >
+          {/* Added placeholder as a disabled option */}
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
           {options.map((option) => (
             <option
               key={option.value}
@@ -35,3 +53,6 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     );
   }
 );
+
+// Added display name for better debugging
+Select.displayName = "Select";

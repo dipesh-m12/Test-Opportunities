@@ -184,6 +184,11 @@ export const Candidates = () => {
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  // Added state for sort order
+  const [sortOrder, setSortOrder] = useState<"high-to-low" | "low-to-high">(
+    "high-to-low"
+  );
+
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const scrollToCandidate = searchParams.get("candidate");
@@ -596,26 +601,43 @@ export const Candidates = () => {
     { value: "average", label: "Average Fit" },
   ];
 
-  const statusFilters = statusOptions.map((opt) => ({
-    value: opt.value,
-    label: opt.label,
-  }));
+  const statusFilters = statusOptions
+    .filter((e) => e.value != "assign_status")
+    .map((opt) => ({
+      value: opt.value,
+      label: opt.label,
+    }));
+
+  // Added sort options for the dropdown
+  const sortOptions = [
+    { value: "high-to-low", label: "Fit: High to Low" },
+    { value: "low-to-high", label: "Fit: Low to High" },
+  ];
 
   const filteredCandidates = useMemo(
     () =>
-      candidatesForJob.filter((candidate) => {
-        if (!job) return false;
-        const scoreBasedFit = getScoreBasedFit(
-          candidate.githubStats.overall_score
-        );
+      candidatesForJob
+        .filter((candidate) => {
+          if (!job) return false;
+          const scoreBasedFit = getScoreBasedFit(
+            candidate.githubStats.overall_score
+          );
 
-        const skillMatchPass =
-          !skillFilter || scoreBasedFit.type === skillFilter;
-        const statusPass = !statusFilter || candidate.status === statusFilter;
+          const skillMatchPass =
+            !skillFilter || scoreBasedFit.type === skillFilter;
+          const statusPass = !statusFilter || candidate.status === statusFilter;
 
-        return skillMatchPass && statusPass;
-      }),
-    [candidatesForJob, skillFilter, statusFilter, job]
+          return skillMatchPass && statusPass;
+        })
+        // Added sorting logic based on sortOrder
+        .sort((a, b) => {
+          const scoreA = a.githubStats.overall_score;
+          const scoreB = b.githubStats.overall_score;
+          return sortOrder === "high-to-low"
+            ? scoreB - scoreA
+            : scoreA - scoreB;
+        }),
+    [candidatesForJob, skillFilter, statusFilter, job, sortOrder]
   );
 
   const scheduleInterview = (candidateId: string) => {
@@ -814,6 +836,18 @@ export const Candidates = () => {
                 {filteredCandidates.length} candidate
                 {filteredCandidates.length !== 1 ? "s" : ""} found
               </p>
+            </div>
+            {/* Added sort by dropdown */}
+            <div className="flex justify-start">
+              <Select
+                options={sortOptions}
+                value={sortOrder}
+                onChange={(value) =>
+                  setSortOrder(value as "high-to-low" | "low-to-high")
+                }
+                placeholder="Sort by"
+                className="w-48"
+              />
             </div>
           </div>
           <div className="flex flex-wrap justify-start sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
