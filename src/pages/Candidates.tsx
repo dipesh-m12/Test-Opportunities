@@ -988,12 +988,10 @@ export const Candidates = () => {
                                 options={statusOptions}
                                 disabled={statusLoading.includes(candidate.id)}
                                 defaultValue={candidate.status}
-                                onChange={(
-                                  e: React.ChangeEvent<HTMLSelectElement>
-                                ) => {
+                                onChange={(value: string) => {
                                   updateCandidateStatus(
                                     candidate.id,
-                                    e.target.value as CandidateStatusValue
+                                    value as CandidateStatusValue
                                   );
                                 }}
                                 aria-label={`Change status for ${candidate.name}`}
