@@ -12,7 +12,6 @@ import {
   Edit,
   Trash2,
   Clock,
-  Users,
   PlusCircle,
   IndianRupee,
 } from "lucide-react";
@@ -374,7 +373,8 @@ const ManageJobs = ({ isPostJobEnabled, isPhoneNumber }: any) => {
                             {job.type == "Internship" ? (
                               <span className="font-medium">
                                 <IndianRupee className="inline size-3" />{" "}
-                                {job.salary_min.toLocaleString("en-IN")}
+                                {job.salary_min.toLocaleString("en-IN")} -{" "}
+                                {job.salary_max.toLocaleString("en-IN")}
                               </span>
                             ) : (
                               <span className="font-medium">

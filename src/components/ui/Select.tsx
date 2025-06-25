@@ -5,17 +5,15 @@ export interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   error?: string;
   options: { value: string; label: string; disabled?: boolean }[];
-  // Added placeholder prop
   placeholder?: string;
-  // Added value prop
   value?: string;
-  // Updated onChange to accept a string value directly
-  onChange?: (value: string) => void;
+  onChange?: React.ChangeEventHandler<HTMLSelectElement>;
+  name?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { className, error, options, placeholder, value, onChange, ...props },
+    { className, error, options, placeholder, value, onChange, name, ...props },
     ref
   ) => {
     return (
@@ -27,12 +25,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             className
           )}
           ref={ref}
-          value={value}
-          // Handle onChange to pass the selected value directly
-          onChange={(e) => onChange?.(e.target.value)}
+          value={value ?? ""}
+          name={name}
+          onChange={onChange}
           {...props}
         >
-          {/* Added placeholder as a disabled option */}
           {placeholder && (
             <option value="" disabled>
               {placeholder}
@@ -54,5 +51,4 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   }
 );
 
-// Added display name for better debugging
 Select.displayName = "Select";

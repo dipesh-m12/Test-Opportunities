@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form"; // Add Controller import
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -26,7 +26,11 @@ interface JobFormData {
   status: string;
   location: string;
   city?: string;
-  stipend?: string;
+  // stipend?: string;
+  stipend?: {
+    min: string;
+    max: string;
+  }; // Updated to object for min/max stipend for internships
   salary?: {
     min: string;
     max: string;
@@ -288,6 +292,10 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   // Watch salary fields to enable dynamic validation
   const minSalary = watch("salary.min");
   const maxSalary = watch("salary.max");
+  const minStipend = watch("stipend.min"); // Added for internship stipend
+  const maxStipend = watch("stipend.max"); // Added for internship stipend
+  const duration = watch("duration");
+  const status = watch("status");
   const needsCity = location === "Office" || location === "Hybrid";
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [preferredSkills, setPreferredSkills] = useState<string[]>([]);
@@ -530,11 +538,21 @@ export const PostJob = ({ isPhoneNumber }: any) => {
               description: data.description,
               type: data.type,
               city: data.work_mode == "Remote" ? "" : data.city || "",
-              min_salary: data.type == "full-time" ? data!.min_salary! : "",
+              min_salary:
+                data.type == "full-time"
+                  ? data!.min_salary!
+                  : data!.min_salary!,
               //stipend
-              max_salary: data.type == "full-time" ? data!.max_salary! : "",
+              max_salary:
+                data.type == "full-time"
+                  ? data!.max_salary!
+                  : data!.max_salary!,
               stipend: data.type !== "full-time" ? data.min_salary : "",
-              //max_salary
+              // CHANGE: Map min_salary and max_salary to stipend for internships
+              salary: {
+                min: job.data.min_salary, // Map min_salary to salary.min
+                max: job.data.max_salary, // Map max_salary to salary.max
+              },
               status: data.status,
               duration: `${data.duration}`,
               deadline: moment(data.deadline).format("YYYY-MM-DD"),
@@ -696,6 +714,29 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     ],
   };
 
+  // CHANGE: Added validation for min/max stipend
+  const validateMinStipend = (value: string) => {
+    const numValue = parseFloat(value) || 0;
+    if (numValue < 0) {
+      return "Minimum stipend cannot be negative";
+    }
+    if (maxStipend && parseFloat(maxStipend) <= numValue) {
+      return "Minimum stipend must be less than maximum stipend";
+    }
+    return true;
+  };
+
+  const validateMaxStipend = (value: string) => {
+    const numValue = parseFloat(value) || 0;
+    if (numValue < 0) {
+      return "Maximum stipend cannot be negative";
+    }
+    if (minStipend && numValue <= parseFloat(minStipend)) {
+      return "Maximum stipend must be greater than minimum stipend";
+    }
+    return true;
+  };
+
   // Custom validation functions
   const validateMinSalary = (value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -777,14 +818,13 @@ export const PostJob = ({ isPhoneNumber }: any) => {
             submissionData.location == "Remote"
               ? ""
               : submissionData.city || "",
-          min_salary:
-            submissionData.type == "full-time"
-              ? +submissionData!.salary!.min
-              : +submissionData!.stipend!,
-          max_salary:
-            submissionData.type == "full-time"
-              ? +submissionData!.salary!.max
-              : +submissionData!.stipend!,
+          min_salary: +submissionData!.salary!.min,
+          max_salary: +submissionData!.salary!.max,
+          // CHANGE: Added stipend field for internships to API payload
+          stipend:
+            submissionData.type === "internship"
+              ? `${submissionData!.salary!.min}-${submissionData!.salary!.max}`
+              : undefined,
           status: submissionData.status || "active",
           duration:
             submissionData.type == "internship"
@@ -1090,14 +1130,13 @@ export const PostJob = ({ isPhoneNumber }: any) => {
             submissionData.location == "Remote"
               ? ""
               : submissionData.city || "",
-          min_salary:
-            submissionData.type == "full-time"
-              ? +submissionData!.salary!.min
-              : +submissionData!.stipend!,
-          max_salary:
-            submissionData.type == "full-time"
-              ? +submissionData!.salary!.max
-              : +submissionData!.stipend!,
+          min_salary: +submissionData!.salary!.min,
+          max_salary: +submissionData!.salary!.max,
+          // CHANGE: Added stipend field for internships to API payload
+          stipend:
+            submissionData.type === "internship"
+              ? `${submissionData!.salary!.min}-${submissionData!.salary!.max}`
+              : undefined,
           status: "active",
           duration:
             submissionData.type == "internship"
@@ -1222,7 +1261,10 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         status: "active",
         location: "Remote",
         city: "",
-        stipend: "",
+        stipend: {
+          min: "",
+          max: "",
+        },
         salary: { min: "", max: "" },
         description: "",
         requiredSkills: [],
@@ -1334,14 +1376,15 @@ export const PostJob = ({ isPhoneNumber }: any) => {
               submissionData.location == "Remote"
                 ? ""
                 : submissionData.city || "",
-            min_salary:
-              submissionData.type == "full-time"
-                ? +submissionData!.salary!.min
-                : +submissionData!.stipend!,
-            max_salary:
-              submissionData.type == "full-time"
-                ? +submissionData!.salary!.max
-                : +submissionData!.stipend!,
+            min_salary: +submissionData!.salary!.min,
+            max_salary: +submissionData!.salary!.max,
+            // CHANGE: Added stipend field for internships to API payload
+            stipend:
+              submissionData.type === "internship"
+                ? `${submissionData!.salary!.min}-${
+                    submissionData!.salary!.max
+                  }`
+                : undefined,
             status: "draft",
             duration:
               submissionData.type == "internship"
@@ -1469,7 +1512,10 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           status: "active",
           location: "Remote",
           city: "",
-          stipend: "",
+          stipend: {
+            min: "",
+            max: "",
+          },
           salary: { min: "", max: "" },
           description: "",
           requiredSkills: [],
@@ -1508,6 +1554,13 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     // Or make an API call:
     // await fetch("/api/save-draft", { method: "POST", body: JSON.stringify(data) });
   };
+
+  const type = watch("type");
+
+  // Log type changes
+  useEffect(() => {
+    console.log("Status value changed:", type);
+  }, [type]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1574,6 +1627,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   </label>
                   <Select
                     id="status"
+                    value={status}
                     options={jobStatuses}
                     {...register("status", {
                       required: "Job status is required",
@@ -1595,6 +1649,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     </label>
                     <Select
                       id="type"
+                      value={type}
                       options={jobTypes}
                       {...register("type", {
                         required: "Job type is required",
@@ -1614,6 +1669,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                       </label>
                       <Select
                         id="location"
+                        value={location}
                         options={locations}
                         {...register("location", {
                           required: "Location is required",
@@ -1672,68 +1728,38 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 </div>
               </div>
 
-              {jobType === "internship" ? (
-                <div className="grid grid-cols-2 gap-4 lg:gap-6">
-                  <div>
-                    <label
-                      htmlFor="stipend"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Monthly Stipend{" "}
-                      <span className="hidden sm:inline-block">(INR)</span>
-                    </label>
-                    <Input
-                      id="stipend"
-                      type="number"
-                      placeholder="e.g.Rs 15000"
-                      {...register("stipend", {
-                        required:
-                          jobType === "internship" && "Stipend is required",
-                        min: {
-                          value: 5000,
-                          message: "Minimum stipend is 5000",
-                        },
-                      })}
-                      error={errors.stipend?.message}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="duration"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Duration
-                    </label>
-                    <Select
-                      id="duration"
-                      options={durations}
-                      {...register("duration", {
-                        required:
-                          jobType === "internship" && "Duration is required",
-                      })}
-                      error={errors.duration?.message}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3  gap-6">
                   <div>
                     <label
                       htmlFor="salaryMin"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Minimum Salary (INR/year)
+                      {jobType === "internship"
+                        ? "Minimum Stipend (INR/month)"
+                        : "Minimum Salary (INR/year)"}
                     </label>
                     <Input
                       id="salaryMin"
                       type="number"
-                      placeholder="e.g. 500000"
+                      placeholder={
+                        jobType === "internship" ? "e.g. 10000" : "e.g. 500000"
+                      }
                       {...register("salary.min", {
-                        required:
-                          jobType !== "internship" &&
-                          "Minimum salary is required",
-                        validate: validateMinSalary, // Add custom validation
-                        valueAsNumber: true, // Ensures value is treated as a number
+                        required: `${
+                          jobType === "internship"
+                            ? "Minimum stipend"
+                            : "Minimum salary"
+                        } is required`,
+                        min: {
+                          value: jobType === "internship" ? 5000 : 0,
+                          message:
+                            jobType === "internship"
+                              ? "Minimum stipend is 5000"
+                              : "Minimum salary cannot be negative",
+                        },
+                        validate: validateMinSalary,
+                        valueAsNumber: true,
                       })}
                       error={errors.salary?.min?.message}
                     />
@@ -1743,24 +1769,57 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                       htmlFor="salaryMax"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Maximum Salary (INR/year)
+                      {jobType === "internship"
+                        ? "Maximum Stipend (INR/month)"
+                        : "Maximum Salary (INR/year)"}
                     </label>
                     <Input
                       id="salaryMax"
                       type="number"
-                      placeholder="e.g. 800000"
+                      placeholder={
+                        jobType === "internship" ? "e.g. 20000" : "e.g. 800000"
+                      }
                       {...register("salary.max", {
-                        required:
-                          jobType !== "internship" &&
-                          "Maximum salary is required",
-                        validate: validateMaxSalary, // Add custom validation
-                        valueAsNumber: true, // Ensures value is treated as a number
+                        required: `${
+                          jobType === "internship"
+                            ? "Maximum stipend"
+                            : "Maximum salary"
+                        } is required`,
+                        min: {
+                          value: jobType === "internship" ? 5000 : 0,
+                          message:
+                            jobType === "internship"
+                              ? "Minimum stipend is 5000"
+                              : "Maximum salary cannot be negative",
+                        },
+                        validate: validateMaxSalary,
+                        valueAsNumber: true,
                       })}
                       error={errors.salary?.max?.message}
                     />
                   </div>
+                  {jobType === "internship" && (
+                    <div>
+                      <label
+                        htmlFor="duration"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Duration
+                      </label>
+                      <Select
+                        id="duration"
+                        value={duration}
+                        options={durations}
+                        {...register("duration", {
+                          required:
+                            jobType === "internship" && "Duration is required",
+                        })}
+                        error={errors.duration?.message}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               <div>
                 <label

@@ -842,8 +842,8 @@ export const Candidates = () => {
               <Select
                 options={sortOptions}
                 value={sortOrder}
-                onChange={(value) =>
-                  setSortOrder(value as "high-to-low" | "low-to-high")
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setSortOrder(e.target.value as "high-to-low" | "low-to-high")
                 }
                 placeholder="Sort by"
                 className="w-48"
@@ -988,10 +988,12 @@ export const Candidates = () => {
                                 options={statusOptions}
                                 disabled={statusLoading.includes(candidate.id)}
                                 defaultValue={candidate.status}
-                                onChange={(value: string) => {
+                                onChange={(
+                                  e: React.ChangeEvent<HTMLSelectElement>
+                                ) => {
                                   updateCandidateStatus(
                                     candidate.id,
-                                    value as CandidateStatusValue
+                                    e.target.value as CandidateStatusValue
                                   );
                                 }}
                                 aria-label={`Change status for ${candidate.name}`}
