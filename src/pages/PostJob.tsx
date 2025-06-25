@@ -2170,18 +2170,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   type="date"
                   {...register("applicationDeadline", {
                     required: "Application deadline is required",
-                    validate: {
-                      notInPast: validateDeadline,
-                      afterAssignment: (value) => {
-                        const assignmentDeadline = watch("assignment.deadline");
-                        if (!assignmentDeadline) return true;
-                        const appDate = new Date(value);
-                        const assignDate = new Date(assignmentDeadline);
-                        return appDate > assignDate
-                          ? true
-                          : "Application deadline must be greater than assignment deadline";
-                      },
-                    },
                   })}
                   error={errors.applicationDeadline?.message}
                 />
