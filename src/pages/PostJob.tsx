@@ -714,37 +714,14 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     ],
   };
 
-  // CHANGE: Added validation for min/max stipend
-  const validateMinStipend = (value: string) => {
-    const numValue = parseFloat(value) || 0;
-    if (numValue < 0) {
-      return "Minimum stipend cannot be negative";
-    }
-    if (maxStipend && parseFloat(maxStipend) <= numValue) {
-      return "Minimum stipend must be less than maximum stipend";
-    }
-    return true;
-  };
-
-  const validateMaxStipend = (value: string) => {
-    const numValue = parseFloat(value) || 0;
-    if (numValue < 0) {
-      return "Maximum stipend cannot be negative";
-    }
-    if (minStipend && numValue <= parseFloat(minStipend)) {
-      return "Maximum stipend must be greater than minimum stipend";
-    }
-    return true;
-  };
-
   // Custom validation functions
   const validateMinSalary = (value: string) => {
     const numValue = parseFloat(value) || 0;
     if (numValue < 0) {
       return "Minimum salary cannot be negative";
     }
-    if (maxSalary && parseFloat(maxSalary) <= numValue) {
-      return "Minimum salary must be less than maximum salary";
+    if (maxSalary && parseFloat(maxSalary) < numValue) {
+      return "Minimum salary must be less than or equal to maximum salary";
     }
     return true;
   };
@@ -754,8 +731,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     if (numValue < 0) {
       return "Maximum salary cannot be negative";
     }
-    if (minSalary && numValue <= parseFloat(minSalary)) {
-      return "Maximum salary must be greater than minimum salary";
+    if (minSalary && numValue < parseFloat(minSalary)) {
+      return "Maximum salary must be greater than or equal to minimum salary";
     }
     return true;
   };
