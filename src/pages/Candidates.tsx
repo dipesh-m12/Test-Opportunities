@@ -23,6 +23,7 @@ import {
   ExternalLink,
   Info,
   IndianRupee,
+  X,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import Spinner from "@/components/Spinner";
@@ -185,16 +186,8 @@ export const Candidates = () => {
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  // Added state for sort order
-  const [sortOrder, setSortOrder] = useState<"high-to-low" | "low-to-high">(
-    "high-to-low"
-  );
-  const [applicationSortOrder, setApplicationSortOrder] = useState<
-    "newest-to-oldest" | "oldest-to-newest" | null
-  >(null);
-  const [submissionSortOrder, setSubmissionSortOrder] = useState<
-    "newest-to-oldest" | "oldest-to-newest" | null
-  >(null);
+
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -616,70 +609,141 @@ export const Candidates = () => {
       label: opt.label,
     }));
 
-  // Added sort options for the dropdown
-  const sortOptions = [
-    { value: "high-to-low", label: "Fit: High to Low" },
-    { value: "low-to-high", label: "Fit: Low to High" },
-  ];
-  const applicationSortOptions = [
-    { value: "newest-to-oldest", label: "Newest to Oldest" },
-    { value: "oldest-to-newest", label: "Oldest to Newest" },
-  ];
+  const filterOptions = [
+    {
+      value: "fit-high-to-low",
+      label: "Fit: High to Low",
+      selected: false,
+      disabled: false,
+    },
+    {
+      value: "fit-low-to-high",
+      label: "Fit: Low to High",
+      selected: false,
+      disabled: false,
+    },
+    {
+      value: "app-newest-to-oldest",
+      label: "Application: Newest to Oldest",
+      selected: false,
+      disabled: false,
+    },
+    {
+      value: "app-oldest-to-newest",
+      label: "Application: Oldest to Newest",
+      selected: false,
+      disabled: false,
+    },
+    {
+      value: "sub-newest-to-oldest",
+      label: "Assignment: Newest to Oldest",
+      selected: false,
+      disabled: false,
+    },
+    {
+      value: "sub-oldest-to-newest",
+      label: "Assignment: Oldest to Newest",
+      selected: false,
+      disabled: false,
+    },
+  ].map((option) => ({
+    ...option,
+    selected: selectedFilters.includes(option.value),
+    disabled: selectedFilters.includes(option.value),
+  }));
 
-  const submissionSortOptions = [
-    { value: "newest-to-oldest", label: "Newest to Oldest" },
-    { value: "oldest-to-newest", label: "Oldest to Newest" },
-  ];
-  const filteredCandidates = useMemo(
-    () =>
-      candidatesForJob
-        .filter((candidate) => {
-          if (!job) return false;
-          const scoreBasedFit = getScoreBasedFit(
-            candidate.githubStats.overall_score
-          );
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (!value || selectedFilters.includes(value)) return;
 
-          const skillMatchPass =
-            !skillFilter || scoreBasedFit.type === skillFilter;
-          const statusPass = !statusFilter || candidate.status === statusFilter;
+    // Determine the category of the new filter
+    const category = value.startsWith("fit-")
+      ? "fit"
+      : value.startsWith("app-")
+      ? "app"
+      : "sub";
 
-          return skillMatchPass && statusPass;
-        })
-        .sort((a, b) => {
-          if (applicationSortOrder) {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return applicationSortOrder === "newest-to-oldest"
-              ? dateB - dateA
-              : dateA - dateB;
-          }
-          if (submissionSortOrder) {
-            const dateA = a.assignmentStatus.submitted
-              ? new Date(a.assignmentStatus.submittedAt).getTime()
-              : Infinity;
-            const dateB = b.assignmentStatus.submitted
-              ? new Date(b.assignmentStatus.submittedAt).getTime()
-              : Infinity;
-            return submissionSortOrder === "newest-to-oldest"
-              ? dateB - dateA
-              : dateA - dateB;
-          }
+    // Remove any existing filter from the same category
+    const newFilters = selectedFilters.filter(
+      (f) => !f.startsWith(category + "-")
+    );
+
+    // Add the new filter
+    setSelectedFilters([...newFilters, value]);
+  };
+
+  const removeFilter = (filter: string) => {
+    setSelectedFilters(selectedFilters.filter((f) => f !== filter));
+  };
+
+  const filteredCandidates = useMemo(() => {
+    let filtered = candidatesForJob;
+
+    // Step 1: Apply dropdown sorting filters in order
+    filtered = [...filtered].sort((a, b) => {
+      let sortResult = 0;
+
+      for (const filter of selectedFilters) {
+        if (filter === "fit-high-to-low") {
           const scoreA = a.githubStats.overall_score;
           const scoreB = b.githubStats.overall_score;
-          return sortOrder === "high-to-low"
-            ? scoreB - scoreA
-            : scoreA - scoreB;
-        }),
-    [
-      candidatesForJob,
-      skillFilter,
-      statusFilter,
-      job,
-      sortOrder,
-      applicationSortOrder,
-      submissionSortOrder,
-    ]
-  );
+          sortResult = scoreB - scoreA;
+          if (sortResult !== 0) return sortResult;
+        } else if (filter === "fit-low-to-high") {
+          const scoreA = a.githubStats.overall_score;
+          const scoreB = b.githubStats.overall_score;
+          sortResult = scoreA - scoreB;
+          if (sortResult !== 0) return sortResult;
+        } else if (filter === "app-newest-to-oldest") {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          sortResult = dateB - dateA;
+          if (sortResult !== 0) return sortResult;
+        } else if (filter === "app-oldest-to-newest") {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          sortResult = dateA - dateB;
+          if (sortResult !== 0) return sortResult;
+        } else if (filter === "sub-newest-to-oldest") {
+          const dateA = a.assignmentStatus.submitted
+            ? new Date(a.assignmentStatus.submittedAt).getTime()
+            : Infinity;
+          const dateB = b.assignmentStatus.submitted
+            ? new Date(b.assignmentStatus.submittedAt).getTime()
+            : Infinity;
+          sortResult = dateB - dateA;
+          if (sortResult !== 0) return sortResult;
+        } else if (filter === "sub-oldest-to-newest") {
+          const dateA = a.assignmentStatus.submitted
+            ? new Date(a.assignmentStatus.submittedAt).getTime()
+            : Infinity;
+          const dateB = b.assignmentStatus.submitted
+            ? new Date(b.assignmentStatus.submittedAt).getTime()
+            : Infinity;
+          sortResult = dateA - dateB;
+          if (sortResult !== 0) return sortResult;
+        }
+      }
+
+      return sortResult;
+    });
+
+    // Step 2: Apply tab-based filters (skill and status)
+    if (skillFilter || statusFilter) {
+      filtered = filtered.filter((candidate) => {
+        if (!job) return false;
+        const scoreBasedFit = getScoreBasedFit(
+          candidate.githubStats.overall_score
+        );
+        const skillMatchPass =
+          !skillFilter || scoreBasedFit.type === skillFilter;
+        const statusPass = !statusFilter || candidate.status === statusFilter;
+        return skillMatchPass && statusPass;
+      });
+    }
+
+    return filtered;
+  }, [candidatesForJob, selectedFilters, skillFilter, statusFilter, job]);
 
   const scheduleInterview = (candidateId: string) => {
     if (!user?.email) {
@@ -879,44 +943,31 @@ export const Candidates = () => {
               </p>
             </div>
             {/* Added sort by dropdown */}
-            <div className="flex justify-start gap-2">
+            <div className="flex flex-col gap-2">
               <Select
-                options={sortOptions}
-                value={sortOrder}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setSortOrder(e.target.value as "high-to-low" | "low-to-high")
-                }
-                placeholder="Sort by"
-                className="w-48"
-              />
-              <Select
-                options={applicationSortOptions}
-                value={applicationSortOrder as string}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setApplicationSortOrder(
-                    e.target.value as
-                      | "newest-to-oldest"
-                      | "oldest-to-newest"
-                      | null
-                  )
-                }
-                placeholder="Sort by Application Date"
+                options={filterOptions}
+                value=""
+                onChange={handleFilterChange}
+                placeholder="Select filters"
                 className="w-56"
               />
-              <Select
-                options={submissionSortOptions}
-                value={submissionSortOrder as string}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setSubmissionSortOrder(
-                    e.target.value as
-                      | "newest-to-oldest"
-                      | "oldest-to-newest"
-                      | null
-                  )
-                }
-                placeholder="Sort by Submission Date"
-                className="w-56"
-              />
+              <div className="flex flex-wrap gap-2">
+                {selectedFilters.map((filter) => (
+                  <Badge
+                    key={filter}
+                    className="flex items-center gap-1 bg-gray-100 text-gray-800"
+                  >
+                    {filterOptions.find((opt) => opt.value === filter)?.label}
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <button
+                      onClick={() => removeFilter(filter)}
+                      className="ml-1"
+                    >
+                      <X className="h-4 w-4 text-gray-600 hover:text-red-600" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap justify-start sm:justify-start gap-1 sm:gap-2 pb-2 border-b border-gray-200">
