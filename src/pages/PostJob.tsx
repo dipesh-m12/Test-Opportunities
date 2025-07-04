@@ -102,9 +102,12 @@ const locations = [
 
 const durations = [
   { value: "1", label: "1 Month" },
+  { value: "2", label: "2 Months" },
   { value: "3", label: "3 Months" },
+  { value: "4", label: "4 Months" },
+  { value: "5", label: "5 Months" },
   { value: "6", label: "6 Months" },
-  { value: "9999", label: "Custom" },
+  // { value: "9999", label: "Custom" },
 ];
 
 const techJobSuggestions = [
@@ -554,7 +557,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 max: job.data.max_salary, // Map max_salary to salary.max
               },
               status: data.status,
-              duration: `${data.duration}`,
+              duration: `${data.duration === 9999 ? "6" : data.duration}`,
               deadline: moment(data.deadline).format("YYYY-MM-DD"),
               work_mode: data.work_mode,
             },
@@ -698,15 +701,15 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     const selectedDate = new Date(value);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to midnight for comparison
-    if (selectedDate < today) {
-      return "Assignment deadline cannot be in the past. Please select today or a future date.";
-    }
+    // if (selectedDate < today) {
+    //   return "Assignment deadline cannot be in the past. Please select today or a future date.";
+    // }
     return true;
   };
 
   const modules = {
     toolbar: [
-      [{ header: [1, 2, 3, false] }],
+      [{ header: [1, 2, 5, false] }],
       ["bold", "italic", "underline"],
       [{ list: "ordered" }, { list: "bullet" }],
       ["link"],

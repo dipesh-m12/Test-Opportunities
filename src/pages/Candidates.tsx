@@ -106,6 +106,7 @@ interface Candidate {
   projects: Project[];
   graduation_year: string | number;
   degree: string;
+  createdAt: string;
 }
 
 interface Salary {
@@ -188,6 +189,12 @@ export const Candidates = () => {
   const [sortOrder, setSortOrder] = useState<"high-to-low" | "low-to-high">(
     "high-to-low"
   );
+  const [applicationSortOrder, setApplicationSortOrder] = useState<
+    "newest-to-oldest" | "oldest-to-newest" | null
+  >(null);
+  const [submissionSortOrder, setSubmissionSortOrder] = useState<
+    "newest-to-oldest" | "oldest-to-newest" | null
+  >(null);
 
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -376,6 +383,7 @@ export const Candidates = () => {
             status: e.application.status.toLowerCase() as CandidateStatusValue,
             graduation_year: e.user.graduation_year,
             degree: e.user.degree,
+            createdAt: e.application.created_at || new Date().toISOString(),
             assignmentStatus: {
               submitted:
                 !!e.application.assignment_file?.github_repo_url ||
@@ -564,7 +572,7 @@ export const Candidates = () => {
       setLoading(true);
       try {
         let candidateData = await fetchCandidates();
-        // console.log("Here", candidateData);
+        console.log("Here", candidateData);
         if (scrollToCandidate) {
           candidateData = candidateData.filter(
             (e) => e.id == scrollToCandidate
@@ -613,7 +621,15 @@ export const Candidates = () => {
     { value: "high-to-low", label: "Fit: High to Low" },
     { value: "low-to-high", label: "Fit: Low to High" },
   ];
+  const applicationSortOptions = [
+    { value: "newest-to-oldest", label: "Newest to Oldest" },
+    { value: "oldest-to-newest", label: "Oldest to Newest" },
+  ];
 
+  const submissionSortOptions = [
+    { value: "newest-to-oldest", label: "Newest to Oldest" },
+    { value: "oldest-to-newest", label: "Oldest to Newest" },
+  ];
   const filteredCandidates = useMemo(
     () =>
       candidatesForJob
@@ -629,15 +645,40 @@ export const Candidates = () => {
 
           return skillMatchPass && statusPass;
         })
-        // Added sorting logic based on sortOrder
         .sort((a, b) => {
+          if (applicationSortOrder) {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return applicationSortOrder === "newest-to-oldest"
+              ? dateB - dateA
+              : dateA - dateB;
+          }
+          if (submissionSortOrder) {
+            const dateA = a.assignmentStatus.submitted
+              ? new Date(a.assignmentStatus.submittedAt).getTime()
+              : Infinity;
+            const dateB = b.assignmentStatus.submitted
+              ? new Date(b.assignmentStatus.submittedAt).getTime()
+              : Infinity;
+            return submissionSortOrder === "newest-to-oldest"
+              ? dateB - dateA
+              : dateA - dateB;
+          }
           const scoreA = a.githubStats.overall_score;
           const scoreB = b.githubStats.overall_score;
           return sortOrder === "high-to-low"
             ? scoreB - scoreA
             : scoreA - scoreB;
         }),
-    [candidatesForJob, skillFilter, statusFilter, job, sortOrder]
+    [
+      candidatesForJob,
+      skillFilter,
+      statusFilter,
+      job,
+      sortOrder,
+      applicationSortOrder,
+      submissionSortOrder,
+    ]
   );
 
   const scheduleInterview = (candidateId: string) => {
@@ -838,7 +879,7 @@ export const Candidates = () => {
               </p>
             </div>
             {/* Added sort by dropdown */}
-            <div className="flex justify-start">
+            <div className="flex justify-start gap-2">
               <Select
                 options={sortOptions}
                 value={sortOrder}
@@ -847,6 +888,34 @@ export const Candidates = () => {
                 }
                 placeholder="Sort by"
                 className="w-48"
+              />
+              <Select
+                options={applicationSortOptions}
+                value={applicationSortOrder as string}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setApplicationSortOrder(
+                    e.target.value as
+                      | "newest-to-oldest"
+                      | "oldest-to-newest"
+                      | null
+                  )
+                }
+                placeholder="Sort by Application Date"
+                className="w-56"
+              />
+              <Select
+                options={submissionSortOptions}
+                value={submissionSortOrder as string}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setSubmissionSortOrder(
+                    e.target.value as
+                      | "newest-to-oldest"
+                      | "oldest-to-newest"
+                      | null
+                  )
+                }
+                placeholder="Sort by Submission Date"
+                className="w-56"
               />
             </div>
           </div>
