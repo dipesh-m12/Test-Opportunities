@@ -78,6 +78,11 @@ const Footer = ({
                 Privacy policy
               </h3>
             </Link>
+            <Link to="https://www.inovact.in/eligibility">
+              <h3 className="hover:text-gray-300 text-sm sm:text-base transition-colors cursor-pointer">
+                Eligibility to apply for an Opportunity
+              </h3>
+            </Link>
           </div>
         </motion.div>
         <motion.div
