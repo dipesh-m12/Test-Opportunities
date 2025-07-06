@@ -187,7 +187,9 @@ export const Candidates = () => {
   const [statusLoading, setStatusLoading] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
 
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    "fit-high-to-low",
+  ]);
 
   const location = useLocation();
   const [searchParams] = useSearchParams();
