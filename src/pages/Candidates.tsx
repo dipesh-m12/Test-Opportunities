@@ -363,6 +363,7 @@ export const Candidates = () => {
                 (0.7 * matchedRequiredRatio * 100 +
                   0.3 * matchedPreferredRatio * 100)) /
             10;
+          console.log("hereer", e.user.designation, e.user.graduation_year);
           return {
             id: e.application.id,
             name: `${e.user.first_name || "Unknown"} ${

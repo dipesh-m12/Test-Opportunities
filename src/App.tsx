@@ -16,6 +16,7 @@ import { token } from "./utils";
 import { host } from "./utils/routes";
 import { query, where, getDocs } from "firebase/firestore";
 import { phoneCollection } from "./utils/firebaseConfig";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   const [isPostJobEnabled, setIsPostJobEnabled] = useState(false);
@@ -95,7 +96,10 @@ function App() {
               />
             }
           />
-          <Route path="/post-job" element={<PostJob isPhoneNumber={isPhoneNumber}/>} />
+          <Route
+            path="/post-job"
+            element={<PostJob isPhoneNumber={isPhoneNumber} />}
+          />
           <Route
             path="/manage-jobs"
             element={
@@ -122,6 +126,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </Router>
   );

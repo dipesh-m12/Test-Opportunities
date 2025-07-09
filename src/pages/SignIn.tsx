@@ -244,7 +244,14 @@ export const SignIn = () => {
               </p>
             )}
           </div>
-
+          <p className="text-right text-xs sm:text-sm text-gray-600">
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </p>
           <Button
             type="submit"
             className="w-full text-sm sm:text-base"
