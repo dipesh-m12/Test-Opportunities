@@ -1,8 +1,11 @@
+"use client";
+
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState, useRef } from "react";
-import { useForm, Controller } from "react-hook-form"; // Add Controller import
+import type React from "react";
+import { useEffect, useState, useRef } from "react";
+import { useForm } from "react-hook-form"; // Add Controller import
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -18,6 +21,49 @@ import { host } from "@/utils/routes";
 import axios from "axios";
 import { token } from "@/utils";
 import moment from "moment";
+
+// Custom Toggle Switch Component
+const ToggleSwitch = ({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+  disabled?: boolean;
+}) => {
+  return (
+    <div className="flex items-center space-x-3">
+      <button
+        type="button"
+        onClick={() => !disabled && onChange(!checked)}
+        disabled={disabled}
+        className={`
+          relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+          ${checked ? "bg-blue-600" : "bg-gray-200"}
+          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+        `}
+      >
+        <span
+          className={`
+            inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out
+            ${checked ? "translate-x-6" : "translate-x-1"}
+          `}
+        />
+      </button>
+      <label
+        className={`text-sm font-medium text-gray-700 ${
+          disabled ? "opacity-50" : "cursor-pointer"
+        }`}
+        onClick={() => !disabled && onChange(!checked)}
+      >
+        {label}
+      </label>
+    </div>
+  );
+};
 
 interface JobFormData {
   id?: string;
@@ -38,19 +84,19 @@ interface JobFormData {
   description: string;
   requiredSkills: string[];
   preferredSkills: string[];
-  assignment: {
+  assignment?: {
     description: string;
     deadline: string;
     file: File;
     submissionPreferences: string[];
   };
   applicationDeadline: string;
-
   duration?: string;
   min_salary?: string;
   max_salary?: string;
   deadline?: string;
   work_mode?: string;
+  hasAssignment?: boolean;
 }
 
 interface FetchedJobDetails {
@@ -283,15 +329,19 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       requiredSkills: [],
       preferredSkills: [],
       description: "",
+      hasAssignment: false,
       assignment: {
         submissionPreferences: [],
         // deadline: moment("2024-06-05").format("YYYY-MM-DD"),
       },
     },
   });
+
   const jobType = watch("type");
   const location = watch("location");
   const description = watch("description");
+  const hasAssignment = watch("hasAssignment");
+
   // Watch salary fields to enable dynamic validation
   const minSalary = watch("salary.min");
   const maxSalary = watch("salary.max");
@@ -300,6 +350,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const duration = watch("duration");
   const status = watch("status");
   const needsCity = location === "Office" || location === "Hybrid";
+
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [preferredSkills, setPreferredSkills] = useState<string[]>([]);
   const location_state = useLocation();
@@ -348,6 +399,22 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   const [searchParams] = useSearchParams();
   const edit = searchParams.get("edit");
 
+  // Handle assignment toggle
+  const handleAssignmentToggle = (checked: boolean) => {
+    setValue("hasAssignment", checked, { shouldValidate: true });
+
+    // Clear assignment fields when toggled off
+    if (!checked) {
+      setValue("assignment.description", "");
+      setValue("assignment.deadline", "");
+      setValue("assignment.submissionPreferences", []);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setFileError(undefined);
+    }
+  };
+
   // Handle skill suggestions
   const filterSuggestions = (input: string, type: "required" | "preferred") => {
     if (!input) return [];
@@ -386,7 +453,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       | { currentTarget: HTMLInputElement; preventDefault: () => void }
   ) => {
     e.preventDefault();
-
     const trimmedSkill = skill.trim();
     if (!trimmedSkill) return;
 
@@ -401,7 +467,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       return; // no duplicates or cross-category skills
 
     const newSkills = [...skillsArray, trimmedSkill];
-
     if (type === "required") {
       setRequiredSkills(newSkills);
       setValue("requiredSkills", newSkills, { shouldValidate: true });
@@ -415,14 +480,12 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       setShowPreferredSuggestions(false);
       setSelectedPreferredIndex(-1); // Reset selection
     }
-
     e.currentTarget.value = "";
   };
 
   const removeSkill = (type: "required" | "preferred", skill: string) => {
     const skillsArray = type === "required" ? requiredSkills : preferredSkills;
     const newSkills = skillsArray.filter((s) => s !== skill);
-
     if (type === "required") {
       setRequiredSkills(newSkills);
       setValue("requiredSkills", newSkills, { shouldValidate: true });
@@ -491,9 +554,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
   useEffect(() => {
     if (data && data.isEditing) {
       console.log("editing", edit);
-
       const idToken = localStorage.getItem(token);
-
       if (!idToken) {
         toast.error("Seems like you are not logged in");
         setTimeout(() => {
@@ -513,7 +574,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           });
           console.log("Company", response.data);
           const companyId = response.data.id;
-
           const job = await axios.get(
             `${host}/company/${companyId}/job/${edit}`,
             {
@@ -525,15 +585,47 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           console.log("Job", job.data);
           const data = job.data;
 
-          const assign = await axios.get(
-            `${host}/company/${companyId}/job/${edit}/assignment/${job.data.assignments[0].id}`,
-            {
-              headers: {
-                Authorization: idToken,
-              },
-            }
-          );
-          console.log("Assignment", assign.data);
+          // Check if job has assignments
+          const hasAssignments =
+            data.assignments && data.assignments.length > 0;
+
+          let assignmentData = {};
+          const submissionPreferences: string[] = [];
+
+          if (hasAssignments) {
+            const assign = await axios.get(
+              `${host}/company/${companyId}/job/${edit}/assignment/${job.data.assignments[0].id}`,
+              {
+                headers: {
+                  Authorization: idToken,
+                },
+              }
+            );
+            console.log("Assignment", assign.data);
+
+            assignmentData = {
+              id: job.data.assignments[0].id,
+              description: data.assignments[0].description,
+              SubmissionType: "file",
+              deadline: moment(data.assignments[0].deadline).format(
+                "YYYY-MM-DD"
+              ),
+              githubRepo: data.assignments[0].requireGitHubRepo,
+              liveLink: data.assignments[0].requireLiveLink,
+              documentation: data.assignments[0].requireDocumentation,
+            };
+
+            // Map boolean flags to submissionPreferences array
+            if (data.assignments[0].requireGitHubRepo)
+              submissionPreferences.push("github");
+            if (data.assignments[0].requireLiveLink)
+              submissionPreferences.push("liveLink");
+            if (data.assignments[0].requireDocumentation)
+              submissionPreferences.push("documentation");
+
+            setlink(assign.data.file_download_url);
+          }
+
           const refineData: FetchedJobDetails = {
             job: {
               id: job.data.id,
@@ -560,18 +652,9 @@ export const PostJob = ({ isPhoneNumber }: any) => {
               duration: `${data.duration === 9999 ? "6" : data.duration}`,
               deadline: moment(data.deadline).format("YYYY-MM-DD"),
               work_mode: data.work_mode,
+              hasAssignment: hasAssignments,
             },
-            assignment: {
-              id: job.data.assignments[0].id,
-              description: data.assignments[0].description,
-              SubmissionType: "file",
-              deadline: moment(data.assignments[0].deadline).format(
-                "YYYY-MM-DD"
-              ),
-              githubRepo: data.assignments[0].requireGitHubRepo,
-              liveLink: data.assignments[0].requireLiveLink,
-              documentation: data.assignments[0].requireDocumentation,
-            },
+            assignment: assignmentData,
             skills: {
               preferredSkills: data.job_skills
                 .filter((e: any) => e.type == "preferred")
@@ -580,26 +663,17 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 .filter((e: any) => e.type == "required")
                 .map((e: any) => ({ skill: e.skill, id: e.id })),
             },
-            file: {
-              file: assign.data.file_download_url,
-              id: job.data.assignments[0].id,
-            },
+            file: hasAssignments
+              ? {
+                  file: link,
+                  id: job.data.assignments[0].id,
+                }
+              : {},
             blob: job.data,
-            assignBlob: assign.data,
+            assignBlob: hasAssignments ? assignmentData : {},
           };
           setFetchedJobDetails(refineData);
           console.log(refineData);
-
-          // Map boolean flags to submissionPreferences array
-          const submissionPreferences = [];
-          if (refineData.assignment.githubRepo)
-            submissionPreferences.push("github");
-          if (refineData.assignment.liveLink)
-            submissionPreferences.push("liveLink");
-          if (refineData.assignment.documentation)
-            submissionPreferences.push("documentation");
-
-          // console.log(submissionPreferences);
 
           //set the fields
           reset({
@@ -620,14 +694,21 @@ export const PostJob = ({ isPhoneNumber }: any) => {
             preferredSkills: refineData.skills.preferredSkills.map(
               (e) => e.skill
             ),
-            assignment: {
-              description: refineData.assignment.description,
-              deadline: moment(refineData.assignment.deadline).format(
-                "YYYY-MM-DD"
-              ),
-              // file: new File([], ""), // Reset file input
-              submissionPreferences,
-            },
+            hasAssignment: hasAssignments,
+            assignment: hasAssignments
+              ? {
+                  description: refineData.assignment.description,
+                  deadline: moment(refineData.assignment.deadline).format(
+                    "YYYY-MM-DD"
+                  ),
+                  // file: new File([], ""), // Reset file input
+                  submissionPreferences,
+                }
+              : {
+                  description: "",
+                  deadline: "",
+                  submissionPreferences: [],
+                },
             applicationDeadline: moment(refineData.job.deadline).format(
               "YYYY-MM-DD"
             ),
@@ -639,7 +720,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           setPreferredSkills(
             refineData.skills.preferredSkills.map((e) => e.skill)
           );
-          setlink(assign.data.file_download_url);
         } catch (e) {
           console.error("Error", e);
           toast.error("Error fetching the job");
@@ -701,9 +781,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     const selectedDate = new Date(value);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to midnight for comparison
-    // if (selectedDate < today) {
-    //   return "Assignment deadline cannot be in the past. Please select today or a future date.";
-    // }
     return true;
   };
 
@@ -719,22 +796,22 @@ export const PostJob = ({ isPhoneNumber }: any) => {
 
   // Custom validation functions
   const validateMinSalary = (value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = Number.parseFloat(value) || 0;
     if (numValue < 0) {
       return "Minimum salary cannot be negative";
     }
-    if (maxSalary && parseFloat(maxSalary) < numValue) {
+    if (maxSalary && Number.parseFloat(maxSalary) < numValue) {
       return "Minimum salary must be less than or equal to maximum salary";
     }
     return true;
   };
 
   const validateMaxSalary = (value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = Number.parseFloat(value) || 0;
     if (numValue < 0) {
       return "Maximum salary cannot be negative";
     }
-    if (minSalary && numValue < parseFloat(minSalary)) {
+    if (minSalary && numValue < Number.parseFloat(minSalary)) {
       return "Maximum salary must be greater than or equal to minimum salary";
     }
     return true;
@@ -745,30 +822,41 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       toast.error("Can not find the id to your job");
       return;
     }
-    // console.log("here");
-    // return;
+
     const file = fileInputRef.current?.files?.[0];
+
+    // Validate assignment fields only if assignment is enabled
+    if (data.hasAssignment) {
+      let fileValidationError;
+      if (!file && !link) {
+        fileValidationError = "Assignment file is required";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      if (file && file.type !== "application/pdf") {
+        fileValidationError = "Only PDF files are allowed";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      setFileError(undefined);
+    }
 
     // Prepare data with correct file
     const submissionData = {
       ...data,
-      assignment: {
-        ...data.assignment,
-        file,
-      },
+      assignment: data.hasAssignment
+        ? {
+            ...data.assignment,
+            file,
+          }
+        : undefined,
     };
 
-    // Console logs for debugging
-    // console.log("Raw File Object:", file);
-    // console.log("Form Submission Data (Object):", submissionData);
-    // console.log(file);
-    // return;
-
     setLoading(true);
-
     try {
       const idToken = localStorage.getItem(token);
-
       if (!idToken) {
         toast.error("Seems like you are not logged in");
         setTimeout(() => {
@@ -777,17 +865,14 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         return;
       }
       console.log("Updating");
-
       const response = await axios.get(`${host}/company`, {
         headers: {
           Authorization: idToken,
         },
       });
       const companyId = response.data.id;
-      // console.log(response.data.id);
 
       //create job
-
       const job = await axios.put(
         `${host}/company/${response.data.id}/job/${edit}`,
         {
@@ -821,19 +906,16 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           },
         }
       );
+
       const jobId = job.data.id;
-      // console.log("Job", job.data);
 
       //create skills
-
       const skillPromises: Promise<any>[] = [];
       //delete skills
-
       fetchedJobDetails.skills.preferredSkills.forEach((skill) => {
         skillPromises.push(
           axios.delete(
             `${host}/company/${companyId}/job/${edit}/skills/${skill.id}`,
-
             {
               headers: {
                 Authorization: idToken,
@@ -843,12 +925,10 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           )
         );
       });
-
       fetchedJobDetails.skills.requiredSkills.forEach((skill) => {
         skillPromises.push(
           axios.delete(
             `${host}/company/${companyId}/job/${edit}/skills/${skill.id}`,
-
             {
               headers: {
                 Authorization: idToken,
@@ -898,15 +978,8 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       });
 
       // Wait for all skills to be added
-      // console.log(fetchedJobDetails);
-
       let skillResponses = await Promise.all(skillPromises);
-      // console.log(
-      //   "Skills Added:",
-      //   skillResponses.map((res) => res.data)
-      // );
       skillResponses = skillResponses.map((res) => res.data);
-      // console.log(skillResponses);
 
       const preferredSkills: Array<{ id: string; skill: string }> =
         skillResponses
@@ -915,7 +988,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
             id: e.id,
             skill: e.skill,
           }));
-
       const requiredSkills: Array<{ id: string; skill: string }> =
         skillResponses
           .filter((e) => e.type === "required")
@@ -923,8 +995,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
             id: e.id,
             skill: e.skill,
           }));
-      // console.log(preferredSkills);
-      // console.log(requiredSkills);
+
       let temp = {
         ...fetchedJobDetails,
         skills: {
@@ -932,95 +1003,83 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           requiredSkills: [...requiredSkills],
         },
       };
-      // console.log(temp);
 
-      // setFetchedJobDetails(temp);
+      // Handle assignment only if enabled
+      if (submissionData.hasAssignment && submissionData.assignment) {
+        const fileType =
+          submissionData!.assignment!.submissionPreferences!.includes(
+            "documentation"
+          )
+            ? "file"
+            : "project";
 
-      const fileType = submissionData.assignment.submissionPreferences.includes(
-        "documentation"
-      )
-        ? "file"
-        : "project";
-      //create assignment
-      const formData = new FormData();
-      formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", fileType);
-      formData.append(
-        "deadline",
-        moment(submissionData.assignment.deadline, "YYYY-MM-DD")
-          .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-          .toISOString()
-      );
-      formData.append(
-        "requireGitHubRepo",
-        `${submissionData.assignment.submissionPreferences.includes("github")}`
-      );
-      formData.append(
-        "requireLiveLink",
-        `${submissionData.assignment.submissionPreferences.includes(
-          "liveLink"
-        )}`
-      );
-      formData.append(
-        "requireDocumentation",
-        `${submissionData.assignment.submissionPreferences.includes(
-          "documentation"
-        )}`
-      );
+        //create assignment
+        const formData = new FormData();
+        formData.append("description", submissionData.assignment.description);
+        formData.append("submissionType", fileType);
+        formData.append(
+          "deadline",
+          moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+            .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+            .toISOString()
+        );
+        formData.append(
+          "requireGitHubRepo",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "github"
+          )}`
+        );
+        formData.append(
+          "requireLiveLink",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "liveLink"
+          )}`
+        );
+        formData.append(
+          "requireDocumentation",
+          `${submissionData.assignment.submissionPreferences.includes(
+            "documentation"
+          )}`
+        );
 
-      // Validate and append file if present
-      if (submissionData.assignment.file) {
-        // Validate file (required and PDF)
-        const file = submissionData.assignment.file;
-        let fileValidationError;
-        if (!file) {
-          fileValidationError = "Assignment file is required";
-          setFileError(fileValidationError);
-          setLoading(false);
-          return;
+        // Validate and append file if present
+        if (submissionData.assignment.file) {
+          formData.append("file", submissionData.assignment.file);
         }
-        if (file.type !== "application/pdf") {
-          fileValidationError = "Only PDF files are allowed";
-          setFileError(fileValidationError);
-          setLoading(false);
-          return;
-        }
-        setFileError(undefined);
-        formData.append("file", file);
-      }
 
-      // Update assignment with FormData
-      const assign = await axios.put(
-        `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
-        formData,
-        {
-          headers: {
-            Authorization: idToken,
-            // Content-Type is automatically set to multipart/form-data by axios when using FormData
-          },
-        }
-      );
-      console.log("Assignment", assign.data);
-
-      // Fetch download URL if file was updated
-      if (submissionData.assignment.file) {
-        const fileFetch = await axios.get(
+        // Update assignment with FormData
+        const assign = await axios.put(
           `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
+          formData,
           {
             headers: {
               Authorization: idToken,
+              // Content-Type is automatically set to multipart/form-data by axios when using FormData
             },
           }
         );
-        console.log("Assign get", fileFetch.data);
-        setlink(fileFetch.data.file_download_url);
-        temp = {
-          ...temp,
-          file: {
-            file: fileFetch.data.file_download_url,
-            id: fetchedJobDetails.file.id,
-          },
-        };
+        console.log("Assignment", assign.data);
+
+        // Fetch download URL if file was updated
+        if (submissionData.assignment.file) {
+          const fileFetch = await axios.get(
+            `${host}/company/${response.data.id}/job/${edit}/assignment/${fetchedJobDetails.assignment.id}`,
+            {
+              headers: {
+                Authorization: idToken,
+              },
+            }
+          );
+          console.log("Assign get", fileFetch.data);
+          setlink(fileFetch.data.file_download_url);
+          temp = {
+            ...temp,
+            file: {
+              file: fileFetch.data.file_download_url,
+              id: fetchedJobDetails.file.id,
+            },
+          };
+        }
       }
 
       setFetchedJobDetails(temp);
@@ -1034,50 +1093,48 @@ export const PostJob = ({ isPhoneNumber }: any) => {
     }
   };
 
-  // useEffect(() => {
-  //   console.log(fetchedJobDetails.skills);
-  // }, [fetchedJobDetails]);
-
-  // useEffect(() => {
-  //   console.log(fetchedJobDetails.file);
-  // }, [fetchedJobDetails]);
   const onSubmit = async (data: JobFormData) => {
-    // Get the file from ref
-    const file = fileInputRef.current?.files?.[0];
+    // Validate assignment fields only if assignment is enabled
+    if (data.hasAssignment) {
+      // Get the file from ref
+      const file = fileInputRef.current?.files?.[0];
+      // Validate file (required and PDF)
+      let fileValidationError: string | undefined;
+      if (!file) {
+        fileValidationError = "Assignment file is required";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        fileValidationError = "Only PDF files are allowed";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      setFileError(undefined);
+    }
 
-    // Validate file (required and PDF)
-    let fileValidationError: string | undefined;
-    if (!file) {
-      fileValidationError = "Assignment file is required";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    if (file.type !== "application/pdf") {
-      fileValidationError = "Only PDF files are allowed";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    setFileError(undefined);
+    const file = fileInputRef.current?.files?.[0];
 
     // Prepare data with correct file
     const submissionData = {
       ...data,
-      assignment: {
-        ...data.assignment,
-        file,
-      },
+      assignment: data.hasAssignment
+        ? {
+            ...data.assignment,
+            file,
+          }
+        : undefined,
     };
 
     // Console logs for debugging
     console.log("Raw File Object:", file);
     console.log("Form Submission Data (Object):", submissionData);
-    setLoading(true);
 
+    setLoading(true);
     try {
       const idToken = localStorage.getItem(token);
-
       if (!idToken) {
         toast.error("Seems like you are not logged in");
         setTimeout(() => {
@@ -1085,9 +1142,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         }, 2000);
         return;
       }
-
       console.log("adding");
-      // return;
 
       //for companyId
       const response = await axios.get(`${host}/company`, {
@@ -1097,9 +1152,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       });
       const companyId = response.data.id;
       console.log(response.data.id);
-
       //create job
-
       const job = await axios.post(
         `${host}/company/${response.data.id}/job`,
         {
@@ -1135,12 +1188,9 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       );
       const jobId = job.data.id;
       console.log("Job", job.data);
-      // console.log();
 
       //create skills
-
       const skillPromises: Promise<any>[] = [];
-
       // Preferred skills
       submissionData.preferredSkills.forEach((skill) => {
         skillPromises.push(
@@ -1185,260 +1235,16 @@ export const PostJob = ({ isPhoneNumber }: any) => {
         "Skills Added:",
         skillResponses.map((res) => res.data)
       );
-      const fileType = submissionData.assignment.submissionPreferences.includes(
-        "documentation"
-      )
-        ? "file"
-        : "project";
-      //create assignment
-      const formData = new FormData();
-      formData.append("description", submissionData.assignment.description);
-      formData.append("submissionType", fileType);
-      formData.append(
-        "deadline",
-        moment(submissionData.assignment.deadline, "YYYY-MM-DD")
-          .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-          .toISOString()
-      );
-      formData.append(
-        "githubRepo",
-        `${submissionData.assignment.submissionPreferences.includes("github")}`
-      );
-      formData.append(
-        "liveLink",
-        `${submissionData.assignment.submissionPreferences.includes(
-          "liveLink"
-        )}`
-      );
-      formData.append(
-        "documentation",
-        `${submissionData.assignment.submissionPreferences.includes(
-          "documentation"
-        )}`
-      );
 
-      // Append file if it exists
-      if (submissionData.assignment.file) {
-        formData.append("file", submissionData.assignment.file);
-      }
-
-      const assign = await axios.post(
-        `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
-        formData,
-        {
-          headers: {
-            Authorization: idToken,
-            // Note: Content-Type is automatically set to multipart/form-data by axios when using FormData
-          },
-        }
-      );
-      console.log("Assignment", assign.data);
-
-      // Reset form fields after successful submission
-      reset({
-        title: "",
-        type: "full-time",
-        status: "active",
-        location: "Remote",
-        city: "",
-        stipend: {
-          min: "",
-          max: "",
-        },
-        salary: { min: "", max: "" },
-        description: "",
-        requiredSkills: [],
-        preferredSkills: [],
-        assignment: {
-          description: "",
-          deadline: "",
-          file: new File([], ""), // Reset file input
-          submissionPreferences: [],
-        },
-        applicationDeadline: "",
-        duration: "1",
-      });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Clear file input manually
-      }
-      setPreferredSkills([]);
-      setRequiredSkills([]);
-      setFileError(undefined); // Clear any file error
-      navigate("/manage-jobs");
-      toast.success("Job added successfully!");
-    } catch (e) {
-      toast.error("Something went wrong");
-      console.log("Error", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // New handler for Save as Draft
-  const handleSaveDraft = async () => {
-    setLoading(true);
-
-    // Trigger form validation for all fields
-    const isFormValid = await trigger();
-
-    // Validate file (same as onSubmit)
-    const file = fileInputRef.current?.files?.[0];
-    let fileValidationError: string | undefined;
-    if (!file) {
-      fileValidationError = "Assignment file is required";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    if (file.type !== "application/pdf") {
-      fileValidationError = "Only PDF files are allowed";
-      setFileError(fileValidationError);
-      setLoading(false);
-      return;
-    }
-    setFileError(undefined);
-
-    if (isFormValid && !fileValidationError) {
-      // If validations pass, prepare the submission data
-      const formData = watch(); // Get current form values
-      const submissionData = {
-        ...formData,
-        assignment: {
-          ...formData.assignment,
-          file,
-        },
-      };
-
-      // Call saveDraft with the validated data
-      saveDraft(submissionData);
-    }
-
-    setLoading(false);
-  };
-
-  const saveDraft = async (submissionData: JobFormData) => {
-    // Your saveDraft logic here
-    console.log("Saving draft with data:", data);
-
-    try {
-      setDraftLoading(true);
-      try {
-        const idToken = localStorage.getItem(token);
-
-        if (!idToken) {
-          toast.error("Seems like you are not logged in");
-          setTimeout(() => {
-            navigate("/sign-in");
-          }, 2000);
-          return;
-        }
-
-        console.log("adding");
-
-        //for companyId
-        const response = await axios.get(`${host}/company`, {
-          headers: {
-            Authorization: idToken,
-          },
-        });
-        const companyId = response.data.id;
-        console.log(response.data.id);
-
-        //create job
-
-        const job = await axios.post(
-          `${host}/company/${response.data.id}/job`,
-          {
-            title: submissionData.title,
-            description: submissionData.description,
-            type: submissionData.type,
-            city:
-              submissionData.location == "Remote"
-                ? ""
-                : submissionData.city || "",
-            min_salary: +submissionData!.salary!.min,
-            max_salary: +submissionData!.salary!.max,
-            // CHANGE: Added stipend field for internships to API payload
-            stipend:
-              submissionData.type === "internship"
-                ? `${submissionData!.salary!.min}-${
-                    submissionData!.salary!.max
-                  }`
-                : undefined,
-            status: "draft",
-            duration:
-              submissionData.type == "internship"
-                ? +submissionData.duration! || 0
-                : 0,
-            deadline: moment(submissionData.applicationDeadline, "YYYY-MM-DD")
-              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
-              .toISOString(),
-            work_mode: submissionData.location,
-          },
-          {
-            headers: {
-              Authorization: idToken, // Use ID token for authorization
-            },
-          }
-        );
-        const jobId = job.data.id;
-        console.log("Job", job.data);
-        // console.log();
-
-        //create skills
-
-        const skillPromises: Promise<any>[] = [];
-
-        // Preferred skills
-        submissionData.preferredSkills.forEach((skill) => {
-          skillPromises.push(
-            axios.post(
-              `${host}/company/${companyId}/job/${jobId}/skills`,
-              {
-                skill,
-                type: "preferred",
-              },
-              {
-                headers: {
-                  Authorization: idToken,
-                  "Content-Type": "application/json",
-                },
-              }
-            )
-          );
-        });
-
-        // Required skills
-        submissionData.requiredSkills.forEach((skill) => {
-          skillPromises.push(
-            axios.post(
-              `${host}/company/${companyId}/job/${jobId}/skills`,
-              {
-                skill,
-                type: "required",
-              },
-              {
-                headers: {
-                  Authorization: idToken,
-                  "Content-Type": "application/json",
-                },
-              }
-            )
-          );
-        });
-
-        // Wait for all skills to be added
-        const skillResponses = await Promise.all(skillPromises);
-        console.log(
-          "Skills Added:",
-          skillResponses.map((res) => res.data)
-        );
+      // Handle assignment only if enabled
+      if (submissionData.hasAssignment && submissionData.assignment) {
         const fileType =
           submissionData.assignment.submissionPreferences.includes(
             "documentation"
           )
             ? "file"
             : "project";
+
         //create assignment
         const formData = new FormData();
         formData.append("description", submissionData.assignment.description);
@@ -1484,6 +1290,258 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           }
         );
         console.log("Assignment", assign.data);
+      }
+
+      // Reset form fields after successful submission
+      reset({
+        title: "",
+        type: "full-time",
+        status: "active",
+        location: "Remote",
+        city: "",
+        stipend: {
+          min: "",
+          max: "",
+        },
+        salary: { min: "", max: "" },
+        description: "",
+        requiredSkills: [],
+        preferredSkills: [],
+        hasAssignment: false,
+        assignment: {
+          description: "",
+          deadline: "",
+          file: new File([], ""), // Reset file input
+          submissionPreferences: [],
+        },
+        applicationDeadline: "",
+        duration: "1",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Clear file input manually
+      }
+      setPreferredSkills([]);
+      setRequiredSkills([]);
+      setFileError(undefined); // Clear any file error
+      navigate("/manage-jobs");
+      toast.success("Job added successfully!");
+    } catch (e) {
+      toast.error("Something went wrong");
+      console.log("Error", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New handler for Save as Draft
+  const handleSaveDraft = async () => {
+    setLoading(true);
+    // Trigger form validation for all fields
+    const isFormValid = await trigger();
+
+    // Validate assignment fields only if assignment is enabled
+    let fileValidationError: string | undefined;
+    if (watch("hasAssignment")) {
+      const file = fileInputRef.current?.files?.[0];
+      if (!file) {
+        fileValidationError = "Assignment file is required";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        fileValidationError = "Only PDF files are allowed";
+        setFileError(fileValidationError);
+        setLoading(false);
+        return;
+      }
+      setFileError(undefined);
+    }
+
+    if (isFormValid && !fileValidationError) {
+      // If validations pass, prepare the submission data
+      const formData = watch(); // Get current form values
+      const file = fileInputRef.current?.files?.[0];
+      const submissionData = {
+        ...formData,
+        assignment: formData.hasAssignment
+          ? {
+              ...formData.assignment,
+              file,
+            }
+          : undefined,
+      };
+
+      // Call saveDraft with the validated data
+      saveDraft(submissionData);
+    }
+    setLoading(false);
+  };
+
+  const saveDraft = async (submissionData: JobFormData) => {
+    // Your saveDraft logic here
+    console.log("Saving draft with data:", submissionData);
+    try {
+      setDraftLoading(true);
+      try {
+        const idToken = localStorage.getItem(token);
+        if (!idToken) {
+          toast.error("Seems like you are not logged in");
+          setTimeout(() => {
+            navigate("/sign-in");
+          }, 2000);
+          return;
+        }
+        console.log("adding");
+        //for companyId
+        const response = await axios.get(`${host}/company`, {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        const companyId = response.data.id;
+        console.log(response.data.id);
+        //create job
+        const job = await axios.post(
+          `${host}/company/${response.data.id}/job`,
+          {
+            title: submissionData.title,
+            description: submissionData.description,
+            type: submissionData.type,
+            city:
+              submissionData.location == "Remote"
+                ? ""
+                : submissionData.city || "",
+            min_salary: +submissionData!.salary!.min,
+            max_salary: +submissionData!.salary!.max,
+            // CHANGE: Added stipend field for internships to API payload
+            stipend:
+              submissionData.type === "internship"
+                ? `${submissionData!.salary!.min}-${
+                    submissionData!.salary!.max
+                  }`
+                : undefined,
+            status: "draft",
+            duration:
+              submissionData.type == "internship"
+                ? +submissionData.duration! || 0
+                : 0,
+            deadline: moment(submissionData.applicationDeadline, "YYYY-MM-DD")
+              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+              .toISOString(),
+            work_mode: submissionData.location,
+          },
+          {
+            headers: {
+              Authorization: idToken, // Use ID token for authorization
+            },
+          }
+        );
+        const jobId = job.data.id;
+        console.log("Job", job.data);
+
+        //create skills
+        const skillPromises: Promise<any>[] = [];
+        // Preferred skills
+        submissionData.preferredSkills.forEach((skill) => {
+          skillPromises.push(
+            axios.post(
+              `${host}/company/${companyId}/job/${jobId}/skills`,
+              {
+                skill,
+                type: "preferred",
+              },
+              {
+                headers: {
+                  Authorization: idToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+          );
+        });
+
+        // Required skills
+        submissionData.requiredSkills.forEach((skill) => {
+          skillPromises.push(
+            axios.post(
+              `${host}/company/${companyId}/job/${jobId}/skills`,
+              {
+                skill,
+                type: "required",
+              },
+              {
+                headers: {
+                  Authorization: idToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+          );
+        });
+
+        // Wait for all skills to be added
+        const skillResponses = await Promise.all(skillPromises);
+        console.log(
+          "Skills Added:",
+          skillResponses.map((res) => res.data)
+        );
+
+        // Handle assignment only if enabled
+        if (submissionData.hasAssignment && submissionData.assignment) {
+          const fileType =
+            submissionData.assignment.submissionPreferences.includes(
+              "documentation"
+            )
+              ? "file"
+              : "project";
+
+          //create assignment
+          const formData = new FormData();
+          formData.append("description", submissionData.assignment.description);
+          formData.append("submissionType", fileType);
+          formData.append(
+            "deadline",
+            moment(submissionData.assignment.deadline, "YYYY-MM-DD")
+              .set({ hour: 23, minute: 59, second: 59, millisecond: 0 })
+              .toISOString()
+          );
+          formData.append(
+            "githubRepo",
+            `${submissionData.assignment.submissionPreferences.includes(
+              "github"
+            )}`
+          );
+          formData.append(
+            "liveLink",
+            `${submissionData.assignment.submissionPreferences.includes(
+              "liveLink"
+            )}`
+          );
+          formData.append(
+            "documentation",
+            `${submissionData.assignment.submissionPreferences.includes(
+              "documentation"
+            )}`
+          );
+
+          // Append file if it exists
+          if (submissionData.assignment.file) {
+            formData.append("file", submissionData.assignment.file);
+          }
+
+          const assign = await axios.post(
+            `${host}/company/${response.data.id}/job/${job.data.id}/assignment`,
+            formData,
+            {
+              headers: {
+                Authorization: idToken,
+                // Note: Content-Type is automatically set to multipart/form-data by axios when using FormData
+              },
+            }
+          );
+          console.log("Assignment", assign.data);
+        }
 
         // Reset form fields after successful submission
         reset({
@@ -1500,6 +1558,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
           description: "",
           requiredSkills: [],
           preferredSkills: [],
+          hasAssignment: false,
           assignment: {
             description: "",
             deadline: "",
@@ -1529,18 +1588,10 @@ export const PostJob = ({ isPhoneNumber }: any) => {
       console.log("drafting done");
       setDraftLoading(false);
     }
-    // Example: Save to localStorage, send to an API endpoint, etc.
-    // localStorage.setItem("jobDraft", JSON.stringify(data));
-    // Or make an API call:
-    // await fetch("/api/save-draft", { method: "POST", body: JSON.stringify(data) });
   };
 
   const type = watch("type");
 
-  // Log type changes
-  useEffect(() => {
-    console.log("Status value changed:", type);
-  }, [type]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1638,7 +1689,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                       className="w-full"
                     />
                   </div>
-
                   <div className="w-full md:w-2/3 flex flex-row space-x-4">
                     <div className="w-1/2">
                       <label
@@ -1658,7 +1708,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                         className="w-full"
                       />
                     </div>
-
                     {needsCity && (
                       <div className="w-1/2 relative">
                         <label
@@ -1846,7 +1895,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Required Skills (max 5, at least 1)
                 </label>
-
                 <div className="relative flex flex-col sm:flex-row gap-2 w-full">
                   <div className="relative w-full">
                     <input
@@ -1902,7 +1950,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     Add
                   </button>
                 </div>
-
                 <div className="mt-2 flex flex-wrap gap-2">
                   {requiredSkills.map((skill) => (
                     <span
@@ -1920,7 +1967,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     </span>
                   ))}
                 </div>
-
                 <input
                   type="hidden"
                   {...register("requiredSkills", {
@@ -1946,7 +1992,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Preferred Skills (max 5, at least 1)
                 </label>
-
                 <div className="relative flex flex-col sm:flex-row gap-2 w-full">
                   <div className="relative w-full">
                     <input
@@ -2002,7 +2047,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     Add
                   </button>
                 </div>
-
                 <div className="mt-2 flex flex-wrap gap-2">
                   {preferredSkills.map((skill) => (
                     <span
@@ -2020,7 +2064,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     </span>
                   ))}
                 </div>
-
                 <input
                   type="hidden"
                   {...register("preferredSkills", {
@@ -2041,102 +2084,125 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 )}
               </div>
 
-              <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-                <h3 className="text-lg font-medium text-blue-900">
-                  Assignment Details
-                </h3>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label
-                      htmlFor="assignmentDescription"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Assignment Description
-                    </label>
-                    <Textarea
-                      id="assignmentDescription"
-                      rows={4}
-                      placeholder="Describe the assignment task..."
-                      {...register("assignment.description", {
-                        required: "Assignment description is required",
-                      })}
-                      error={errors.assignment?.description?.message}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="assignmentFile"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Attach Assignment File (PDF)
-                    </label>
-                    <Input
-                      id="assignmentFile"
-                      type="file"
-                      accept=".pdf"
-                      ref={fileInputRef}
-                      error={fileError}
-                    />
-                  </div>
-                  {link && (
-                    <a
-                      className="text-sm ml-3 underline text-blue-800"
-                      href={link}
-                    >
-                      Curret assignment
-                    </a>
-                  )}
-                  <div>
-                    <label
-                      htmlFor="assignmentDeadline"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Assignment Deadline
-                    </label>
-                    <Input
-                      id="assignmentDeadline"
-                      type="date"
-                      {...register("assignment.deadline", {
-                        required: "Assignment deadline is required",
-                        validate: validateDeadline, // Add custom validation
-                      })}
-                      error={errors.assignment?.deadline?.message}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Submission Preference (select at least one)
-                    </label>
-                    <div className="space-y-2">
-                      {submissionPreferencesOptions.map((option) => (
-                        <label
-                          key={option.value}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            value={option.value}
-                            {...register("assignment.submissionPreferences", {
-                              validate: (value) =>
-                                value.length > 0 ||
-                                "At least one submission preference is required",
-                            })}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {option.label}
-                          </span>
-                        </label>
-                      ))}
+              {/* Assignment Toggle */}
+              <div className="border-t pt-6 flex sm:block items-center gap-12">
+                <ToggleSwitch
+                  checked={hasAssignment || false}
+                  onChange={handleAssignmentToggle}
+                  label="Include Assignment"
+                  disabled={isEditing}
+                />
+                <span className="text-xs text-gray-500 italic sm:flex hidden">
+                  This can't be changed later
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 italic flex sm:hidden">
+                This can't be changed later
+              </span>
+
+              {/* Assignment Section - Conditionally Rendered */}
+              {hasAssignment && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+                  <h3 className="text-lg font-medium text-blue-900">
+                    Assignment Details
+                  </h3>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <label
+                        htmlFor="assignmentDescription"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Assignment Description
+                      </label>
+                      <Textarea
+                        id="assignmentDescription"
+                        rows={4}
+                        placeholder="Describe the assignment task..."
+                        {...register("assignment.description", {
+                          required:
+                            hasAssignment &&
+                            "Assignment description is required",
+                        })}
+                        error={errors.assignment?.description?.message}
+                      />
                     </div>
-                    {errors.assignment?.submissionPreferences && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.assignment.submissionPreferences.message}
-                      </p>
+                    <div>
+                      <label
+                        htmlFor="assignmentFile"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Attach Assignment File (PDF)
+                      </label>
+                      <Input
+                        id="assignmentFile"
+                        type="file"
+                        accept=".pdf"
+                        ref={fileInputRef}
+                        error={fileError}
+                      />
+                    </div>
+                    {link && (
+                      <a
+                        className="text-sm ml-3 underline text-blue-800"
+                        href={link}
+                      >
+                        Current assignment
+                      </a>
                     )}
+                    <div>
+                      <label
+                        htmlFor="assignmentDeadline"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Assignment Deadline
+                      </label>
+                      <Input
+                        id="assignmentDeadline"
+                        type="date"
+                        {...register("assignment.deadline", {
+                          required:
+                            hasAssignment && "Assignment deadline is required",
+                          validate: validateDeadline, // Add custom validation
+                        })}
+                        error={errors.assignment?.deadline?.message}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Submission Preference (select at least one)
+                      </label>
+                      <div className="space-y-2">
+                        {submissionPreferencesOptions.map((option) => (
+                          <label
+                            key={option.value}
+                            className="flex items-center space-x-2"
+                          >
+                            <input
+                              type="checkbox"
+                              value={option.value}
+                              {...register("assignment.submissionPreferences", {
+                                validate: (value) =>
+                                  !hasAssignment ||
+                                  value.length > 0 ||
+                                  "At least one submission preference is required",
+                              })}
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {errors.assignment?.submissionPreferences && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.assignment.submissionPreferences.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label
@@ -2162,7 +2228,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                     type="button"
                     disabled={loading || isSubmitting || draftLoading}
                     onClick={handleSaveDraft}
-                    className="hover:text-white"
+                    className="hover:text-white bg-transparent"
                   >
                     {draftLoading ? <BlackSpinner /> : "Save as Draft"}
                   </Button>
@@ -2170,7 +2236,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                 {isEditing ? (
                   <Button
                     type="submit"
-                    // onClick={onUpdate}
                     disabled={loading || isSubmitting || draftLoading}
                   >
                     {loading || isSubmitting ? <Spinner /> : "Update job"}
