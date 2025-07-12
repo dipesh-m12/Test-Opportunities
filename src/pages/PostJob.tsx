@@ -36,6 +36,14 @@ const ToggleSwitch = ({
 }) => {
   return (
     <div className="flex items-center space-x-3">
+      <label
+        className={`text-sm font-medium text-gray-700 ${
+          disabled ? "opacity-50" : "cursor-pointer"
+        }`}
+        onClick={() => !disabled && onChange(!checked)}
+      >
+        {label}
+      </label>
       <button
         type="button"
         onClick={() => !disabled && onChange(!checked)}
@@ -53,14 +61,6 @@ const ToggleSwitch = ({
           `}
         />
       </button>
-      <label
-        className={`text-sm font-medium text-gray-700 ${
-          disabled ? "opacity-50" : "cursor-pointer"
-        }`}
-        onClick={() => !disabled && onChange(!checked)}
-      >
-        {label}
-      </label>
     </div>
   );
 };
@@ -2085,20 +2085,17 @@ export const PostJob = ({ isPhoneNumber }: any) => {
               </div>
 
               {/* Assignment Toggle */}
-              <div className="border-t pt-6 flex sm:block items-center gap-12">
+              <div className="border-t pt-6 sm:pt-3 ">
                 <ToggleSwitch
                   checked={hasAssignment || false}
                   onChange={handleAssignmentToggle}
                   label="Include Assignment"
                   disabled={isEditing}
                 />
-                <span className="text-xs text-gray-500 italic sm:flex hidden">
+                <span className="text-xs text-gray-500 italic sm:flex">
                   This can't be changed later
                 </span>
               </div>
-              <span className="text-xs text-gray-500 italic flex sm:hidden">
-                This can't be changed later
-              </span>
 
               {/* Assignment Section - Conditionally Rendered */}
               {hasAssignment && (
