@@ -35,31 +35,61 @@ const ToggleSwitch = ({
   disabled?: boolean;
 }) => {
   return (
-    <div className="flex items-center space-x-3">
-      <label
-        className={`text-sm font-medium text-gray-700 ${
-          disabled ? "opacity-50" : "cursor-pointer"
-        }`}
-        onClick={() => !disabled && onChange(!checked)}
-      >
-        {label}
-      </label>
+    <div className="flex items-center justify-between space-x-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200">
+      <div className="flex flex-col">
+        <label
+          className={`text-sm font-semibold text-gray-800 ${
+            disabled ? "opacity-50" : "cursor-pointer"
+          }`}
+          onClick={() => !disabled && onChange(!checked)}
+        >
+          {label}
+        </label>
+        <p className="text-xs text-gray-500 mt-1">
+          {checked 
+            ? "Assignment is required for this job position" 
+            : "Toggle to add an assignment for candidates to complete"
+          }
+        </p>
+        {!checked && (
+          <p className="text-xs text-red-500 mt-1">
+            Note: This can't be changed later
+          </p>
+        )}
+      </div>
       <button
         type="button"
         onClick={() => !disabled && onChange(!checked)}
         disabled={disabled}
         className={`
-          relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-          ${checked ? "bg-blue-600" : "bg-gray-200"}
-          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+          relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-offset-2 shadow-lg hover:scale-105
+          ${checked 
+            ? "bg-gradient-to-r from-blue-500 to-blue-600 focus:ring-blue-300" 
+            : "bg-gradient-to-r from-gray-300 to-gray-400 focus:ring-gray-300"
+          }
+          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-xl"}
         `}
       >
         <span
           className={`
-            inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out
-            ${checked ? "translate-x-6" : "translate-x-1"}
+            inline-block h-6 w-6 transform rounded-full bg-white transition-all duration-300 ease-in-out shadow-md
+            ${checked ? "translate-x-7" : "translate-x-1"}
+            ${checked ? "shadow-blue-200" : "shadow-gray-200"}
           `}
-        />
+        >
+          {/* Icon inside the toggle */}
+          <div className="flex items-center justify-center h-full w-full">
+            {checked ? (
+              <svg className="h-3 w-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="h-3 w-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+        </span>
       </button>
     </div>
   );
@@ -2092,9 +2122,6 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   label="Include Assignment"
                   disabled={isEditing}
                 />
-                <span className="text-xs text-gray-500 italic sm:flex">
-                  This can't be changed later
-                </span>
               </div>
 
               {/* Assignment Section - Conditionally Rendered */}
