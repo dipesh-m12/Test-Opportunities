@@ -186,6 +186,7 @@ export const Candidates = () => {
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [jobHasAssignments, setJobHasAssignments] = useState<boolean>(false);
 
   const [selectedFilters, setSelectedFilters] = useState<string[]>([
     "fit-high-to-low",
@@ -268,6 +269,10 @@ export const Candidates = () => {
       console.log(response.data);
       const jobData = response.data[0]?.application.job;
       if (jobData) {
+        // Check if job has assignments
+        const hasAssignments = Array.isArray(jobData.assignments) && jobData.assignments.length > 0;
+        setJobHasAssignments(hasAssignments);
+        
         setJob({
           id: jobData.id,
           title: jobData.title,
@@ -289,11 +294,12 @@ export const Candidates = () => {
 
       const candidateResults = await Promise.allSettled(
         response.data.map(async (e: any) => {
-          const skillsRes = await axios.get(
-            `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
-            { headers: { Authorization: idToken } }
-          );
-          console.log(skillsRes.data);
+          try {
+            const skillsRes = await axios.get(
+              `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}`,
+              { headers: { Authorization: idToken } }
+            );
+            console.log(skillsRes.data);
           // Initialize docFile as empty string
           let docFile = "";
           // Only fetch file if assignment_file and its id exist
@@ -389,7 +395,7 @@ export const Candidates = () => {
                 e.application.assignment_file?.created_at ||
                 new Date().toISOString(),
               deadline:
-                jobData.assignments[0]?.deadline || "2025-05-27T18:29:59",
+                (jobData.assignments && jobData.assignments[0]?.deadline) || "2025-05-27T18:29:59",
               score: e.application.overall_score || 0,
               liveLink: e.application.assignment_file?.live_link_url,
               documentation: docFile,
@@ -507,6 +513,10 @@ export const Candidates = () => {
               }))
               .filter((project: any) => project.name),
           } as Candidate;
+          } catch (error) {
+            console.error("Error processing candidate", e.application.id, error);
+            return null; // Return null for failed candidates, they will be filtered out
+          }
         })
       );
       // Filter only successful fetches with valid data
@@ -553,6 +563,16 @@ export const Candidates = () => {
         ).toFixed(1)}`,
       };
     }
+  };
+
+  // Helper function to ensure URLs have proper protocol
+  const ensureHttpProtocol = (url: string): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Default to https if no protocol is specified
+    return `https://${url}`;
   };
 
   useEffect(() => {
@@ -1357,116 +1377,118 @@ export const Candidates = () => {
                                 )}
                               </div>
 
-                              <div className="lg:w-60 space-y-3">
-                                <div className="rounded-lg bg-gray-50 p-3">
-                                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">
-                                    Assignment Status
-                                  </h4>
-                                  <div className="mt-2 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs text-gray-600">
-                                        Status
-                                      </span>
-                                      <Badge
-                                        variant={
-                                          candidate.assignmentStatus.submitted
-                                            ? "success"
-                                            : "warning"
-                                        }
-                                        className="text-xs"
-                                      >
-                                        {candidate.assignmentStatus.submitted
-                                          ? "Submitted"
-                                          : "Pending"}
-                                      </Badge>
-                                    </div>
-                                    {candidate.assignmentStatus.submitted && (
-                                      <>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs text-gray-600">
-                                            Submitted
-                                          </span>
-                                          <span className="text-xs font-medium">
-                                            {new Date(
-                                              candidate.assignmentStatus.submittedAt
-                                            ).toLocaleDateString()}
-                                          </span>
-                                        </div>
-                                        {candidate.assignmentStatus
-                                          .githubRepo && (
+                              {jobHasAssignments && (
+                                <div className="lg:w-60 space-y-3">
+                                  <div className="rounded-lg bg-gray-50 p-3">
+                                    <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      Assignment Status
+                                    </h4>
+                                    <div className="mt-2 space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">
+                                          Status
+                                        </span>
+                                        <Badge
+                                          variant={
+                                            candidate.assignmentStatus.submitted
+                                              ? "success"
+                                              : "warning"
+                                          }
+                                          className="text-xs"
+                                        >
+                                          {candidate.assignmentStatus.submitted
+                                            ? "Submitted"
+                                            : "Pending"}
+                                        </Badge>
+                                      </div>
+                                      {candidate.assignmentStatus.submitted && (
+                                        <>
                                           <div className="flex items-center justify-between">
                                             <span className="text-xs text-gray-600">
-                                              GitHub
+                                              Submitted
                                             </span>
-                                            <a
-                                              href={
-                                                candidate.assignmentStatus
-                                                  .githubRepo as string
-                                              }
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-xs text-blue-600 hover:underline"
-                                              aria-label="View assignment GitHub repository"
-                                            >
-                                              View
-                                            </a>
-                                          </div>
-                                        )}
-                                        {candidate.assignmentStatus
-                                          .liveLink && (
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-600">
-                                              Live
+                                            <span className="text-xs font-medium">
+                                              {new Date(
+                                                candidate.assignmentStatus.submittedAt
+                                              ).toLocaleDateString()}
                                             </span>
-                                            <a
-                                              href={
-                                                candidate.assignmentStatus
-                                                  .liveLink
-                                              }
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-xs text-blue-600 hover:underline"
-                                              aria-label="View assignment live demo"
-                                            >
-                                              View
-                                            </a>
                                           </div>
-                                        )}
-                                        {candidate.assignmentStatus
-                                          .documentation && (
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-600">
-                                              Documentation
-                                            </span>
-                                            <a
-                                              href={
-                                                candidate.assignmentStatus
-                                                  .documentation
-                                              }
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-xs text-blue-600 hover:underline"
-                                              aria-label="View assignment documentation"
-                                            >
-                                              View
-                                            </a>
-                                          </div>
-                                        )}
-                                      </>
-                                    )}
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs text-gray-600">
-                                        Deadline
-                                      </span>
-                                      <span className="text-xs font-medium">
-                                        {new Date(
-                                          candidate.assignmentStatus.deadline
-                                        ).toLocaleDateString()}
-                                      </span>
+                                          {candidate.assignmentStatus
+                                            .githubRepo && (
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-xs text-gray-600">
+                                                GitHub
+                                              </span>
+                                              <a
+                                                href={ensureHttpProtocol(
+                                                  candidate.assignmentStatus
+                                                    .githubRepo as string
+                                                )}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-600 hover:underline"
+                                                aria-label="View assignment GitHub repository"
+                                              >
+                                                View
+                                              </a>
+                                            </div>
+                                          )}
+                                          {candidate.assignmentStatus
+                                            .liveLink && (
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-xs text-gray-600">
+                                                Live
+                                              </span>
+                                              <a
+                                                href={ensureHttpProtocol(
+                                                  candidate.assignmentStatus
+                                                    .liveLink
+                                                )}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-600 hover:underline"
+                                                aria-label="View assignment live demo"
+                                              >
+                                                View
+                                              </a>
+                                            </div>
+                                          )}
+                                          {candidate.assignmentStatus
+                                            .documentation && (
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-xs text-gray-600">
+                                                Documentation
+                                              </span>
+                                              <a
+                                                href={ensureHttpProtocol(
+                                                  candidate.assignmentStatus
+                                                    .documentation
+                                                )}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-600 hover:underline"
+                                                aria-label="View assignment documentation"
+                                              >
+                                                View
+                                              </a>
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">
+                                          Deadline
+                                        </span>
+                                        <span className="text-xs font-medium">
+                                          {new Date(
+                                            candidate.assignmentStatus.deadline
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
                             <div className="space-y-3">
                               <h4 className="text-base sm:text-lg font-medium text-gray-900">
