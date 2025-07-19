@@ -2246,7 +2246,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
               </div>
 
               <div className="flex justify-end space-x-4">
-                {!isEditing && (
+                {/* {!isEditing && (
                   <Button
                     variant="outline"
                     type="button"
@@ -2256,7 +2256,7 @@ export const PostJob = ({ isPhoneNumber }: any) => {
                   >
                     {draftLoading ? <BlackSpinner /> : "Save as Draft"}
                   </Button>
-                )}
+                )} */}
                 {isEditing ? (
                   <Button
                     type="submit"
