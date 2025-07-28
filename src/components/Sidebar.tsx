@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   LogOut,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { token } from "@/utils";
@@ -19,6 +20,7 @@ const navItems = [
   { icon: PlusCircle, label: "Post a Job", path: "/post-job" },
   { icon: Briefcase, label: "Manage Jobs", path: "/manage-jobs" },
   { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: Database, label: "Candidate Database", path: "/candidate-databases" },
   { icon: LogOut, label: "Logout", path: "/sign-in" },
 ];
 

@@ -270,9 +270,10 @@ export const Candidates = () => {
       const jobData = response.data[0]?.application.job;
       if (jobData) {
         // Check if job has assignments
-        const hasAssignments = Array.isArray(jobData.assignments) && jobData.assignments.length > 0;
+        const hasAssignments =
+          Array.isArray(jobData.assignments) && jobData.assignments.length > 0;
         setJobHasAssignments(hasAssignments);
-        
+
         setJob({
           id: jobData.id,
           title: jobData.title,
@@ -300,221 +301,230 @@ export const Candidates = () => {
               { headers: { Authorization: idToken } }
             );
             console.log(skillsRes.data);
-          // Initialize docFile as empty string
-          let docFile = "";
-          // Only fetch file if assignment_file and its id exist
-          if (e.application.assignment_file?.id) {
-            try {
-              const fileres = await axios.get(
-                `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}/files/${e.application.assignment_file.id}`,
-                { headers: { Authorization: idToken } }
-              );
-              docFile = fileres.data?.download_url || "";
-              console.log("File", docFile);
-            } catch (fileError) {
-              console.error(
-                "Error fetching file for application",
-                e.application.id,
-                fileError
-              );
-              docFile = ""; // Fallback to empty string if file fetch fails
+            // Initialize docFile as empty string
+            let docFile = "";
+            // Only fetch file if assignment_file and its id exist
+            if (e.application.assignment_file?.id) {
+              try {
+                const fileres = await axios.get(
+                  `${host}/company/${companyRes.data.id}/job/${jobId}/application/${e.application.id}/files/${e.application.assignment_file.id}`,
+                  { headers: { Authorization: idToken } }
+                );
+                docFile = fileres.data?.download_url || "";
+                console.log("File", docFile);
+              } catch (fileError) {
+                console.error(
+                  "Error fetching file for application",
+                  e.application.id,
+                  fileError
+                );
+                docFile = ""; // Fallback to empty string if file fetch fails
+              }
             }
-          }
-          const projects = (
-            (e.application.applicant.projects || []) as Project[]
-          ).filter(
-            (project: Project) =>
-              (project.highlights || []).length != 0 &&
-              (project.tags || []).length != 0
-          );
-          const codeQuality =
-            projects.length > 0
-              ? projects.reduce(
-                  (sum: any, p: any) => sum + (p?.score || 0),
-                  0
-                ) / projects.length
+            const projects = (
+              (e.application.applicant.projects || []) as Project[]
+            ).filter(
+              (project: Project) =>
+                (project.highlights || []).length != 0 &&
+                (project.tags || []).length != 0
+            );
+            const codeQuality =
+              projects.length > 0
+                ? projects.reduce(
+                    (sum: any, p: any) => sum + (p?.score || 0),
+                    0
+                  ) / projects.length
+                : 0;
+
+            const jobRequiredSkills = jobData.job_skills.filter(
+              (s: any) => s.type === "required"
+            );
+            const jobPreferredSkills = jobData.job_skills.filter(
+              (s: any) => s.type === "preferred"
+            );
+
+            const matchedRequired = (
+              skillsRes.data.application.enhanced_skills || []
+            ).filter(
+              (s: any) =>
+                s.type === "required" &&
+                (s.is_matched || s.github_project_skill)
+            ).length;
+
+            const matchedPreferred = (
+              skillsRes.data.application.enhanced_skills || []
+            ).filter(
+              (s: any) =>
+                s.type === "preferred" &&
+                (s.is_matched || s.github_project_skill)
+            ).length;
+
+            const matchedRequiredRatio = jobRequiredSkills.length
+              ? matchedRequired / jobRequiredSkills.length
               : 0;
 
-          const jobRequiredSkills = jobData.job_skills.filter(
-            (s: any) => s.type === "required"
-          );
-          const jobPreferredSkills = jobData.job_skills.filter(
-            (s: any) => s.type === "preferred"
-          );
-
-          const matchedRequired = (
-            skillsRes.data.application.enhanced_skills || []
-          ).filter(
-            (s: any) =>
-              s.type === "required" && (s.is_matched || s.github_project_skill)
-          ).length;
-
-          const matchedPreferred = (
-            skillsRes.data.application.enhanced_skills || []
-          ).filter(
-            (s: any) =>
-              s.type === "preferred" && (s.is_matched || s.github_project_skill)
-          ).length;
-
-          const matchedRequiredRatio = jobRequiredSkills.length
-            ? matchedRequired / jobRequiredSkills.length
-            : 0;
-
-          const matchedPreferredRatio = jobPreferredSkills.length
-            ? matchedPreferred / jobPreferredSkills.length
-            : 0;
-          const overallGithubScore =
-            (0.6 * codeQuality +
-              0.4 *
-                (0.7 * matchedRequiredRatio * 100 +
-                  0.3 * matchedPreferredRatio * 100)) /
-            10;
-          console.log("hereer", e.user.designation, e.user.graduation_year);
-          return {
-            id: e.application.id,
-            name: `${e.user.first_name || "Unknown"} ${
-              e.user.last_name || ""
-            }`.trim(),
-            avatar: e.user.avatar || avatar,
-            email: e.application.applicant.user.email,
-            phoneNumber: e.user.phone_number,
-            githubUsername: e.application.applicant.github_username,
-            portfolioUrl: e.user.portfolio_link,
-            applyingFor: jobData.title,
-            overall_score: e.application.overall_score || 0,
-            status: e.application.status.toLowerCase() as CandidateStatusValue,
-            graduation_year: e.user.graduation_year,
-            degree: e.user.degree,
-            createdAt: e.application.created_at || new Date().toISOString(),
-            assignmentStatus: {
-              submitted:
-                !!e.application.assignment_file?.github_repo_url ||
-                !!e.application.assignment_file?.live_link_url ||
-                !!docFile,
-              submittedAt:
-                e.application.assignment_file?.created_at ||
-                new Date().toISOString(),
-              deadline:
-                (jobData.assignments && jobData.assignments[0]?.deadline) || "2025-05-27T18:29:59",
-              score: e.application.overall_score || 0,
-              liveLink: e.application.assignment_file?.live_link_url,
-              documentation: docFile,
-              githubRepo: e.application.assignment_file?.github_repo_url,
-            },
-            skills: {
-              preferred: (skillsRes.data.application.enhanced_skills || [])
-                .filter((e: any) => e.type === "preferred")
-                .map((e: any) => ({
-                  skill: e.skill,
-                  matched: e.is_matched || e.github_project_skill,
-                })),
-              required: (skillsRes.data.application.enhanced_skills || [])
-                .filter((e: any) => e.type === "required")
-                .map((e: any) => ({
-                  skill: e.skill,
-                  matched: e.is_matched || e.github_project_skill,
-                })),
-              languages: (e.application.applicant.projects || []).reduce(
-                (acc: string[], project: any) =>
-                  acc.concat(
-                    project && typeof project === "object"
-                      ? project.Programming_languages || []
-                      : []
-                  ),
+            const matchedPreferredRatio = jobPreferredSkills.length
+              ? matchedPreferred / jobPreferredSkills.length
+              : 0;
+            const overallGithubScore =
+              (0.6 * codeQuality +
+                0.4 *
+                  (0.7 * matchedRequiredRatio * 100 +
+                    0.3 * matchedPreferredRatio * 100)) /
+              10;
+            console.log("hereer", e.user.designation, e.user.graduation_year);
+            return {
+              id: e.application.id,
+              name: `${e.user.first_name || "Unknown"} ${
+                e.user.last_name || ""
+              }`.trim(),
+              avatar: e.user.avatar || avatar,
+              email: e.application.applicant.user.email,
+              phoneNumber: e.user.phone_number,
+              githubUsername: e.application.applicant.github_username,
+              portfolioUrl: e.user.portfolio_link,
+              applyingFor: jobData.title,
+              overall_score: e.application.overall_score || 0,
+              status:
+                e.application.status.toLowerCase() as CandidateStatusValue,
+              graduation_year: e.user.graduation_year,
+              degree: e.user.degree,
+              createdAt: e.application.created_at || new Date().toISOString(),
+              assignmentStatus: {
+                submitted:
+                  !!e.application.assignment_file?.github_repo_url ||
+                  !!e.application.assignment_file?.live_link_url ||
+                  !!docFile,
+                submittedAt:
+                  e.application.assignment_file?.created_at ||
+                  new Date().toISOString(),
+                deadline:
+                  (jobData.assignments && jobData.assignments[0]?.deadline) ||
+                  "2025-05-27T18:29:59",
+                score: e.application.overall_score || 0,
+                liveLink: e.application.assignment_file?.live_link_url,
+                documentation: docFile,
+                githubRepo: e.application.assignment_file?.github_repo_url,
+              },
+              skills: {
+                preferred: (skillsRes.data.application.enhanced_skills || [])
+                  .filter((e: any) => e.type === "preferred")
+                  .map((e: any) => ({
+                    skill: e.skill,
+                    matched: e.is_matched || e.github_project_skill,
+                  })),
+                required: (skillsRes.data.application.enhanced_skills || [])
+                  .filter((e: any) => e.type === "required")
+                  .map((e: any) => ({
+                    skill: e.skill,
+                    matched: e.is_matched || e.github_project_skill,
+                  })),
+                languages: (e.application.applicant.projects || []).reduce(
+                  (acc: string[], project: any) =>
+                    acc.concat(
+                      project && typeof project === "object"
+                        ? project.Programming_languages || []
+                        : []
+                    ),
+                  []
+                ),
+                frameworks: (e.application.applicant.projects || []).reduce(
+                  (acc: string[], project: any) =>
+                    acc.concat(
+                      project && typeof project === "object"
+                        ? project.framework || []
+                        : []
+                    ),
+                  []
+                ),
+                databases: (e.application.applicant.projects || []).reduce(
+                  (acc: string[], project: any) =>
+                    acc.concat(
+                      project && typeof project === "object"
+                        ? project.database || []
+                        : []
+                    ),
+                  []
+                ),
+                tools: (e.application.applicant.projects || []).reduce(
+                  (acc: string[], project: any) =>
+                    acc.concat(
+                      project && typeof project === "object"
+                        ? project.tools || []
+                        : []
+                    ),
+                  []
+                ),
+              },
+              githubStats: {
+                commits: (e.application.applicant.projects || []).reduce(
+                  (sum: number, project: any) =>
+                    sum +
+                    (project && typeof project === "object"
+                      ? project.commit_count || 0
+                      : 0),
+                  0
+                ),
+                contributions: (e.application.applicant.projects || []).reduce(
+                  (sum: number, project: any) =>
+                    sum +
+                    (project && typeof project === "object"
+                      ? project.contribution_days || 0
+                      : 0),
+                  0
+                ),
+                codeQuality: codeQuality,
+                // e.application.applicant.projects?.length > 0
+                //   ? (e.application.applicant.projects || []).reduce(
+                //       (sum: number, project: any) =>
+                //         sum +
+                //         (project && typeof project === "object"
+                //           ? project.score || 0
+                //           : 0),
+                //       0
+                //     ) /
+                //     (e.application.applicant.projects.length == 0
+                //       ? 1
+                //       : e.application.applicant.projects.length)
+                //   : 0,
+                overall_score: overallGithubScore,
+              },
+              projects: (
+                (skillsRes.data.application.applicant.projects as Project[]) ||
                 []
-              ),
-              frameworks: (e.application.applicant.projects || []).reduce(
-                (acc: string[], project: any) =>
-                  acc.concat(
-                    project && typeof project === "object"
-                      ? project.framework || []
-                      : []
-                  ),
-                []
-              ),
-              databases: (e.application.applicant.projects || []).reduce(
-                (acc: string[], project: any) =>
-                  acc.concat(
-                    project && typeof project === "object"
-                      ? project.database || []
-                      : []
-                  ),
-                []
-              ),
-              tools: (e.application.applicant.projects || []).reduce(
-                (acc: string[], project: any) =>
-                  acc.concat(
-                    project && typeof project === "object"
-                      ? project.tools || []
-                      : []
-                  ),
-                []
-              ),
-            },
-            githubStats: {
-              commits: (e.application.applicant.projects || []).reduce(
-                (sum: number, project: any) =>
-                  sum +
-                  (project && typeof project === "object"
-                    ? project.commit_count || 0
-                    : 0),
-                0
-              ),
-              contributions: (e.application.applicant.projects || []).reduce(
-                (sum: number, project: any) =>
-                  sum +
-                  (project && typeof project === "object"
-                    ? project.contribution_days || 0
-                    : 0),
-                0
-              ),
-              codeQuality: codeQuality,
-              // e.application.applicant.projects?.length > 0
-              //   ? (e.application.applicant.projects || []).reduce(
-              //       (sum: number, project: any) =>
-              //         sum +
-              //         (project && typeof project === "object"
-              //           ? project.score || 0
-              //           : 0),
-              //       0
-              //     ) /
-              //     (e.application.applicant.projects.length == 0
-              //       ? 1
-              //       : e.application.applicant.projects.length)
-              //   : 0,
-              overall_score: overallGithubScore,
-            },
-            projects: (
-              (skillsRes.data.application.applicant.projects as Project[]) || []
-            )
-              .filter(
-                (project: Project) =>
-                  (project.highlights || []).length != 0 &&
-                  (project.tags || []).length != 0
               )
-              .map((project: any) => ({
-                name: project.title || "",
-                description: project.description || "",
-                repoUrl: project?.social_project?.github_repo_url
-                  ? project.social_project.github_repo_url
-                  : "",
-                liveUrl: project?.social_project?.link || "",
-                technologies: [
-                  ...(project.Programming_languages || []),
-                  ...(project.framework || []),
-                  ...(project.database || []),
-                  ...(project.tools || []),
-                ],
-                tags: project.tags || [],
-                highlights: project.highlights || [],
-                score: project.score || 0,
-                ai_plagiarism_score: project.ai_plagiarism_score || 0,
-                ai_desc: project.ai_desc || ["s", "b", "f"],
-              }))
-              .filter((project: any) => project.name),
-          } as Candidate;
+                .filter(
+                  (project: Project) =>
+                    (project.highlights || []).length != 0 &&
+                    (project.tags || []).length != 0
+                )
+                .map((project: any) => ({
+                  name: project.title || "",
+                  description: project.description || "",
+                  repoUrl: project?.social_project?.github_repo_url
+                    ? project.social_project.github_repo_url
+                    : "",
+                  liveUrl: project?.social_project?.link || "",
+                  technologies: [
+                    ...(project.Programming_languages || []),
+                    ...(project.framework || []),
+                    ...(project.database || []),
+                    ...(project.tools || []),
+                  ],
+                  tags: project.tags || [],
+                  highlights: project.highlights || [],
+                  score: project.score || 0,
+                  ai_plagiarism_score: project.ai_plagiarism_score || 0,
+                  ai_desc: project.ai_desc || ["s", "b", "f"],
+                }))
+                .filter((project: any) => project.name),
+            } as Candidate;
           } catch (error) {
-            console.error("Error processing candidate", e.application.id, error);
+            console.error(
+              "Error processing candidate",
+              e.application.id,
+              error
+            );
             return null; // Return null for failed candidates, they will be filtered out
           }
         })
@@ -567,8 +577,8 @@ export const Candidates = () => {
 
   // Helper function to ensure URLs have proper protocol
   const ensureHttpProtocol = (url: string): string => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
     // Default to https if no protocol is specified
@@ -1130,7 +1140,7 @@ export const Candidates = () => {
                               <Select
                                 options={statusOptions}
                                 disabled={statusLoading.includes(candidate.id)}
-                                defaultValue={candidate.status}
+                                value={candidate.status}
                                 onChange={(
                                   e: React.ChangeEvent<HTMLSelectElement>
                                 ) => {

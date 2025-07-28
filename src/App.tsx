@@ -17,6 +17,7 @@ import { host } from "./utils/routes";
 import { query, where, getDocs } from "firebase/firestore";
 import { phoneCollection } from "./utils/firebaseConfig";
 import ForgotPassword from "./pages/ForgotPassword";
+import CandidateDatabase from "./pages/CandidateDatabase";
 
 function App() {
   const [isPostJobEnabled, setIsPostJobEnabled] = useState(false);
@@ -109,6 +110,7 @@ function App() {
               />
             }
           />
+          <Route path="/candidate-databases" element={<CandidateDatabase />} />
           <Route path="/candidates/:jobId" element={<Candidates />} />
           {/* <Route path="/leaderboard" element={<Leaderboard />} /> */}
           <Route
